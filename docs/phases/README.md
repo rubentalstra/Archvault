@@ -4,7 +4,7 @@
 
 | Phase | Title                        | Status      | Dependencies | 
 |-------|------------------------------|-------------|--------------|
-| 1a    | Project Scaffold             | Not Started | —            |
+| 1a    | Project Scaffold             | Complete    | —            |
 | 1b    | Database & Docker            | Not Started | 1a           |
 | 1c    | Authentication               | Not Started | 1b           |
 | 1d    | Platform Admin               | Not Started | 1c           |

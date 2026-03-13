@@ -1,6 +1,6 @@
 # Phase 1a — Project Scaffold
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 Bootstrap the Archvault project with TanStack Start, Tailwind CSS v4, and shadcn/ui.
@@ -9,35 +9,37 @@ Bootstrap the Archvault project with TanStack Start, Tailwind CSS v4, and shadcn
 None — this is the first phase.
 
 ## Tasks
-- [ ] Scaffold project: `pnpm create @tanstack/start archvault` (with Better Auth addon)
-- [ ] Install TanStack libraries: `pnpm add @tanstack/react-form @tanstack/react-table @tanstack/react-virtual @tanstack/react-pacer @tanstack/react-hotkeys`
-- [ ] Install devtools: `pnpm add -D @tanstack/router-devtools @tanstack/query-devtools`
-- [ ] Configure Tailwind CSS v4
-- [ ] Initialize shadcn/ui: `pnpm dlx shadcn@latest init`
-- [ ] Add base shadcn components: Button, Input, Label, Card, Dialog, DropdownMenu, Select, Tabs, Toast, Separator, Badge, Avatar, Sheet, Tooltip
-- [ ] Set up `src/routes/__root.tsx` with TanStack Devtools (Router + Query)
-- [ ] Verify dev server: `pnpm dev` starts without errors
-- [ ] Verify production build: `pnpm build` succeeds
-
-## CLI Commands
-```bash
-pnpm create @tanstack/start archvault
-cd archvault
-pnpm add @tanstack/react-form @tanstack/react-table @tanstack/react-virtual @tanstack/react-pacer @tanstack/react-hotkeys
-pnpm add -D @tanstack/router-devtools @tanstack/query-devtools
-pnpm dlx shadcn@latest init
-pnpm dlx shadcn@latest add button input label card dialog dropdown-menu select tabs toast separator badge avatar sheet tooltip
-```
+- [x] Scaffold project: `pnpm create @tanstack/start archvault` (with Better Auth + Nitro addons)
+- [x] Install TanStack libraries: Form, Table, Virtual, Pacer, Hotkeys
+- [x] Install additional deps: Zod, Zustand, Lucide React
+- [x] Configure Tailwind CSS v4 (via `@tailwindcss/vite`)
+- [x] Initialize shadcn/ui: `pnpm dlx shadcn@latest init`
+- [x] Add base shadcn components: Button, Input, Label, Card, Dialog, DropdownMenu, Select, Tabs, Sonner (toast), Separator, Badge, Avatar, Sheet, Tooltip, Table, Textarea, Checkbox, Switch, AlertDialog, ScrollArea, Popover, Command
+- [x] Set up `src/routes/__root.tsx` with TanStack Devtools (Router), TooltipProvider, Toaster
+- [x] Clean up demo files (removed scaffold boilerplate routes/components)
+- [x] Create landing page (`src/routes/index.tsx`)
+- [x] Upgrade all deps to latest (Vite 8, vitest 4, etc.)
+- [x] Remove `vite-tsconfig-paths` — use native `resolve.tsconfigPaths: true`
+- [x] Fix `@noble/ciphers` version conflict via pnpm override
+- [x] Verify dev server: `pnpm dev` starts without errors
+- [x] Verify production build: `pnpm build` succeeds
 
 ## Key Files
 - `package.json` — all dependencies
-- `app.config.ts` — TanStack Start config
-- `src/routes/__root.tsx` — root layout with providers and devtools
-- `src/styles/globals.css` — Tailwind v4 imports
+- `vite.config.ts` — Vite 8 + TanStack Start + Tailwind + Nitro
+- `tsconfig.json` — TypeScript config with `@/*` and `#/*` path aliases
 - `components.json` — shadcn/ui config
+- `src/routes/__root.tsx` — root layout with providers and devtools
+- `src/routes/index.tsx` — landing page
+- `src/styles.css` — Tailwind v4 + shadcn/ui CSS variables
+- `src/lib/utils.ts` — shadcn/ui utility (cn)
+- `src/lib/auth.ts` — Better Auth server config (scaffold baseline)
+- `src/lib/auth-client.ts` — Better Auth client config (scaffold baseline)
+- `src/routes/api/auth/$.ts` — Better Auth route handler
+- `.cta.json` — TanStack Start project metadata
 
 ## Verification
-- [ ] `pnpm dev` → app loads at http://localhost:3000
-- [ ] `pnpm build` → no errors
-- [ ] All shadcn components importable from `@/components/ui/*`
-- [ ] TanStack Devtools visible in dev mode
+- [x] `pnpm dev` → app loads at http://localhost:3000
+- [x] `pnpm build` → no errors
+- [x] All shadcn components importable from `#/components/ui/*`
+- [x] TanStack Router Devtools visible in dev mode
