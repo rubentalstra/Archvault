@@ -1,6 +1,6 @@
 # Phase 1c — Authentication
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 Integrate Better Auth with all plugins, create auth pages, and protect routes.
@@ -9,21 +9,21 @@ Integrate Better Auth with all plugins, create auth pages, and protect routes.
 - Phase 1b (Database & Docker) — complete
 
 ## Tasks
-- [ ] Install Better Auth: `pnpm add better-auth`
-- [ ] Create `src/lib/auth.ts` — server config with all plugins (admin, organization, twoFactor, emailOTP, haveibeenpwned, lastLoginMethod, tanstackStartCookies)
-- [ ] Create `src/lib/auth-client.ts` — client config with matching plugins
-- [ ] Create `src/lib/auth.server.ts` — `getSession` and `ensureSession` server functions
-- [ ] Create `src/lib/permissions.ts` — platform AC + org AC with all roles (owner, admin, editor, viewer)
-- [ ] Create `src/routes/api/auth/$.ts` — Better Auth route handler
-- [ ] Generate Better Auth tables: `pnpm dlx @better-auth/cli generate` → Drizzle migration
-- [ ] Create `src/routes/_protected.tsx` — auth guard layout with `beforeLoad`
-- [ ] Build sign-up page (`src/routes/signup.tsx`) — email/password + social providers (GitHub, Microsoft, Google)
-- [ ] Build sign-in page (`src/routes/login.tsx`) — email/password + social + Email OTP
-- [ ] Build email verification page (`src/routes/verify-email.tsx`)
-- [ ] Build password reset page (`src/routes/reset-password.tsx`)
-- [ ] Build 2FA setup page (TOTP enrollment)
-- [ ] Build 2FA challenge page (TOTP verification)
-- [ ] All forms use TanStack Form + shadcn/ui
+- [x] Install Better Auth: `pnpm add better-auth`
+- [x] Create `src/lib/auth.ts` — server config with all plugins (admin, organization, twoFactor, emailOTP, haveibeenpwned, lastLoginMethod, tanstackStartCookies)
+- [x] Create `src/lib/auth-client.ts` — client config with matching plugins
+- [x] Create `src/lib/auth.functions.ts` — `getSession` and `ensureSession` server functions
+- [x] Create `src/lib/permissions.ts` — platform AC + org AC with all roles (owner, admin, editor, viewer)
+- [x] Create `src/routes/api/auth/$.ts` — Better Auth route handler
+- [x] Generate Better Auth tables: `pnpm dlx @better-auth/cli generate` → Drizzle migration
+- [x] Create `src/routes/_protected.tsx` — auth guard layout with `beforeLoad`
+- [x] Build sign-up page (`src/routes/signup.tsx`) — email/password + social providers (GitHub, Microsoft, Google)
+- [x] Build sign-in page (`src/routes/login.tsx`) — email/password + social + Email OTP
+- [x] Build email verification page (`src/routes/verify-email.tsx`)
+- [x] Build password reset page (`src/routes/reset-password.tsx`)
+- [x] Build 2FA setup page (TOTP enrollment)
+- [x] Build 2FA challenge page (TOTP verification)
+- [x] All forms use TanStack Form + shadcn/ui
 
 ## CLI Commands
 ```bash
@@ -36,7 +36,7 @@ pnpm drizzle-kit migrate
 ## Key Files
 - `src/lib/auth.ts` — Better Auth server config
 - `src/lib/auth-client.ts` — Better Auth client config
-- `src/lib/auth.server.ts` — session helpers (getSession, ensureSession)
+- `src/lib/auth.functions.ts` — session helpers (getSession, ensureSession)
 - `src/lib/permissions.ts` — RBAC definitions (platform + org)
 - `src/routes/api/auth/$.ts` — auth API route handler
 - `src/routes/_protected.tsx` — auth guard layout
@@ -47,8 +47,8 @@ pnpm drizzle-kit migrate
 - `src/routes/_protected/settings.tsx` — 2FA setup
 
 ## Verification
-- [ ] Sign up with email/password creates user in database
-- [ ] Sign in returns valid session
-- [ ] Protected routes redirect to login when unauthenticated
-- [ ] Social provider buttons render (full OAuth flow depends on provider config)
-- [ ] `pnpm dev` and `pnpm build` succeed
+- [x] Sign up with email/password creates user in database
+- [x] Sign in returns valid session
+- [x] Protected routes redirect to login when unauthenticated
+- [x] Social provider buttons render (full OAuth flow depends on provider config)
+- [x] `pnpm dev` and `pnpm build` succeed

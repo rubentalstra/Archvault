@@ -1,10 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Button } from '#/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "#/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "#/components/ui/card";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: LandingPage,
-})
+});
 
 function LandingPage() {
   return (
@@ -18,13 +24,13 @@ function LandingPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <Button asChild>
-            <a href="/login">Sign In</a>
+            <Link to="/login">Sign In</Link>
           </Button>
           <Button variant="outline" asChild>
-            <a href="/signup">Create Account</a>
+            <Link to="/signup">Create Account</Link>
           </Button>
         </CardContent>
       </Card>
     </main>
-  )
+  );
 }

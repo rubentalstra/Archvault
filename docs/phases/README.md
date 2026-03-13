@@ -6,7 +6,7 @@
 |-------|------------------------------|-------------|--------------|
 | 1a    | Project Scaffold             | Complete    | —            |
 | 1b    | Database & Docker            | Complete    | 1a           |
-| 1c    | Authentication               | Not Started | 1b           |
+| 1c    | Authentication               | Complete    | 1b           |
 | 1d    | Platform Admin               | Not Started | 1c           |
 | 1e    | Organizations & Teams        | Not Started | 1c           |
 | 1f    | Workspaces                   | Not Started | 1e           |
