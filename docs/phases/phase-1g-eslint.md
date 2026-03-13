@@ -4,7 +4,7 @@
 
 ## Goal
 
-Set up a comprehensive ESLint configuration using the modern flat config format (`eslint.config.js`), including
+Set up a comprehensive ESLint configuration using the modern flat config format (`eslint.config.mjs`), including
 TypeScript-aware rules, React-specific linting, and TanStack-specific plugins for Router and Query.
 
 ## Prerequisites
@@ -41,7 +41,7 @@ pnpm add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint
 
 | # | File               | Purpose                      |
 |---|--------------------|------------------------------|
-| 1 | `eslint.config.js` | Flat config with all plugins |
+| 1 | `eslint.config.mjs` | Flat config with all plugins |
 
 ## Files to Modify
 
@@ -54,7 +54,7 @@ pnpm add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint
 
 ## Implementation Steps
 
-### Step 1: Create `eslint.config.js`
+### Step 1: Create `eslint.config.mjs`
 
 Use the modern flat config format (ESLint 9+):
 
@@ -196,7 +196,7 @@ many false positives for the codebase, disable them in the overrides section wit
 
 ## Key Files
 
-- `eslint.config.js` — flat config with all plugins
+- `eslint.config.mjs` — flat config with all plugins
 - `package.json` — lint scripts
 
 ## Verification
