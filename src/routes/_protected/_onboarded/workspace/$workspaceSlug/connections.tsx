@@ -335,7 +335,7 @@ function ConnectionsPage() {
           onOpenChange={(open) => {
             if (!open) setDeleteTarget(null);
           }}
-          relationship={
+          connection={
             deleteTarget
               ? {
                   id: deleteTarget.id,

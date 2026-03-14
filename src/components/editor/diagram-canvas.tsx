@@ -25,7 +25,7 @@ import {
   removeDiagramConnection,
   addDiagramConnection,
 } from "#/lib/diagram.functions";
-import { createConnection } from "#/lib/connection.functions";
+import { createConnection, deleteConnection } from "#/lib/connection.functions";
 import { flowNodeToUpdate } from "#/lib/converters/flow-to-diagram";
 import { EditorToolbar } from "#/components/editor/editor-toolbar";
 import { EditorContextMenu } from "#/components/editor/context-menu";
@@ -74,6 +74,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
   const removeDiagramElementFn = useServerFn(removeDiagramElement);
   const removeDiagramConnectionFn = useServerFn(removeDiagramConnection);
   const createConnectionFn = useServerFn(createConnection);
+  const deleteConnectionFn = useServerFn(deleteConnection);
   const addDiagramConnectionFn = useServerFn(addDiagramConnection);
 
   const onNodeDragStop = useCallback(
@@ -100,10 +101,13 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
           removeDiagramConnectionFn({
             data: { id: edge.data.diagramConnectionId },
           });
+          deleteConnectionFn({
+            data: { id: edge.data.connectionId },
+          });
         }
       }
     },
-    [removeDiagramConnectionFn],
+    [removeDiagramConnectionFn, deleteConnectionFn],
   );
 
   const onSelectionChange: OnSelectionChangeFunc = useCallback(
@@ -118,12 +122,12 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
 
   const isValidConnection: IsValidConnection = useCallback(
     (connection: Connection | { source: string; target: string }) => {
-      // Prevent self-connections
       if (connection.source === connection.target) return false;
-      // Prevent duplicate edges
       const existing = useEditorStore.getState().edges;
       return !existing.some(
-        (e) => e.source === connection.source && e.target === connection.target,
+        (e) =>
+          (e.source === connection.source && e.target === connection.target) ||
+          (e.source === connection.target && e.target === connection.source),
       );
     },
     [],
