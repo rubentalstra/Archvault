@@ -13,7 +13,6 @@ function CurvedEdgeComponent({
   sourcePosition,
   targetPosition,
   data,
-  selected,
   markerEnd,
   markerStart,
   style,
@@ -34,13 +33,7 @@ function CurvedEdgeComponent({
         path={edgePath}
         markerEnd={markerEnd}
         markerStart={markerStart}
-        style={{
-          ...style,
-          stroke: selected
-            ? "hsl(var(--primary))"
-            : "hsl(var(--muted-foreground))",
-          strokeWidth: selected ? 2.5 : 1.5,
-        }}
+        style={style}
       />
       {data && (
         <EdgeLabel
