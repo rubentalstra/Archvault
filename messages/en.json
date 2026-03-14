@@ -749,5 +749,11 @@
   "group_column_description": "Description",
   "group_column_updated": "Updated",
   "group_empty": "No groups yet. Create one to start organizing.",
-  "editor_panel_multi_group": "Add to Group"
+  "editor_panel_multi_group": "Add to Group",
+  "editor_edge_path_curved": "Curved",
+  "editor_edge_path_straight": "Straight",
+  "editor_edge_path_orthogonal": "Orthogonal",
+  "editor_edge_line_solid": "Solid",
+  "editor_edge_line_dashed": "Dashed",
+  "editor_edge_line_dotted": "Dotted"
 }

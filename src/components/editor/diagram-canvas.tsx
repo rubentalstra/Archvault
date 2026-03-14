@@ -18,6 +18,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
 import { nodeTypes } from "#/components/editor/nodes";
+import { edgeTypes } from "#/components/editor/edges";
 import {
   updateDiagramElement,
   removeDiagramElement,
@@ -163,7 +164,8 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
             diagramConnectionId: diagramRel.id,
             connectionId: rel.id,
             description: null,
-            technology: null,
+            technologies: [],
+            iconTechSlug: null,
             direction: "outgoing",
             lineStyle: "solid",
             sourceAnchor: "auto",
@@ -244,6 +246,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       onNodesChange={readOnly ? undefined : onNodesChange}
       onEdgesChange={readOnly ? undefined : onEdgesChange}
       onNodeDragStop={readOnly ? undefined : onNodeDragStop}
@@ -270,7 +273,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
       selectionKeyCode="Shift"
       panActivationKeyCode="Space"
       nodesDraggable={mode === "select" && !readOnly}
-      nodesConnectable={mode === "add_connection" && !readOnly}
+      nodesConnectable={(mode === "select" || mode === "add_connection") && !readOnly}
       elementsSelectable={!readOnly}
       elevateEdgesOnSelect
     >

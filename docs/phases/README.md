@@ -47,7 +47,7 @@ Archvault uses the same terminology as IcePanel:
 | 3a    | Diagram CRUD & Schema          | Complete    | 2a, 2b       |
 | 3b    | Canvas Rendering (React Flow)  | Complete    | 3a           |
 | 3c    | Editor Interactions & Panel    | Complete    | 3b           |
-| 3d    | Canvas Edges & Connections     | Not Started | 3c, 2d       |
+| 3d    | Canvas Edges & Connections     | Complete    | 3c, 2d       |
 | 3e    | Groups on Canvas               | Not Started | 3d, 2e       |
 | 3f    | Autosave, Hotkeys & Undo/Redo  | Not Started | 3d           |
 | 4a    | Flow Schema & CRUD             | Not Started | 3d           |
@@ -147,7 +147,7 @@ graph TD
     style 3a fill: #dcfce7, stroke: #16a34a
     style 3b fill: #dcfce7, stroke: #16a34a
     style 3c fill: #dcfce7, stroke: #16a34a
-    style 3d fill: #fef9c3, stroke: #ca8a04
+    style 3d fill: #dcfce7, stroke: #16a34a
     style 3e fill: #fef9c3, stroke: #ca8a04
     style 3f fill: #fef9c3, stroke: #ca8a04
     style 4a fill: #ffe4e6, stroke: #e11d48

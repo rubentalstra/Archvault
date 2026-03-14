@@ -4,7 +4,7 @@ import {
   applyEdgeChanges,
 } from "@xyflow/react";
 import type { NodeChange, EdgeChange } from "@xyflow/react";
-import type { AppNode, AppEdge, BaseNodeData } from "#/lib/types/diagram-nodes";
+import type { AppNode, AppEdge, BaseNodeData, ConnectionEdgeData } from "#/lib/types/diagram-nodes";
 import type { DiagramType } from "#/lib/diagram.validators";
 import type { ElementType } from "#/lib/element.validators";
 
@@ -54,6 +54,7 @@ interface EditorState {
   removeNodeById: (id: string) => void;
   removeEdgeById: (id: string) => void;
   updateNodeData: (nodeId: string, data: Partial<BaseNodeData>) => void;
+  updateEdgeData: (edgeId: string, data: Partial<ConnectionEdgeData>) => void;
   updateNodeZIndex: (nodeId: string, zIndex: number) => void;
   initDiagram: (params: {
     diagramId: string;
@@ -127,6 +128,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({
       nodes: get().nodes.map((n) =>
         n.id === nodeId ? ({ ...n, data: { ...n.data, ...data } } as AppNode) : n,
+      ),
+    }),
+  updateEdgeData: (edgeId, data) =>
+    set({
+      edges: get().edges.map((e) =>
+        e.id === edgeId ? ({ ...e, data: { ...e.data, ...data } } as AppEdge) : e,
       ),
     }),
   updateNodeZIndex: (nodeId, zIndex) =>

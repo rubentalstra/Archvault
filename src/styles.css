@@ -145,3 +145,14 @@
   --xy-controls-button-color: var(--foreground);
   --xy-controls-button-border-color: var(--border);
 }
+
+/* Connection handles: source + target overlap at each position.
+   Show only the source handle visually; target stays invisible but interactive. */
+.react-flow .react-flow__handle {
+  width: 8px;
+  height: 8px;
+}
+
+.react-flow .react-flow__handle.target {
+  opacity: 0;
+}

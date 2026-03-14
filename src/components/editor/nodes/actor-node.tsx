@@ -9,10 +9,12 @@ import { StatusDot } from "./status-dot";
 function ActorNodeComponent({ data, selected }: NodeProps & { data: ActorNodeData }) {
   return (
     <>
-      <Handle type="target" position={Position.Top} className="!size-2 !border-primary !bg-primary" />
-      <Handle type="source" position={Position.Bottom} className="!size-2 !border-primary !bg-primary" />
-      <Handle type="target" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
-      <Handle type="source" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="bottom-target" type="target" position={Position.Bottom} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="bottom-source" type="source" position={Position.Bottom} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="left-target" type="target" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="left-source" type="source" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="right-target" type="target" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="right-source" type="source" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
 
       {/* Floating person icon badge — actors always show User icon */}
       <div className="absolute -top-5 left-1/2 z-10 -translate-x-1/2">

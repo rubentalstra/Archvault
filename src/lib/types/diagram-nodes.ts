@@ -77,7 +77,7 @@ export type AppEdge = CurvedEdge | StraightEdge | OrthogonalEdge;
 // ── Path type to React Flow edge type mapping ────────────────────────
 
 export const PATH_TYPE_TO_EDGE_TYPE: Record<PathType, string> = {
-  curved: "default",
+  curved: "curved",
   straight: "straight",
-  orthogonal: "step",
+  orthogonal: "orthogonal",
 };

@@ -749,5 +749,11 @@
   "group_column_description": "Beschrijving",
   "group_column_updated": "Bijgewerkt",
   "group_empty": "Nog geen groepen. Maak er een aan om te beginnen.",
-  "editor_panel_multi_group": "Aan groep toevoegen"
+  "editor_panel_multi_group": "Aan groep toevoegen",
+  "editor_edge_path_curved": "Gebogen",
+  "editor_edge_path_straight": "Recht",
+  "editor_edge_path_orthogonal": "Haaks",
+  "editor_edge_line_solid": "Doorlopend",
+  "editor_edge_line_dashed": "Gestreept",
+  "editor_edge_line_dotted": "Gestippeld"
 }

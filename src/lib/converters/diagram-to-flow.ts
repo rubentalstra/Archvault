@@ -6,6 +6,9 @@ import type {ElementStatus} from "#/lib/element.validators";
 import type {ConnectionDirection} from "#/lib/connection.validators";
 import type {LineStyle, AnchorPoint, PathType} from "#/lib/diagram.validators";
 
+// Node types that use NodeResizer and need explicit width/height
+const RESIZABLE_TYPES = new Set(["group"]);
+
 // ── Types for server data ────────────────────────────────────────────
 
 export interface DiagramElementRow {
@@ -88,11 +91,12 @@ export function toFlowNodes(
                 data: {...baseData, isScope: true},
             } as AppNode);
         } else {
+            const nodeType = row.elementType as AppNode["type"];
             nodes.push({
                 id: row.id,
-                type: row.elementType as AppNode["type"],
+                type: nodeType,
                 position: {x: row.x, y: row.y},
-                style: {width: row.width, height: row.height},
+                ...(RESIZABLE_TYPES.has(nodeType) ? {style: {width: row.width, height: row.height}} : {}),
                 zIndex: row.zIndex,
                 data: baseData,
                 ...(parentNodeId ? {parentId: parentNodeId, extent: "parent" as const} : {}),
@@ -163,7 +167,6 @@ export function toFlowEdges(
             source,
             target,
             type: PATH_TYPE_TO_EDGE_TYPE[pathType],
-            label: row.description ?? undefined,
             markerEnd: getMarker(direction, "target"),
             markerStart: getMarker(direction, "source"),
             style: strokeDasharray ? {strokeDasharray} : undefined,

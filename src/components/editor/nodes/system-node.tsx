@@ -10,10 +10,14 @@ import { TechIcon } from "#/components/technologies/tech-icon";
 function SystemNodeComponent({ data, selected }: NodeProps & { data: SystemNodeData }) {
   return (
     <>
-      <Handle type="target" position={Position.Top} className="!size-2 !border-primary !bg-primary" />
-      <Handle type="source" position={Position.Bottom} className="!size-2 !border-primary !bg-primary" />
-      <Handle type="target" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
-      <Handle type="source" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="top-target" type="target" position={Position.Top} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="top-source" type="source" position={Position.Top} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="bottom-target" type="target" position={Position.Bottom} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="bottom-source" type="source" position={Position.Bottom} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="left-target" type="target" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="left-source" type="source" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="right-target" type="target" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
+      <Handle id="right-source" type="source" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
 
       <div
         className={`flex w-56 flex-col items-center gap-1 rounded-xl border-2 bg-card px-5 py-4 text-card-foreground shadow-sm ${

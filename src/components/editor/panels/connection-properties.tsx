@@ -32,14 +32,15 @@ import { ScrollArea } from "#/components/ui/scroll-area";
 import { Slider } from "#/components/ui/slider";
 import { Check, Cpu, Star } from "lucide-react";
 import { m } from "#/paraglide/messages";
+import { PATH_TYPE_TO_EDGE_TYPE } from "#/lib/types/diagram-nodes";
 import type { AppEdge } from "#/lib/types/diagram-nodes";
 import type { ConnectionDirection } from "#/lib/connection.validators";
 import type { PathType, LineStyle } from "#/lib/diagram.validators";
 
 const EDGE_TYPE_TO_PATH_TYPE: Record<string, PathType> = {
-  default: "curved",
+  curved: "curved",
   straight: "straight",
-  step: "orthogonal",
+  orthogonal: "orthogonal",
 };
 
 const DIRECTION_OPTIONS: { value: ConnectionDirection; label: () => string }[] = [
@@ -49,22 +50,25 @@ const DIRECTION_OPTIONS: { value: ConnectionDirection; label: () => string }[] =
   { value: "none", label: () => m.connection_direction_none() },
 ];
 
-const PATH_TYPE_OPTIONS: { value: PathType; label: string }[] = [
-  { value: "curved", label: "Curved" },
-  { value: "straight", label: "Straight" },
-  { value: "orthogonal", label: "Orthogonal" },
+const PATH_TYPE_OPTIONS: { value: PathType; label: () => string }[] = [
+  { value: "curved", label: () => m.editor_edge_path_curved() },
+  { value: "straight", label: () => m.editor_edge_path_straight() },
+  { value: "orthogonal", label: () => m.editor_edge_path_orthogonal() },
 ];
 
-const LINE_STYLE_OPTIONS: { value: LineStyle; label: string }[] = [
-  { value: "solid", label: "Solid" },
-  { value: "dashed", label: "Dashed" },
-  { value: "dotted", label: "Dotted" },
+const LINE_STYLE_OPTIONS: { value: LineStyle; label: () => string }[] = [
+  { value: "solid", label: () => m.editor_edge_line_solid() },
+  { value: "dashed", label: () => m.editor_edge_line_dashed() },
+  { value: "dotted", label: () => m.editor_edge_line_dotted() },
 ];
 
 export function ConnectionProperties({ edge }: { edge: AppEdge }) {
   const nodes = useEditorStore((s) => s.nodes);
+  const edges = useEditorStore((s) => s.edges);
   const workspaceId = useEditorStore((s) => s.workspaceId);
   const setSelection = useEditorStore((s) => s.setSelection);
+  const setEdges = useEditorStore((s) => s.setEdges);
+  const updateEdgeData = useEditorStore((s) => s.updateEdgeData);
   const queryClient = useQueryClient();
 
   const updateConnectionFn = useServerFn(updateConnection);
@@ -106,11 +110,14 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
         await updateConnectionFn({
           data: { id: edgeData.connectionId, [field]: value },
         });
+        if (field === "direction" || field === "description") {
+          updateEdgeData(edge.id, { [field]: value } as Record<string, unknown>);
+        }
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [edgeData.connectionId, updateConnectionFn],
+    [edgeData.connectionId, updateConnectionFn, updateEdgeData, edge.id],
   );
 
   const saveDiagramConnection = useCallback(
@@ -119,11 +126,21 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
         await updateDiagramConnectionFn({
           data: { id: edgeData.diagramConnectionId, [field]: value },
         });
+        if (field === "lineStyle" || field === "labelPosition") {
+          updateEdgeData(edge.id, { [field]: value } as Record<string, unknown>);
+        } else if (field === "pathType") {
+          const newType = PATH_TYPE_TO_EDGE_TYPE[value as PathType];
+          setEdges(
+            edges.map((e) =>
+              e.id === edge.id ? { ...e, type: newType } as AppEdge : e,
+            ),
+          );
+        }
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [edgeData.diagramConnectionId, updateDiagramConnectionFn],
+    [edgeData.diagramConnectionId, updateDiagramConnectionFn, updateEdgeData, setEdges, edges, edge.id],
   );
 
   const handleToggleTech = useCallback(
@@ -313,7 +330,7 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
           <SelectContent>
             {PATH_TYPE_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
+                {opt.label()}
               </SelectItem>
             ))}
           </SelectContent>
@@ -332,7 +349,7 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
           <SelectContent>
             {LINE_STYLE_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
+                {opt.label()}
               </SelectItem>
             ))}
           </SelectContent>

@@ -89,7 +89,7 @@ export function useAddElement() {
           id: diagramElement.id,
           type: addElementType,
           position: { x: flowPos.x, y: flowPos.y },
-          style: { width: size.width, height: size.height },
+          ...(addElementType === "group" ? { style: { width: size.width, height: size.height } } : {}),
           zIndex: 0,
           data: {
             elementId: newElement.id,
@@ -99,8 +99,10 @@ export function useAddElement() {
             status: newElement.status,
             external: newElement.external,
             technologies: [],
+            iconTechSlug: null,
+            ...(addElementType === "group" ? { isScope: false } : {}),
           },
-        } as AppNode;
+        } as unknown as AppNode;
 
         addNode(newNode);
         setMode("select");

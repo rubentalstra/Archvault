@@ -220,7 +220,7 @@ function NodeContextMenuItems({
         id: diagramElement.id,
         type: node.type,
         position: { x: node.position.x + 30, y: node.position.y + 30 },
-        style: { width: Number(node.style?.width ?? size.width), height: Number(node.style?.height ?? size.height) },
+        ...(node.type === "group" ? { style: { width: Number(node.style?.width ?? size.width), height: Number(node.style?.height ?? size.height) } } : {}),
         zIndex: 0,
         data: {
           elementId: newElement.id,
@@ -338,7 +338,7 @@ function PaneContextMenuItems({ position }: { position: { x: number; y: number }
           id: diagramElement.id,
           type,
           position: { x: flowPos.x, y: flowPos.y },
-          style: { width: size.width, height: size.height },
+          ...(type === "group" ? { style: { width: size.width, height: size.height } } : {}),
           zIndex: 0,
           data: {
             elementId: newElement.id,
