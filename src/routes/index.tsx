@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { m } from "#/paraglide/messages";
-import { Button } from "#/components/ui/button";
+import { buttonVariants } from "#/components/ui/button";
 import {
   Card,
   CardContent,
@@ -24,12 +24,12 @@ function LandingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <Button asChild>
-            <Link to="/login">{m.auth_sign_in()}</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/signup">{m.auth_sign_up_title()}</Link>
-          </Button>
+          <Link className={buttonVariants()} to="/login">
+            {m.auth_sign_in()}
+          </Link>
+          <Link className={buttonVariants({ variant: "outline" })} to="/signup">
+            {m.auth_sign_up_title()}
+          </Link>
         </CardContent>
       </Card>
     </main>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { authClient } from "#/lib/auth-client";
-import { Button } from "#/components/ui/button";
+import { Button, buttonVariants } from "#/components/ui/button";
 import {
   Card,
   CardContent,
@@ -49,9 +49,9 @@ function DashboardPage() {
             </p>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" asChild>
-              <Link to="/org/members">{m.dashboard_manage_org()}</Link>
-            </Button>
+            <Link className={buttonVariants({ variant: "outline" })} to="/org/members">
+              {m.dashboard_manage_org()}
+            </Link>
             <Button
               variant="outline"
               onClick={() => navigate({ to: "/settings" })}
@@ -59,9 +59,9 @@ function DashboardPage() {
               {m.dashboard_settings()}
             </Button>
             {user.role === "admin" && (
-              <Button variant="outline" asChild>
-                <Link to="/admin/users">{m.dashboard_admin()}</Link>
-              </Button>
+              <Link className={buttonVariants({ variant: "outline" })} to="/admin/users">
+                {m.dashboard_admin()}
+              </Link>
             )}
             <Button variant="ghost" onClick={handleSignOut}>
               {m.auth_sign_out()}

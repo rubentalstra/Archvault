@@ -5,14 +5,17 @@ import {
   Outlet,
   HeadContent,
   Scripts,
+  Link,
   createRootRouteWithContext,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { buttonVariants } from '#/components/ui/button'
 import { TooltipProvider } from '#/components/ui/tooltip'
 import { Toaster } from '#/components/ui/sonner'
 import { ImpersonationBanner } from '#/components/admin/impersonation-banner'
 import { getLocale } from '#/paraglide/runtime'
+import { m } from '#/paraglide/messages'
 
 import appCss from '../styles.css?url'
 
@@ -28,6 +31,7 @@ export const Route = createRootRouteWithContext<{
     links: [{ rel: 'stylesheet', href: appCss }],
   }),
   component: RootComponent,
+  notFoundComponent: RootNotFoundComponent,
 })
 
 function RootComponent() {
@@ -64,3 +68,18 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     </html>
   )
 }
+
+function RootNotFoundComponent() {
+  return (
+    <RootDocument>
+      <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-4 p-6 text-center">
+        <h1 className="text-2xl font-semibold">{m.common_not_found_title()}</h1>
+        <p className="text-muted-foreground">{m.common_not_found_description()}</p>
+        <Link to="/" className={buttonVariants({ variant: 'outline' })}>
+          {m.common_not_found_back_home()}
+        </Link>
+      </main>
+    </RootDocument>
+  )
+}
+

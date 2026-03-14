@@ -41,7 +41,8 @@ Render relationships as React Flow edges with direction arrows, custom paths, la
 ### Interaction
 
 - [ ] Click to select edge (React Flow built-in)
-- [ ] Add relationship mode in toolbar: click source node → click target node → create relationship + `diagram_relationships` row
+- [ ] Add relationship mode in toolbar: click source node → click target node → create relationship +
+  `diagram_relationships` row
 - [ ] Visual feedback during add-relationship mode (highlight valid targets, show preview line)
 - [ ] Selected edge shows in properties panel (handled in 3c)
 

@@ -16,65 +16,65 @@ CRUD operations, and scope validation.
 
 **`diagrams`** (one row per diagram):
 
-| Column                     | Type                                                        | Notes                                     |
-| -------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
-| `id`                       | uuid, PK                                                    |                                           |
-| `workspace_id`             | FK → workspaces                                             |                                           |
-| `name`                     | text                                                        |                                           |
-| `description`              | text, nullable                                              |                                           |
-| `diagram_type`             | enum: `context` / `container` / `component`                 | C4 level                                  |
-| `scope_element_id`         | FK → elements, nullable                                     | Which element this diagram zooms into     |
-| `grid_size`                | integer, default `20`                                       | Grid spacing in px                        |
-| `snap_to_grid`             | boolean, default `true`                                     |                                           |
-| `current_revision_id`      | FK → diagram_revisions, nullable                            | Latest published revision                 |
-| `source_block_installation_id` | FK, nullable                                            | If created from a block                   |
-| `created_by`, `updated_by` | FK → users                                                  |                                           |
-| `deleted_at`, `created_at`, `updated_at` | timestamps                                     |                                           |
+| Column                                   | Type                                        | Notes                                 |
+|------------------------------------------|---------------------------------------------|---------------------------------------|
+| `id`                                     | uuid, PK                                    |                                       |
+| `workspace_id`                           | FK → workspaces                             |                                       |
+| `name`                                   | text                                        |                                       |
+| `description`                            | text, nullable                              |                                       |
+| `diagram_type`                           | enum: `context` / `container` / `component` | C4 level                              |
+| `scope_element_id`                       | FK → elements, nullable                     | Which element this diagram zooms into |
+| `grid_size`                              | integer, default `20`                       | Grid spacing in px                    |
+| `snap_to_grid`                           | boolean, default `true`                     |                                       |
+| `current_revision_id`                    | FK → diagram_revisions, nullable            | Latest published revision             |
+| `source_block_installation_id`           | FK, nullable                                | If created from a block               |
+| `created_by`, `updated_by`               | FK → users                                  |                                       |
+| `deleted_at`, `created_at`, `updated_at` | timestamps                                  |                                       |
 
 **`diagram_elements`** (per-diagram visual properties for each element placed on a diagram):
 
-| Column         | Type                  | Notes                                              |
-| -------------- | --------------------- | -------------------------------------------------- |
-| `id`           | uuid, PK              |                                                    |
-| `diagram_id`   | FK → diagrams         |                                                    |
-| `element_id`   | FK → elements         |                                                    |
-| `x`            | float                 | Position on canvas                                 |
-| `y`            | float                 | Position on canvas                                 |
-| `width`        | float, default `200`  |                                                    |
-| `height`       | float, default `120`  |                                                    |
-| `z_index`      | integer, default `0`  | Layering order                                     |
-| `style_json`   | jsonb, nullable       | Visual overrides (color, border, opacity, etc.)    |
+| Column       | Type                 | Notes                                           |
+|--------------|----------------------|-------------------------------------------------|
+| `id`         | uuid, PK             |                                                 |
+| `diagram_id` | FK → diagrams        |                                                 |
+| `element_id` | FK → elements        |                                                 |
+| `x`          | float                | Position on canvas                              |
+| `y`          | float                | Position on canvas                              |
+| `width`      | float, default `200` |                                                 |
+| `height`     | float, default `120` |                                                 |
+| `z_index`    | integer, default `0` | Layering order                                  |
+| `style_json` | jsonb, nullable      | Visual overrides (color, border, opacity, etc.) |
 
 Unique constraint: `(diagram_id, element_id)` — an element appears at most once per diagram.
 
 **`diagram_relationships`** (per-diagram visual properties for each relationship shown on a diagram):
 
-| Column              | Type                                           | Notes                                       |
-| ------------------- | ---------------------------------------------- | ------------------------------------------- |
-| `id`                | uuid, PK                                       |                                             |
-| `diagram_id`        | FK → diagrams                                  |                                             |
-| `relationship_id`   | FK → relationships                             |                                             |
-| `path_type`         | enum: `straight` / `curved` / `orthogonal`, default `curved` | Line shape                    |
-| `line_style`        | enum: `solid` / `dashed` / `dotted`, default `solid` | Line rendering                        |
-| `source_anchor`     | enum: `auto` / `top` / `bottom` / `left` / `right`, default `auto` | Where line attaches to source |
-| `target_anchor`     | enum: `auto` / `top` / `bottom` / `left` / `right`, default `auto` | Where line attaches to target |
-| `label_position`    | float, default `0.5`                           | 0.0 = at source, 0.5 = center, 1.0 = at target |
-| `control_points_json` | jsonb, nullable                              | Custom path waypoints `[{x, y}, ...]`      |
-| `style_json`        | jsonb, nullable                                | Visual overrides (color, stroke width, etc.) |
+| Column                | Type                                                               | Notes                                          |
+|-----------------------|--------------------------------------------------------------------|------------------------------------------------|
+| `id`                  | uuid, PK                                                           |                                                |
+| `diagram_id`          | FK → diagrams                                                      |                                                |
+| `relationship_id`     | FK → relationships                                                 |                                                |
+| `path_type`           | enum: `straight` / `curved` / `orthogonal`, default `curved`       | Line shape                                     |
+| `line_style`          | enum: `solid` / `dashed` / `dotted`, default `solid`               | Line rendering                                 |
+| `source_anchor`       | enum: `auto` / `top` / `bottom` / `left` / `right`, default `auto` | Where line attaches to source                  |
+| `target_anchor`       | enum: `auto` / `top` / `bottom` / `left` / `right`, default `auto` | Where line attaches to target                  |
+| `label_position`      | float, default `0.5`                                               | 0.0 = at source, 0.5 = center, 1.0 = at target |
+| `control_points_json` | jsonb, nullable                                                    | Custom path waypoints `[{x, y}, ...]`          |
+| `style_json`          | jsonb, nullable                                                    | Visual overrides (color, stroke width, etc.)   |
 
 Unique constraint: `(diagram_id, relationship_id)` — a relationship appears at most once per diagram.
 
 **`diagram_revisions`** (immutable snapshots — used in phase 3f):
 
-| Column            | Type              | Notes                                          |
-| ----------------- | ----------------- | ---------------------------------------------- |
-| `id`              | uuid, PK          |                                                |
-| `diagram_id`      | FK → diagrams     |                                                |
-| `revision_number` | integer           | Auto-incremented per diagram                   |
-| `snapshot_json`   | jsonb             | Full diagram state at time of revision         |
-| `note`            | text, nullable    | Optional revision note                         |
-| `created_by`      | FK → users        |                                                |
-| `created_at`      | timestamp         |                                                |
+| Column            | Type           | Notes                                  |
+|-------------------|----------------|----------------------------------------|
+| `id`              | uuid, PK       |                                        |
+| `diagram_id`      | FK → diagrams  |                                        |
+| `revision_number` | integer        | Auto-incremented per diagram           |
+| `snapshot_json`   | jsonb          | Full diagram state at time of revision |
+| `note`            | text, nullable | Optional revision note                 |
+| `created_by`      | FK → users     |                                        |
+| `created_at`      | timestamp      |                                        |
 
 ## Tasks
 

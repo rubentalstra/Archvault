@@ -1,11 +1,43 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "2c7bebe1-7e64-4c81-81cd-1a3c7dbe1390",
+  "id": "94387e18-cc12-484a-b460-e38913ff6b8b",
   "prevIds": [
-    "d5762fa5-8916-463f-9229-67f37c648a9b"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
+    {
+      "values": [
+        "planned",
+        "live",
+        "deprecated"
+      ],
+      "name": "element_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "person",
+        "system",
+        "container",
+        "component"
+      ],
+      "name": "element_type",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "outgoing",
+        "incoming",
+        "bidirectional",
+        "none"
+      ],
+      "name": "relationship_direction",
+      "entityType": "enums",
+      "schema": "public"
+    },
     {
       "isRlsEnabled": false,
       "name": "account",
@@ -81,6 +113,48 @@
     {
       "isRlsEnabled": false,
       "name": "workspace",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "element",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "element_technology",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "element_link",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "relationship",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "element_tag",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "relationship_tag",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "tag",
       "entityType": "tables",
       "schema": "public"
     },
@@ -301,6 +375,19 @@
       "generated": null,
       "identity": null,
       "name": "role",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "invitation"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "team_id",
       "entityType": "columns",
       "schema": "public",
       "table": "invitation"
@@ -698,6 +785,19 @@
     {
       "type": "text",
       "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "active_team_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "session"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
@@ -856,7 +956,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "now()",
+      "default": null,
       "generated": null,
       "identity": null,
       "name": "created_at",
@@ -917,24 +1017,11 @@
       "table": "team_member"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "organization_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "team_member"
-    },
-    {
       "type": "timestamp",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
-      "default": "now()",
+      "default": null,
       "generated": null,
       "identity": null,
       "name": "created_at",
@@ -1385,6 +1472,656 @@
       "table": "workspace"
     },
     {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "workspace_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "parent_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "element_type",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "element_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "varchar(120)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "display_description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "element_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'live'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "external",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "metadata_json",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_block_installation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updated_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "deleted_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_technology"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_technology"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_technology"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "icon_slug",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_technology"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "sort_order",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_technology"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_link"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_link"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "url",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_link"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "label",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_link"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "sort_order",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_link"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "workspace_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "target_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "relationship_direction",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'outgoing'",
+      "generated": null,
+      "identity": null,
+      "name": "direction",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "technology",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_block_installation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updated_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "deleted_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_tag"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "tag_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "element_tag"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "relationship_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship_tag"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "tag_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "relationship_tag"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tag"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "workspace_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tag"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tag"
+    },
+    {
+      "type": "varchar(7)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "color",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tag"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "icon",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tag"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tag"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tag"
+    },
+    {
       "nameExplicit": true,
       "columns": [
         {
@@ -1598,27 +2335,6 @@
       "nameExplicit": true,
       "columns": [
         {
-          "value": "organization_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "teamMember_organizationId_idx",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "team_member"
-    },
-    {
-      "nameExplicit": true,
-      "columns": [
-        {
           "value": "secret",
           "isExpression": false,
           "asc": true,
@@ -1747,6 +2463,244 @@
       "entityType": "indexes",
       "schema": "public",
       "table": "workspace"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "workspace_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "element_workspace_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "parent_element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "element_parent_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "workspace_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "element_type",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "element_workspace_type_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "element_tech_element_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "element_technology"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "element_link_element_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "element_link"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "workspace_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "relationship_workspace_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "source_element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "relationship_source_element_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "target_element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "relationship_target_element_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "tag_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "element_tag_tag_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "element_tag"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "tag_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "relationship_tag_tag_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "relationship_tag"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "workspace_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "tag_workspace_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "tag"
     },
     {
       "nameExplicit": false,
@@ -1921,23 +2875,6 @@
     {
       "nameExplicit": false,
       "columns": [
-        "organization_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "organization",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "team_member_organization_id_organization_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "team_member"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
         "user_id"
       ],
       "schemaTo": "public",
@@ -1985,6 +2922,300 @@
       "entityType": "fks",
       "schema": "public",
       "table": "workspace"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "workspace_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "workspace",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "element_workspace_id_workspace_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "parent_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "element",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "element_parent_element_id_element_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "created_by"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "element_created_by_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "updated_by"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "element_updated_by_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "element"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "element",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "element_technology_element_id_element_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "element_technology"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "element",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "element_link_element_id_element_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "element_link"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "workspace_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "workspace",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "relationship_workspace_id_workspace_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "source_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "element",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "relationship_source_element_id_element_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "target_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "element",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "relationship_target_element_id_element_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "created_by"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "relationship_created_by_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "updated_by"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "relationship_updated_by_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "relationship"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "element",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "element_tag_element_id_element_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "element_tag"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "tag_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "tag",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "element_tag_tag_id_tag_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "element_tag"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "relationship_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "relationship",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "relationship_tag_relationship_id_relationship_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "relationship_tag"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "tag_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "tag",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "relationship_tag_tag_id_tag_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "relationship_tag"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "workspace_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "workspace",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "tag_workspace_id_workspace_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "tag"
+    },
+    {
+      "columns": [
+        "element_id",
+        "tag_id"
+      ],
+      "nameExplicit": false,
+      "name": "element_tag_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "element_tag"
+    },
+    {
+      "columns": [
+        "relationship_id",
+        "tag_id"
+      ],
+      "nameExplicit": false,
+      "name": "relationship_tag_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "relationship_tag"
     },
     {
       "columns": [
@@ -2117,37 +3348,54 @@
       "entityType": "pks"
     },
     {
-      "nameExplicit": true,
       "columns": [
-        "provider_id"
+        "id"
       ],
-      "nullsNotDistinct": false,
-      "name": "scimProvider_providerId_unique",
-      "entityType": "uniques",
+      "nameExplicit": false,
+      "name": "element_pkey",
       "schema": "public",
-      "table": "scim_provider"
+      "table": "element",
+      "entityType": "pks"
     },
     {
-      "nameExplicit": true,
       "columns": [
-        "scim_token"
+        "id"
       ],
-      "nullsNotDistinct": false,
-      "name": "scimProvider_scimToken_unique",
-      "entityType": "uniques",
+      "nameExplicit": false,
+      "name": "element_technology_pkey",
       "schema": "public",
-      "table": "scim_provider"
+      "table": "element_technology",
+      "entityType": "pks"
     },
     {
-      "nameExplicit": true,
       "columns": [
-        "provider_id"
+        "id"
       ],
-      "nullsNotDistinct": false,
-      "name": "ssoProvider_providerId_unique",
-      "entityType": "uniques",
+      "nameExplicit": false,
+      "name": "element_link_pkey",
       "schema": "public",
-      "table": "sso_provider"
+      "table": "element_link",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "relationship_pkey",
+      "schema": "public",
+      "table": "relationship",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "tag_pkey",
+      "schema": "public",
+      "table": "tag",
+      "entityType": "pks"
     },
     {
       "nameExplicit": false,
@@ -2163,12 +3411,45 @@
     {
       "nameExplicit": false,
       "columns": [
+        "provider_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "scim_provider_provider_id_key",
+      "schema": "public",
+      "table": "scim_provider",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "scim_token"
+      ],
+      "nullsNotDistinct": false,
+      "name": "scim_provider_scim_token_key",
+      "schema": "public",
+      "table": "scim_provider",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "token"
       ],
       "nullsNotDistinct": false,
       "name": "session_token_key",
       "schema": "public",
       "table": "session",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "provider_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "sso_provider_provider_id_key",
+      "schema": "public",
+      "table": "sso_provider",
       "entityType": "uniques"
     },
     {
