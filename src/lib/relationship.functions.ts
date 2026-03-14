@@ -1,7 +1,7 @@
 import {createServerFn} from "@tanstack/react-start";
-import {and, eq, isNull} from "drizzle-orm";
+import {and, eq, isNull, inArray} from "drizzle-orm";
 import {db} from "./database";
-import {relationship, element} from "./schema";
+import {relationship, element, tag, relationshipTag} from "./schema";
 import {
     createRelationshipSchema,
     updateRelationshipSchema,
@@ -10,7 +10,6 @@ import {
     validateRelationshipEndpoints,
 } from "./relationship.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
-import {bulkFetchRelationshipTags} from "./tag.functions";
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -44,7 +43,14 @@ export const getRelationships = createServerFn({method: "GET"})
             );
 
         const relationshipIds = relationships.map((r) => r.id);
-        const {tagRows, tags} = await bulkFetchRelationshipTags(relationshipIds);
+
+        const tagRows = relationshipIds.length > 0
+            ? await db.select().from(relationshipTag).where(inArray(relationshipTag.relationshipId, relationshipIds))
+            : [];
+        const uniqueTagIds = [...new Set(tagRows.map((r) => r.tagId))];
+        const tags = uniqueTagIds.length > 0
+            ? await db.select().from(tag).where(inArray(tag.id, uniqueTagIds))
+            : [];
         const tagMap = new Map(tags.map((t) => [t.id, t]));
 
         return relationships.map((rel) => ({

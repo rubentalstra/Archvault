@@ -1,5 +1,5 @@
 import {createServerFn} from "@tanstack/react-start";
-import {and, eq, sql} from "drizzle-orm";
+import {and, eq} from "drizzle-orm";
 import {db} from "./database";
 import {tag, elementTag, relationshipTag} from "./schema";
 import {
@@ -155,50 +155,3 @@ export const removeRelationshipTag = createServerFn({method: "POST"})
         return {success: true};
     });
 
-// ── Bulk fetch helpers (used by getElements / getRelationships) ──────
-
-export async function bulkFetchElementTags(elementIds: string[]) {
-    if (elementIds.length === 0) return {tagRows: [], tags: []};
-
-    const tagRows = await db
-        .select()
-        .from(elementTag)
-        .where(sql`${elementTag.elementId}
-        IN
-        ${elementIds}`);
-
-    const uniqueTagIds = [...new Set(tagRows.map((r) => r.tagId))];
-    if (uniqueTagIds.length === 0) return {tagRows, tags: []};
-
-    const tags = await db
-        .select()
-        .from(tag)
-        .where(sql`${tag.id}
-        IN
-        ${uniqueTagIds}`);
-
-    return {tagRows, tags};
-}
-
-export async function bulkFetchRelationshipTags(relationshipIds: string[]) {
-    if (relationshipIds.length === 0) return {tagRows: [], tags: []};
-
-    const tagRows = await db
-        .select()
-        .from(relationshipTag)
-        .where(sql`${relationshipTag.relationshipId}
-        IN
-        ${relationshipIds}`);
-
-    const uniqueTagIds = [...new Set(tagRows.map((r) => r.tagId))];
-    if (uniqueTagIds.length === 0) return {tagRows, tags: []};
-
-    const tags = await db
-        .select()
-        .from(tag)
-        .where(sql`${tag.id}
-        IN
-        ${uniqueTagIds}`);
-
-    return {tagRows, tags};
-}

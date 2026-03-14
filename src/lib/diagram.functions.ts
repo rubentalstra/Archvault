@@ -1,5 +1,5 @@
 import {createServerFn} from "@tanstack/react-start";
-import {and, eq, isNull, sql, count} from "drizzle-orm";
+import {and, eq, isNull} from "drizzle-orm";
 import {db} from "./database";
 import {
     diagram,
@@ -58,6 +58,9 @@ export const getDiagrams = createServerFn({method: "GET"})
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
 
+        // Dynamic import to keep `sql` and `count` out of client bundle
+        const { sql: sqlTag, count } = await import("drizzle-orm");
+
         const elementCountSubquery = db
             .select({
                 diagramId: diagramElement.diagramId,
@@ -80,7 +83,7 @@ export const getDiagrams = createServerFn({method: "GET"})
                 createdAt: diagram.createdAt,
                 updatedAt: diagram.updatedAt,
                 scopeElementName: element.name,
-                elementCount: sql<number>`coalesce(${elementCountSubquery.count}, 0)`.as("element_count"),
+                elementCount: sqlTag<number>`coalesce(${elementCountSubquery.count}, 0)`.as("element_count"),
             })
             .from(diagram)
             .leftJoin(element, eq(diagram.scopeElementId, element.id))

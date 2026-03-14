@@ -1,7 +1,7 @@
 import {createServerFn} from "@tanstack/react-start";
-import {and, eq, isNull, sql} from "drizzle-orm";
+import {and, eq, isNull, inArray} from "drizzle-orm";
 import {db} from "./database";
-import {element, elementTechnology, elementLink} from "./schema";
+import {element, elementTechnology, elementLink, tag, elementTag} from "./schema";
 import {
     createElementSchema,
     updateElementSchema,
@@ -18,7 +18,6 @@ import {
 } from "./element.validators";
 import type {ElementType} from "./element.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
-import {bulkFetchElementTags} from "./tag.functions";
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -87,22 +86,21 @@ export const getElements = createServerFn({method: "GET"})
         const technologies = await db
             .select()
             .from(elementTechnology)
-            .where(
-                sql`${elementTechnology.elementId}
-                IN
-                ${elementIds}`,
-            );
+            .where(inArray(elementTechnology.elementId, elementIds));
 
         const links = await db
             .select()
             .from(elementLink)
-            .where(
-                sql`${elementLink.elementId}
-                IN
-                ${elementIds}`,
-            );
+            .where(inArray(elementLink.elementId, elementIds));
 
-        const {tagRows, tags} = await bulkFetchElementTags(elementIds);
+        const tagRows = await db
+            .select()
+            .from(elementTag)
+            .where(inArray(elementTag.elementId, elementIds));
+        const uniqueTagIds = [...new Set(tagRows.map((r) => r.tagId))];
+        const tags = uniqueTagIds.length > 0
+            ? await db.select().from(tag).where(inArray(tag.id, uniqueTagIds))
+            : [];
         const tagMap = new Map(tags.map((t) => [t.id, t]));
 
         return elements.map((el) => ({
@@ -227,8 +225,9 @@ export const deleteElement = createServerFn({method: "POST"})
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin"]);
 
-        // Recursive soft-delete via CTE
-        await db.execute(sql`
+        // Recursive soft-delete via CTE — dynamic import to keep `sql` out of client bundle
+        const { sql: sqlTag } = await import("drizzle-orm");
+        await db.execute(sqlTag`
             WITH RECURSIVE descendants AS (SELECT id
                                            FROM element
                                            WHERE id = ${data.id}
