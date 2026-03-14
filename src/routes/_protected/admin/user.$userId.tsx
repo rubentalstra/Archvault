@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   createFileRoute,
   Link,
   useNavigate,
 } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -63,9 +64,7 @@ function UserDetailPage() {
   const { user: currentUser } = Route.useRouteContext();
   const navigate = useNavigate();
 
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [sessions, setSessions] = useState<UserSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // Dialog state
   const [banOpen, setBanOpen] = useState(false);
@@ -75,47 +74,45 @@ function UserDetailPage() {
 
   const isSelf = userId === currentUser.id;
 
-  const fetchUser = useCallback(async () => {
-    setLoading(true);
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ["admin", "user", userId],
+    queryFn: async () => {
+      const { data, error } = await authClient.admin.listUsers({
+        query: {
+          limit: 1000,
+          offset: 0,
+        },
+      } as Parameters<typeof authClient.admin.listUsers>[0]);
 
-    // Fetch user list filtered to this user
-    const { data, error } = await authClient.admin.listUsers({
-      query: {
-        limit: 1000,
-        offset: 0,
-      },
-    } as Parameters<typeof authClient.admin.listUsers>[0]);
+      if (error) throw new Error("Failed to load user");
 
-    if (error) {
-      toast.error("Failed to load user");
-      setLoading(false);
-      return;
-    }
+      const found = (data?.users as unknown as AdminUser[])?.find(
+        (u) => u.id === userId,
+      );
+      if (!found) throw new Error("User not found");
+      return found;
+    },
+  });
 
-    const found = (data?.users as unknown as AdminUser[])?.find(
-      (u) => u.id === userId,
-    );
-    if (!found) {
-      toast.error("User not found");
-      navigate({ to: "/admin/users", search: adminUsersDefaultSearch });
-      return;
-    }
+  const { data: sessions = [] } = useQuery({
+    queryKey: ["admin", "user", userId, "sessions"],
+    queryFn: async () => {
+      const { data: sessionData } = await authClient.admin.listUserSessions({
+        userId,
+      });
+      return (sessionData?.sessions ?? []) as unknown as UserSession[];
+    },
+    enabled: !!userData,
+  });
 
-    setUser(found);
+  const refetchUser = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["admin", "user", userId] }),
+    [queryClient, userId],
+  );
 
-    // Fetch sessions
-    const { data: sessionData } = await authClient.admin.listUserSessions({
-      userId,
-    });
-    setSessions((sessionData?.sessions ?? []) as unknown as UserSession[]);
-    setLoading(false);
-  }, [userId, navigate]);
+  const user = userData ?? null;
 
-  useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
-
-  if (loading || !user) {
+  if (userLoading || !user) {
     return (
       <div className="flex items-center justify-center p-12">
         <p className="text-muted-foreground">Loading...</p>
@@ -235,7 +232,7 @@ function UserDetailPage() {
                       return;
                     }
                     toast.success(`${user.name} unbanned`);
-                    fetchUser();
+                    refetchUser();
                   }}
                   disabled={isSelf}
                 />
@@ -367,13 +364,13 @@ function UserDetailPage() {
         user={user}
         open={banOpen}
         onOpenChange={setBanOpen}
-        onSuccess={fetchUser}
+        onSuccess={refetchUser}
       />
       <RoleChangeDialog
         user={user}
         open={roleOpen}
         onOpenChange={setRoleOpen}
-        onSuccess={fetchUser}
+        onSuccess={refetchUser}
       />
       <RemoveUserDialog
         user={user}
@@ -387,7 +384,7 @@ function UserDetailPage() {
         user={user}
         open={revokeOpen}
         onOpenChange={setRevokeOpen}
-        onSuccess={fetchUser}
+        onSuccess={refetchUser}
       />
     </div>
   );

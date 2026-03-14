@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -30,21 +31,18 @@ function AcceptInvitationPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [invitation, setInvitation] = useState<InvitationData | null>(null);
-  const [fetching, setFetching] = useState(true);
 
-  useEffect(() => {
-    authClient.organization
-      .getInvitation({ query: { id: invitationId } })
-      .then(({ data, error: fetchError }) => {
-        if (fetchError || !data) {
-          setInvitation(null);
-        } else {
-          setInvitation(data as unknown as InvitationData);
-        }
-        setFetching(false);
-      });
-  }, [invitationId]);
+  const { data: invitation, isLoading: fetching } = useQuery({
+    queryKey: ["invitation", invitationId],
+    queryFn: async () => {
+      const { data, error: fetchError } =
+        await authClient.organization.getInvitation({
+          query: { id: invitationId },
+        });
+      if (fetchError || !data) return null;
+      return data as unknown as InvitationData;
+    },
+  });
 
   const handleAccept = async () => {
     setLoading(true);

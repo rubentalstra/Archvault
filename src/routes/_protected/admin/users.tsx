@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   createFileRoute,
   useNavigate,
 } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod/v4";
 import {
   useReactTable,
@@ -77,9 +78,7 @@ function UsersPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // Dialog state
   const [createOpen, setCreateOpen] = useState(false);
@@ -92,8 +91,6 @@ function UsersPage() {
   const [searchInput, setSearchInput] = useState(search.search ?? "");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const totalPages = Math.max(1, Math.ceil(total / search.limit));
-
   const updateSearch = useCallback(
     (updates: Partial<SearchParams>) => {
       navigate({
@@ -105,43 +102,45 @@ function UsersPage() {
     [navigate, search],
   );
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    const queryParams: Record<string, string | number | undefined> = {
-      limit: search.limit,
-      offset: (search.page - 1) * search.limit,
-      sortBy: search.sortBy,
-      sortDirection: search.sortDirection,
-    };
+  const { data: usersData, isLoading: loading } = useQuery({
+    queryKey: ["admin", "users", search],
+    queryFn: async () => {
+      const queryParams: Record<string, string | number | undefined> = {
+        limit: search.limit,
+        offset: (search.page - 1) * search.limit,
+        sortBy: search.sortBy,
+        sortDirection: search.sortDirection,
+      };
 
-    if (search.search) {
-      queryParams.searchField = search.searchField;
-      queryParams.searchValue = search.search;
-    }
-    if (search.role !== "all") {
-      queryParams.filterField = "role";
-      queryParams.filterValue = search.role;
-    }
+      if (search.search) {
+        queryParams.searchField = search.searchField;
+        queryParams.searchValue = search.search;
+      }
+      if (search.role !== "all") {
+        queryParams.filterField = "role";
+        queryParams.filterValue = search.role;
+      }
 
-    const { data, error } = await authClient.admin.listUsers({
-      query: queryParams,
-    } as Parameters<typeof authClient.admin.listUsers>[0]);
+      const { data, error } = await authClient.admin.listUsers({
+        query: queryParams,
+      } as Parameters<typeof authClient.admin.listUsers>[0]);
 
-    if (error) {
-      toast.error("Failed to load users");
-      setLoading(false);
-      return;
-    }
+      if (error) throw new Error("Failed to load users");
 
-    const userList = (data?.users ?? []) as unknown as AdminUser[];
-    setUsers(userList);
-    setTotal(data?.total ?? userList.length);
-    setLoading(false);
-  }, [search]);
+      const userList = (data?.users ?? []) as unknown as AdminUser[];
+      return { users: userList, total: data?.total ?? userList.length };
+    },
+  });
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const users = usersData?.users ?? [];
+  const total = usersData?.total ?? 0;
+
+  const refetchUsers = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+    [queryClient],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(total / search.limit));
 
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
@@ -175,7 +174,7 @@ function UsersPage() {
         return;
       }
       toast.success(`${user.name} has been unbanned`);
-      fetchUsers();
+      refetchUsers();
     },
     onImpersonate: async (user) => {
       const { error } = await authClient.admin.impersonateUser({
@@ -421,31 +420,31 @@ function UsersPage() {
       <CreateUserDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onSuccess={fetchUsers}
+        onSuccess={refetchUsers}
       />
       <BanUserDialog
         user={banUser}
         open={!!banUser}
         onOpenChange={(open) => !open && setBanUser(null)}
-        onSuccess={fetchUsers}
+        onSuccess={refetchUsers}
       />
       <RoleChangeDialog
         user={roleUser}
         open={!!roleUser}
         onOpenChange={(open) => !open && setRoleUser(null)}
-        onSuccess={fetchUsers}
+        onSuccess={refetchUsers}
       />
       <RemoveUserDialog
         user={removeUser}
         open={!!removeUser}
         onOpenChange={(open) => !open && setRemoveUser(null)}
-        onSuccess={fetchUsers}
+        onSuccess={refetchUsers}
       />
       <RevokeSessionsDialog
         user={revokeUser}
         open={!!revokeUser}
         onOpenChange={(open) => !open && setRevokeUser(null)}
-        onSuccess={fetchUsers}
+        onSuccess={refetchUsers}
       />
     </div>
   );

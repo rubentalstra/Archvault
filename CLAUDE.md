@@ -52,6 +52,32 @@ Wraps the app with `TooltipProvider`, `Toaster` (sonner), and TanStack Devtools 
 ### Server Functions
 TanStack Start uses server functions (via Nitro) for API logic — no separate API layer. The exception is `src/routes/api/auth/$.ts` which is a raw API route for Better Auth's handler.
 
+### Data Fetching (TanStack Query)
+TanStack Query is wired up via `@tanstack/react-router-ssr-query` in `src/router.tsx`. The `QueryClient` is created per router instance and available via router context.
+
+**Pattern for client-side data fetching in components:**
+```tsx
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
+// Wrap server function with useServerFn, then pass to useQuery
+const getDataFn = useServerFn(getData);
+const { data, isLoading } = useQuery({
+  queryKey: ["my-data"],
+  queryFn: () => getDataFn(),
+});
+
+// Invalidate after mutations
+const queryClient = useQueryClient();
+queryClient.invalidateQueries({ queryKey: ["my-data"] });
+```
+
+**When to use what:**
+- **Route `beforeLoad`** — auth guards, redirects, data needed before render. Call server functions directly (no Query).
+- **`useQuery`** — client-side data fetching in components. Use `useServerFn()` to wrap server functions.
+- **`authClient.use*` hooks** — Better Auth reactive state (`useSession`, `useActiveOrganization`, `useActiveMember`). These are not replaced by Query.
+- **Direct calls** — mutations (form submissions, delete actions). These are fire-and-forget, not queries.
+
 ### shadcn/ui
 Config in `components.json`. Style: `base-nova`. RSC: `false`. Components install to `src/components/ui/`. Add new components with `pnpm dlx shadcn@latest add <component>`.
 
@@ -63,3 +89,4 @@ Config in `components.json`. Style: `base-nova`. RSC: `false`. Components instal
 - **pnpm only.** No npm or yarn.
 - **Strict TypeScript.** `noUnusedLocals`, `noUnusedParameters`, `verbatimModuleSyntax` are all enabled.
 - Forms use TanStack Form + Zod. Tables use TanStack Table. Toasts use Sonner.
+- Client-side data fetching uses TanStack Query (`useQuery` + `useServerFn`). Never use `useState`/`useEffect` for data fetching.

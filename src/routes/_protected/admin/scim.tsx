@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useReactTable,
   getCoreRowModel,
@@ -50,26 +51,23 @@ interface SCIMConnectionRow {
 const columnHelper = createColumnHelper<SCIMConnectionRow>();
 
 function SCIMPage() {
-  const [connections, setConnections] = useState<SCIMConnectionRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [generateOpen, setGenerateOpen] = useState(false);
   const [deleteConnection, setDeleteConnection] = useState<SCIMConnectionRow | null>(null);
 
-  const fetchConnections = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await authClient.scim.listProviderConnections();
-    if (error) {
-      toast.error("Failed to load SCIM connections");
-      setLoading(false);
-      return;
-    }
-    setConnections((data ?? []) as unknown as SCIMConnectionRow[]);
-    setLoading(false);
-  }, []);
+  const { data: connections = [], isLoading: loading } = useQuery({
+    queryKey: ["admin", "scim-connections"],
+    queryFn: async () => {
+      const { data, error } = await authClient.scim.listProviderConnections();
+      if (error) throw new Error("Failed to load SCIM connections");
+      return (data ?? []) as unknown as SCIMConnectionRow[];
+    },
+  });
 
-  useEffect(() => {
-    fetchConnections();
-  }, [fetchConnections]);
+  const refetchConnections = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["admin", "scim-connections"] }),
+    [queryClient],
+  );
 
   const handleDelete = async () => {
     if (!deleteConnection) return;
@@ -80,7 +78,7 @@ function SCIMPage() {
       toast.error((error as { message?: string }).message ?? "Failed to delete connection");
     } else {
       toast.success("SCIM connection deleted");
-      fetchConnections();
+      refetchConnections();
     }
     setDeleteConnection(null);
   };
@@ -232,7 +230,7 @@ function SCIMPage() {
       <GenerateScimTokenDialog
         open={generateOpen}
         onOpenChange={setGenerateOpen}
-        onSuccess={fetchConnections}
+        onSuccess={refetchConnections}
       />
 
       <AlertDialog

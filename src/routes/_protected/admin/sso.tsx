@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useReactTable,
   getCoreRowModel,
@@ -61,27 +62,24 @@ interface SSOProviderRow {
 const columnHelper = createColumnHelper<SSOProviderRow>();
 
 function SSOProvidersPage() {
-  const [providers, setProviders] = useState<SSOProviderRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [registerOpen, setRegisterOpen] = useState(false);
   const [deleteProvider, setDeleteProvider] = useState<SSOProviderRow | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
-  const fetchProviders = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await authClient.sso.providers();
-    if (error) {
-      toast.error("Failed to load SSO providers");
-      setLoading(false);
-      return;
-    }
-    setProviders((data ?? []) as unknown as SSOProviderRow[]);
-    setLoading(false);
-  }, []);
+  const { data: providers = [], isLoading: loading } = useQuery({
+    queryKey: ["admin", "sso-providers"],
+    queryFn: async () => {
+      const { data, error } = await authClient.sso.providers();
+      if (error) throw new Error("Failed to load SSO providers");
+      return (data ?? []) as unknown as SSOProviderRow[];
+    },
+  });
 
-  useEffect(() => {
-    fetchProviders();
-  }, [fetchProviders]);
+  const refetchProviders = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["admin", "sso-providers"] }),
+    [queryClient],
+  );
 
   const handleVerifyDomain = async (providerId: string) => {
     setVerifyingId(providerId);
@@ -90,7 +88,7 @@ function SSOProvidersPage() {
       toast.error((error as { message?: string }).message ?? "Domain verification failed. Ensure the DNS TXT record is set correctly.");
     } else {
       toast.success("Domain verified successfully");
-      fetchProviders();
+      refetchProviders();
     }
     setVerifyingId(null);
   };
@@ -104,7 +102,7 @@ function SSOProvidersPage() {
       toast.error((error as { message?: string }).message ?? "Failed to delete provider");
     } else {
       toast.success("SSO provider deleted");
-      fetchProviders();
+      refetchProviders();
     }
     setDeleteProvider(null);
   };
@@ -326,7 +324,7 @@ function SSOProvidersPage() {
       <RegisterSSODialog
         open={registerOpen}
         onOpenChange={setRegisterOpen}
-        onSuccess={fetchProviders}
+        onSuccess={refetchProviders}
       />
 
       <AlertDialog open={!!deleteProvider} onOpenChange={(open) => !open && setDeleteProvider(null)}>
