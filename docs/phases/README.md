@@ -9,7 +9,7 @@
 | 1c    | Authentication               | Complete    | 1b           |
 | 1d    | Platform Admin               | Complete    | 1c           |
 | 1e    | Organizations & Teams        | Complete    | 1c           |
-| 1f    | Workspaces                   | Not Started | 1e           |
+| 1f    | Workspaces                   | Complete    | 1e           |
 | 1g    | ESLint                       | Not Started | 1a           |
 | 1h    | Internationalization (i18n)  | Not Started | 1a, 1c       |
 | 1i    | SSO (Single Sign-On)         | Complete    | 1c           |
