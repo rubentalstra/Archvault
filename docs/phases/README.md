@@ -17,12 +17,12 @@
 | 2a    | Elements                     | Complete    | 1f           |
 | 2b    | Relationships                | Complete    | 2a           |
 | 2c    | Tags                         | Not Started | 2b           |
-| 3a    | Diagram CRUD & Schema        | Not Started | 2a           |
+| 3a    | Diagram CRUD & Schema        | Not Started | 2a, 2b       |
 | 3b    | Canvas Rendering             | Not Started | 3a           |
-| 3c    | Editor Interactions          | Not Started | 3b           |
-| 3d    | Canvas Relationships         | Not Started | 3b           |
+| 3c    | Editor Interactions & Panel  | Not Started | 3b           |
+| 3d    | Canvas Relationships         | Not Started | 3b, 3c       |
 | 3e    | Autosave, Hotkeys, Undo/Redo | Not Started | 3c, 3d       |
-| 3f    | Revisions & Lifecycle        | Not Started | 3c, 3d       |
+| 3f    | Revisions                    | Not Started | 3e           |
 | 4a    | Block Schemas & Validation   | Not Started | 3f           |
 | 4b    | Official Blocks              | Not Started | 4a           |
 | 4c    | Block Browser & Install      | Not Started | 4a           |
@@ -52,13 +52,14 @@ graph TD
     2a --> 2b["2b: Relationships"]
     2b --> 2c["2c: Tags"]
     2a --> 3a["3a: Diagram CRUD"]
+    2b --> 3a
     3a --> 3b["3b: Canvas Rendering"]
-    3b --> 3c["3c: Editor Interactions"]
+    3b --> 3c["3c: Editor Interactions & Panel"]
     3b --> 3d["3d: Canvas Relationships"]
+    3c --> 3d
     3c --> 3e["3e: Autosave & Hotkeys"]
     3d --> 3e
-    3c --> 3f["3f: Revisions & Lifecycle"]
-    3d --> 3f
+    3e --> 3f["3f: Revisions"]
     3f --> 4a["4a: Block Schemas"]
     4a --> 4b["4b: Official Blocks"]
     4a --> 4c["4c: Block Browser & Install"]
