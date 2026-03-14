@@ -1,5 +1,5 @@
 import { Link, Outlet, createFileRoute, redirect } from "@tanstack/react-router";
-import { Users, ArrowLeft } from "lucide-react";
+import { Users, ArrowLeft, KeyRound, RefreshCw } from "lucide-react";
 import { cn } from "#/lib/utils";
 import { adminUsersDefaultSearch } from "./admin/users";
 
@@ -37,6 +37,30 @@ function AdminLayout() {
           >
             <Users className="size-4" />
             Users
+          </Link>
+          <Link
+            to="/admin/sso"
+            className={cn(
+              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+            )}
+            activeProps={{
+              className: "bg-accent text-accent-foreground",
+            }}
+          >
+            <KeyRound className="size-4" />
+            SSO Providers
+          </Link>
+          <Link
+            to="/admin/scim"
+            className={cn(
+              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+            )}
+            activeProps={{
+              className: "bg-accent text-accent-foreground",
+            }}
+          >
+            <RefreshCw className="size-4" />
+            SCIM
           </Link>
         </nav>
       </aside>

@@ -6,6 +6,8 @@ import {
   emailOTPClient,
   lastLoginMethodClient,
 } from "better-auth/client/plugins";
+import { ssoClient } from "@better-auth/sso/client";
+import { scimClient } from "@better-auth/scim/client";
 import { platformAc, platformRoles, orgAc, orgRoles } from "./permissions";
 
 export const authClient = createAuthClient({
@@ -15,5 +17,7 @@ export const authClient = createAuthClient({
     twoFactorClient(),
     emailOTPClient(),
     lastLoginMethodClient(),
+    ssoClient({ domainVerification: { enabled: true } }),
+    scimClient(),
   ],
 });

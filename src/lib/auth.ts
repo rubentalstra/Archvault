@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, APIError } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import {
@@ -9,6 +9,8 @@ import {
   haveIBeenPwned,
   lastLoginMethod,
 } from "better-auth/plugins";
+import { sso } from "@better-auth/sso";
+import { scim } from "@better-auth/scim";
 import { createElement } from "react";
 import { db } from "./database";
 import { platformAc, platformRoles, orgAc, orgRoles } from "./permissions";
@@ -70,5 +72,22 @@ export const auth = betterAuth({
     }),
     haveIBeenPwned(),
     lastLoginMethod(),
+    sso({
+      domainVerification: { enabled: true },
+      organizationProvisioning: {
+        disabled: false,
+        defaultRole: "member",
+      },
+    }),
+    scim({
+      providerOwnership: { enabled: true },
+      beforeSCIMTokenGenerated: async ({ user }) => {
+        if (user.role !== "admin") {
+          throw new APIError("FORBIDDEN", {
+            message: "Only platform admins can generate SCIM tokens",
+          });
+        }
+      },
+    }),
   ],
 });

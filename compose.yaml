@@ -9,11 +9,11 @@ services:
         condition: service_healthy
 
   db:
-    image: postgres:16
+    image: postgres:18
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     environment:
       POSTGRES_DB: c4platform
       POSTGRES_USER: c4user

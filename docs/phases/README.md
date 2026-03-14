@@ -12,6 +12,8 @@
 | 1f    | Workspaces                   | Not Started | 1e           |
 | 1g    | ESLint                       | Not Started | 1a           |
 | 1h    | Internationalization (i18n)  | Not Started | 1a, 1c       |
+| 1i    | SSO (Single Sign-On)         | Not Started | 1c           |
+| 1j    | SCIM Provisioning            | Not Started | 1i           |
 | 2a    | Elements                     | Not Started | 1f           |
 | 2b    | Relationships                | Not Started | 2a           |
 | 2c    | Tags                         | Not Started | 2b           |
@@ -44,6 +46,8 @@ graph TD
     1a --> 1g["1g: ESLint"]
     1a --> 1h["1h: i18n"]
     1c --> 1h
+    1c --> 1i["1i: SSO"]
+    1i --> 1j["1j: SCIM"]
     1f --> 2a["2a: Elements"]
     2a --> 2b["2b: Relationships"]
     2b --> 2c["2c: Tags"]
@@ -81,6 +85,8 @@ graph TD
     style 1f fill: #e0e7ff, stroke: #4f46e5
     style 1g fill: #e0e7ff, stroke: #4f46e5
     style 1h fill: #e0e7ff, stroke: #4f46e5
+    style 1i fill: #e0e7ff, stroke: #4f46e5
+    style 1j fill: #e0e7ff, stroke: #4f46e5
     style 2a fill: #dcfce7, stroke: #16a34a
     style 2b fill: #dcfce7, stroke: #16a34a
     style 2c fill: #dcfce7, stroke: #16a34a

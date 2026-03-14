@@ -5,6 +5,7 @@ import {
   boolean,
   index,
   uniqueIndex,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -189,5 +190,36 @@ export const twoFactor = pgTable(
   (table) => [
     index("twoFactor_secret_idx").on(table.secret),
     index("twoFactor_userId_idx").on(table.userId),
+  ],
+);
+
+export const ssoProvider = pgTable(
+  "sso_provider",
+  {
+    id: text("id").primaryKey(),
+    issuer: text("issuer").notNull(),
+    oidcConfig: text("oidc_config"),
+    samlConfig: text("saml_config"),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    providerId: text("provider_id").notNull(),
+    organizationId: text("organization_id"),
+    domain: text("domain").notNull(),
+    domainVerified: boolean("domain_verified"),
+  },
+  (table) => [unique("ssoProvider_providerId_unique").on(table.providerId)],
+);
+
+export const scimProvider = pgTable(
+  "scim_provider",
+  {
+    id: text("id").primaryKey(),
+    providerId: text("provider_id").notNull(),
+    scimToken: text("scim_token").notNull(),
+    organizationId: text("organization_id"),
+    userId: text("user_id"),
+  },
+  (table) => [
+    unique("scimProvider_providerId_unique").on(table.providerId),
+    unique("scimProvider_scimToken_unique").on(table.scimToken),
   ],
 );
