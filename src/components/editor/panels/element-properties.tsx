@@ -333,14 +333,14 @@ function TechnologiesSection({
     async (technologyId: string) => {
       try {
         if (assignedIds.has(technologyId)) {
-          await removeElementTechnologyFn({ data: { elementId, technologyId } });
-          // Update canvas node technologies
-          const updatedTechs = technologies.filter((t) => t.technologyId !== technologyId).map((t) => t.name);
-          updateNodeData(nodeId, { technologies: updatedTechs });
-          // Clear icon if removed tech was the icon
+          // Clear icon first if removing the icon technology
           if (iconTechnologyId === technologyId) {
+            await setElementIconTechnologyFn({ data: { elementId, technologyId: null } });
             updateNodeData(nodeId, { iconTechSlug: null });
           }
+          await removeElementTechnologyFn({ data: { elementId, technologyId } });
+          const updatedTechs = technologies.filter((t) => t.technologyId !== technologyId).map((t) => t.name);
+          updateNodeData(nodeId, { technologies: updatedTechs });
         } else {
           await addElementTechnologyFn({ data: { elementId, technologyId } });
           const addedTech = allTechs?.find((t) => t.id === technologyId);
@@ -354,7 +354,7 @@ function TechnologiesSection({
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [elementId, assignedIds, addElementTechnologyFn, removeElementTechnologyFn, queryClient, technologies, nodeId, updateNodeData, allTechs, iconTechnologyId],
+    [elementId, assignedIds, addElementTechnologyFn, removeElementTechnologyFn, setElementIconTechnologyFn, queryClient, technologies, nodeId, updateNodeData, allTechs, iconTechnologyId],
   );
 
   const handleSetIcon = useCallback(
