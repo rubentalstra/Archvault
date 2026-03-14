@@ -159,7 +159,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
           source: connection.source,
           target: connection.target,
           type: "curved",
-          markerEnd: { type: "arrowclosed" as const },
+          markerEnd: { type: "arrowclosed" as const, width: 30, height: 30 },
           data: {
             diagramConnectionId: diagramRel.id,
             connectionId: rel.id,

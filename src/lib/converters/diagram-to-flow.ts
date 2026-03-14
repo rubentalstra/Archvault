@@ -119,7 +119,7 @@ export function toFlowNodes(
 function getMarker(direction: ConnectionDirection, end: "source" | "target"): { type: MarkerType } | undefined {
     // We can't use MarkerType directly at module level since it's from @xyflow/react
     // Use string literal that matches the enum value
-    const arrow = {type: "arrowclosed" as MarkerType};
+    const arrow = {type: "arrowclosed" as MarkerType, width: 30, height: 30};
 
     switch (direction) {
         case "outgoing":
