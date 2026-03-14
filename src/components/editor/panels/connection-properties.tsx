@@ -110,14 +110,27 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
         await updateConnectionFn({
           data: { id: edgeData.connectionId, [field]: value },
         });
-        if (field === "direction" || field === "description") {
-          updateEdgeData(edge.id, { [field]: value } as Record<string, unknown>);
+        if (field === "description") {
+          updateEdgeData(edge.id, { description: value as string | null });
+        } else if (field === "direction") {
+          const dir = value as ConnectionDirection;
+          const arrow = { type: "arrowclosed" as const, width: 30, height: 30 };
+          const markerEnd = dir === "outgoing" || dir === "bidirectional" ? arrow : undefined;
+          const markerStart = dir === "incoming" || dir === "bidirectional" ? arrow : undefined;
+          const currentEdges = useEditorStore.getState().edges;
+          setEdges(
+            currentEdges.map((e) =>
+              e.id === edge.id
+                ? { ...e, markerEnd, markerStart, data: { ...e.data!, direction: dir } } as AppEdge
+                : e,
+            ),
+          );
         }
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [edgeData.connectionId, updateConnectionFn, updateEdgeData, edge.id],
+    [edgeData.connectionId, updateConnectionFn, updateEdgeData, setEdges, edge.id],
   );
 
   const saveDiagramConnection = useCallback(
@@ -130,8 +143,9 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
           updateEdgeData(edge.id, { [field]: value } as Record<string, unknown>);
         } else if (field === "pathType") {
           const newType = PATH_TYPE_TO_EDGE_TYPE[value as PathType];
+          const currentEdges = useEditorStore.getState().edges;
           setEdges(
-            edges.map((e) =>
+            currentEdges.map((e) =>
               e.id === edge.id ? { ...e, type: newType } as AppEdge : e,
             ),
           );
@@ -140,7 +154,7 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [edgeData.diagramConnectionId, updateDiagramConnectionFn, updateEdgeData, setEdges, edges, edge.id],
+    [edgeData.diagramConnectionId, updateDiagramConnectionFn, updateEdgeData, setEdges, edge.id],
   );
 
   const handleToggleTech = useCallback(
