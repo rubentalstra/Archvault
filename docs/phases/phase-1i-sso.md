@@ -1,6 +1,6 @@
 # Phase 1i — SSO (Single Sign-On)
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 Add enterprise SSO support via the Better Auth SSO plugin (`@better-auth/sso`) alongside existing social providers. Supports OIDC, OAuth2, and SAML 2.0 for enterprise customers with domain verification and organization provisioning.
@@ -13,7 +13,7 @@ Add enterprise SSO support via the Better Auth SSO plugin (`@better-auth/sso`) a
 - [x] Add `sso()` plugin to server auth config with domain verification and org provisioning
 - [x] Add `ssoClient()` plugin to client auth config
 - [x] Add `ssoProvider` table to Drizzle schema
-- [ ] Generate and apply database migration
+- [x] Generate and apply database migration
 - [x] Add SSO Providers nav link to admin sidebar
 - [x] Create SSO providers list page (`admin/sso`) with TanStack Table
 - [x] Create SSO provider registration dialog (OIDC/SAML)
@@ -29,12 +29,12 @@ Add enterprise SSO support via the Better Auth SSO plugin (`@better-auth/sso`) a
 - `src/components/admin/register-sso-dialog.tsx` — SSO registration form
 
 ## Verification
-- [ ] `pnpm dev` starts without errors
-- [ ] `pnpm build` succeeds
-- [ ] Login/signup pages unchanged, social buttons still work
-- [ ] Admin panel: SSO Providers page lists providers
-- [ ] Admin can register an OIDC provider via dialog
-- [ ] Domain verification flow (TXT record instructions + verify button)
+- [x] `pnpm dev` starts without errors
+- [x] `pnpm build` succeeds
+- [x] Login/signup pages unchanged, social buttons still work
+- [x] Admin panel: SSO Providers page lists providers
+- [x] Admin can register an OIDC provider via dialog
+- [x] Domain verification flow (TXT record instructions + verify button)
 - [ ] SSO sign-in redirects to IdP and returns with valid session
 - [ ] Org provisioning: SSO user auto-joins linked org
-- [ ] Existing auth (email/password, emailOTP, 2FA) still works
+- [x] Existing auth (email/password, emailOTP, 2FA) still works

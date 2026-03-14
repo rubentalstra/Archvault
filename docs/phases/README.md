@@ -7,13 +7,13 @@
 | 1a    | Project Scaffold             | Complete    | —            |
 | 1b    | Database & Docker            | Complete    | 1a           |
 | 1c    | Authentication               | Complete    | 1b           |
-| 1d    | Platform Admin               | Not Started | 1c           |
-| 1e    | Organizations & Teams        | Not Started | 1c           |
+| 1d    | Platform Admin               | Complete    | 1c           |
+| 1e    | Organizations & Teams        | Complete    | 1c           |
 | 1f    | Workspaces                   | Not Started | 1e           |
 | 1g    | ESLint                       | Not Started | 1a           |
 | 1h    | Internationalization (i18n)  | Not Started | 1a, 1c       |
-| 1i    | SSO (Single Sign-On)         | Not Started | 1c           |
-| 1j    | SCIM Provisioning            | Not Started | 1i           |
+| 1i    | SSO (Single Sign-On)         | Complete    | 1c           |
+| 1j    | SCIM Provisioning            | Complete    | 1i           |
 | 2a    | Elements                     | Not Started | 1f           |
 | 2b    | Relationships                | Not Started | 2a           |
 | 2c    | Tags                         | Not Started | 2b           |

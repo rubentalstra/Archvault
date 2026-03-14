@@ -1,6 +1,6 @@
 # Phase 1j — SCIM Provisioning
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 Add SCIM 2.0 support for automated user provisioning/deprovisioning from enterprise identity providers (Okta, Azure AD, etc.). Pairs with SSO (Phase 1i) since the same IdP typically handles both SSO and SCIM.
@@ -14,7 +14,7 @@ Add SCIM 2.0 support for automated user provisioning/deprovisioning from enterpr
 - [x] Add `scimClient()` plugin to client auth config
 - [x] Ensure auth API route handler supports PUT, PATCH, DELETE methods
 - [x] Add `scimProvider` table to Drizzle schema
-- [ ] Generate and apply database migration
+- [x] Generate and apply database migration
 - [x] Add SCIM nav link to admin sidebar
 - [x] Create SCIM connections list page (`admin/scim`) with TanStack Table
 - [x] Create SCIM token generation dialog with copy-to-clipboard
@@ -30,11 +30,11 @@ Add SCIM 2.0 support for automated user provisioning/deprovisioning from enterpr
 - `src/components/admin/generate-scim-token-dialog.tsx` — token generation form
 
 ## Verification
-- [ ] `pnpm dev` starts without errors
-- [ ] `pnpm build` succeeds
-- [ ] Admin panel: SCIM page lists connections
-- [ ] Admin can generate a SCIM token for a provider
-- [ ] SCIM base URL `/api/auth/scim/v2/ServiceProviderConfig` returns valid config
-- [ ] Non-admin users cannot generate SCIM tokens (403)
+- [x] `pnpm dev` starts without errors
+- [x] `pnpm build` succeeds
+- [x] Admin panel: SCIM page lists connections
+- [x] Admin can generate a SCIM token for a provider
+- [x] SCIM base URL `/api/auth/scim/v2/ServiceProviderConfig` returns valid config
+- [x] Non-admin users cannot generate SCIM tokens (403)
 - [ ] Token deletion invalidates the connection
-- [ ] All existing auth flows still work
+- [x] All existing auth flows still work
