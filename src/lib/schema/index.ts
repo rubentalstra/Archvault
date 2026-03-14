@@ -12,6 +12,8 @@ export * from "./element-groups";
 export * from "./connections";
 // Phase 2c: tags
 export * from "./tags";
+// Phase 2e: groups
+export * from "./groups";
 // Phase 3a: diagrams, diagram_elements, diagram_connections, diagram_revisions
 export * from "./diagram-revisions";
 export * from "./diagrams";

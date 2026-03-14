@@ -20,6 +20,7 @@ import {technology, elementTechnology} from "./element-technologies";
 import {elementLink} from "./element-links";
 import {connection} from "./connections";
 import {tag, elementTag, connectionTag} from "./tags";
+import {group, groupMembership, diagramGroup} from "./groups";
 import {diagram} from "./diagrams";
 import {diagramElement} from "./diagram-elements";
 import {diagramConnection} from "./diagram-connections";
@@ -48,6 +49,9 @@ export const relations = defineRelations(
         tag,
         elementTag,
         connectionTag,
+        group,
+        groupMembership,
+        diagramGroup,
         diagram,
         diagramElement,
         diagramConnection,
@@ -88,6 +92,17 @@ export const relations = defineRelations(
                 from: r.user.id,
                 to: r.connection.updatedBy,
                 alias: "connection_updated_by",
+            }),
+            // group has TWO FKs to user (createdBy & updatedBy) → aliases required
+            createdGroups: r.many.group({
+                from: r.user.id,
+                to: r.group.createdBy,
+                alias: "group_created_by",
+            }),
+            updatedGroups: r.many.group({
+                from: r.user.id,
+                to: r.group.updatedBy,
+                alias: "group_updated_by",
             }),
             // diagram has TWO FKs to user (createdBy & updatedBy) → aliases required
             createdDiagrams: r.many.diagram({
@@ -254,6 +269,7 @@ export const relations = defineRelations(
             elements: r.many.element(),
             connections: r.many.connection(),
             tags: r.many.tag(),
+            groups: r.many.group(),
             technologies: r.many.technology(),
             diagrams: r.many.diagram(),
         },
@@ -309,6 +325,11 @@ export const relations = defineRelations(
             tags: r.many.tag({
                 from: r.element.id.through(r.elementTag.elementId),
                 to: r.tag.id.through(r.elementTag.tagId),
+            }),
+            // Many-to-many via groupMembership junction table
+            groups: r.many.group({
+                from: r.element.id.through(r.groupMembership.elementId),
+                to: r.group.id.through(r.groupMembership.groupId),
             }),
             // diagram_element junction
             diagramElements: r.many.diagramElement(),
@@ -454,6 +475,7 @@ export const relations = defineRelations(
             }),
             diagramElements: r.many.diagramElement(),
             diagramConnections: r.many.diagramConnection(),
+            diagramGroups: r.many.diagramGroup(),
             revisions: r.many.diagramRevision(),
         },
 
@@ -485,6 +507,78 @@ export const relations = defineRelations(
             connection: r.one.connection({
                 from: r.diagramConnection.connectionId,
                 to: r.connection.id,
+                optional: false,
+            }),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // group
+        // ─────────────────────────────────────────────────────────────────
+        group: {
+            workspace: r.one.workspace({
+                from: r.group.workspaceId,
+                to: r.workspace.id,
+                optional: false,
+            }),
+            // Self-referential parent/children — alias required
+            parent: r.one.group({
+                from: r.group.parentGroupId,
+                to: r.group.id,
+                alias: "group_parent",
+            }),
+            children: r.many.group({
+                from: r.group.id,
+                to: r.group.parentGroupId,
+                alias: "group_parent",
+            }),
+            // Two FKs to user → aliases required
+            createdByUser: r.one.user({
+                from: r.group.createdBy,
+                to: r.user.id,
+                alias: "group_created_by",
+            }),
+            updatedByUser: r.one.user({
+                from: r.group.updatedBy,
+                to: r.user.id,
+                alias: "group_updated_by",
+            }),
+            // Many-to-many reverse side
+            elements: r.many.element({
+                from: r.group.id.through(r.groupMembership.groupId),
+                to: r.element.id.through(r.groupMembership.elementId),
+            }),
+            // diagram_group junction
+            diagramGroups: r.many.diagramGroup(),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // groupMembership
+        // ─────────────────────────────────────────────────────────────────
+        groupMembership: {
+            element: r.one.element({
+                from: r.groupMembership.elementId,
+                to: r.element.id,
+                optional: false,
+            }),
+            group: r.one.group({
+                from: r.groupMembership.groupId,
+                to: r.group.id,
+                optional: false,
+            }),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // diagramGroup
+        // ─────────────────────────────────────────────────────────────────
+        diagramGroup: {
+            diagram: r.one.diagram({
+                from: r.diagramGroup.diagramId,
+                to: r.diagram.id,
+                optional: false,
+            }),
+            group: r.one.group({
+                from: r.diagramGroup.groupId,
+                to: r.group.id,
                 optional: false,
             }),
         },

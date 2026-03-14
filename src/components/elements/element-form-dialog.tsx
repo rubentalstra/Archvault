@@ -34,7 +34,9 @@ import {
   removeLink,
 } from "#/lib/element.functions";
 import { addElementTag, removeElementTag } from "#/lib/tag.functions";
+import { addGroupMembership, removeGroupMembership } from "#/lib/group.functions";
 import { TagPicker } from "#/components/tags/tag-picker";
+import { GroupPicker } from "#/components/groups/group-picker";
 
 type CreatedElement = { id: string };
 
@@ -51,6 +53,7 @@ interface ElementData {
   links: { id: string; url: string; label: string | null }[];
   tags: { id: string; name: string; color: string; icon: string | null }[];
   groups: { id: string; name: string }[];
+  groupMemberships: { id: string; name: string; color: string }[];
 }
 
 interface ParentOption {
@@ -66,6 +69,12 @@ interface WorkspaceTag {
   icon: string | null;
 }
 
+interface WorkspaceGroup {
+  id: string;
+  name: string;
+  color: string;
+}
+
 interface ElementFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -75,6 +84,7 @@ interface ElementFormDialogProps {
   defaultParentId?: string;
   defaultType?: ElementType;
   workspaceTags?: WorkspaceTag[];
+  workspaceGroups?: WorkspaceGroup[];
   onSuccess: () => void;
 }
 
@@ -102,6 +112,7 @@ export function ElementFormDialog({
   defaultParentId,
   defaultType,
   workspaceTags = [],
+  workspaceGroups = [],
   onSuccess,
 }: ElementFormDialogProps) {
   const isEdit = !!editElement;
@@ -117,6 +128,9 @@ export function ElementFormDialog({
   );
   const [localGroupIds, setLocalGroupIds] = useState<string[]>(
     editElement?.groups?.map((g) => g.id) ?? [],
+  );
+  const [localGroupMembershipIds, setLocalGroupMembershipIds] = useState<string[]>(
+    editElement?.groupMemberships?.map((g) => g.id) ?? [],
   );
 
   const groupOptions = parentOptions.filter((p) => p.elementType === "group");
@@ -204,7 +218,7 @@ export function ElementFormDialog({
             }
           }
 
-          // Sync group assignments
+          // Sync group assignments (element-type groups)
           const existingGroupIds = new Set(editElement.groups.map((g) => g.id));
           const currentGroupIds = new Set(localGroupIds);
           for (const groupId of existingGroupIds) {
@@ -218,6 +232,24 @@ export function ElementFormDialog({
             if (!existingGroupIds.has(groupId)) {
               await addElementToGroup({
                 data: { elementId: editElement.id, groupElementId: groupId },
+              });
+            }
+          }
+
+          // Sync visual group memberships (Phase 2e)
+          const existingMembershipIds = new Set(editElement.groupMemberships?.map((g) => g.id) ?? []);
+          const currentMembershipIds = new Set(localGroupMembershipIds);
+          for (const groupId of existingMembershipIds) {
+            if (!currentMembershipIds.has(groupId)) {
+              await removeGroupMembership({
+                data: { elementId: editElement.id, groupId },
+              });
+            }
+          }
+          for (const groupId of currentMembershipIds) {
+            if (!existingMembershipIds.has(groupId)) {
+              await addGroupMembership({
+                data: { elementId: editElement.id, groupId },
               });
             }
           }
@@ -254,6 +286,11 @@ export function ElementFormDialog({
           for (const groupId of localGroupIds) {
             await addElementToGroup({
               data: { elementId: created.id, groupElementId: groupId },
+            });
+          }
+          for (const groupId of localGroupMembershipIds) {
+            await addGroupMembership({
+              data: { elementId: created.id, groupId },
             });
           }
 
@@ -590,7 +627,19 @@ export function ElementFormDialog({
             </div>
           )}
 
-          {/* Group assignments */}
+          {/* Visual group memberships (Phase 2e) */}
+          {workspaceGroups.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Label>{m.group_picker_title()}</Label>
+              <GroupPicker
+                workspaceGroups={workspaceGroups}
+                selectedGroupIds={localGroupMembershipIds}
+                onChange={setLocalGroupMembershipIds}
+              />
+            </div>
+          )}
+
+          {/* Element-type group assignments */}
           {groupOptions.length > 0 && form.getFieldValue("elementType") !== "group" && (
             <div className="flex flex-col gap-2">
               <Label>{m.element_label_parent()}</Label>

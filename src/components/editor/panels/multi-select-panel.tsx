@@ -1,9 +1,11 @@
 import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
 import { removeDiagramElement } from "#/lib/diagram.functions";
 import { updateElement } from "#/lib/element.functions";
+import { getGroups, addGroupMembership } from "#/lib/group.functions";
 import { Button } from "#/components/ui/button";
 import {
   Select,
@@ -26,11 +28,21 @@ const STATUS_OPTIONS: { value: ElementStatus; label: () => string }[] = [
 export function MultiSelectPanel() {
   const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
   const nodes = useEditorStore((s) => s.nodes);
+  const workspaceId = useEditorStore((s) => s.workspaceId);
   const removeNodeById = useEditorStore((s) => s.removeNodeById);
   const updateNodeData = useEditorStore((s) => s.updateNodeData);
 
   const removeDiagramElementFn = useServerFn(removeDiagramElement);
   const updateElementFn = useServerFn(updateElement);
+  const getGroupsFn = useServerFn(getGroups);
+  const addGroupMembershipFn = useServerFn(addGroupMembership);
+  const queryClient = useQueryClient();
+
+  const { data: groups = [] } = useQuery({
+    queryKey: ["groups", workspaceId],
+    queryFn: () => getGroupsFn({ data: { workspaceId: workspaceId! } }),
+    enabled: !!workspaceId,
+  });
 
   const selectedNodes = nodes.filter((n) => selectedNodeIds.includes(n.id));
 
@@ -57,6 +69,22 @@ export function MultiSelectPanel() {
       }
     },
     [selectedNodes, updateElementFn, updateNodeData],
+  );
+
+  const handleBulkAddGroup = useCallback(
+    async (groupId: string) => {
+      try {
+        for (const node of selectedNodes) {
+          await addGroupMembershipFn({
+            data: { elementId: node.data.elementId, groupId },
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ["groups"] });
+      } catch {
+        toast.error(m.editor_panel_save_failed());
+      }
+    },
+    [selectedNodes, addGroupMembershipFn, queryClient],
   );
 
   return (
@@ -87,6 +115,30 @@ export function MultiSelectPanel() {
           </SelectContent>
         </Select>
       </div>
+
+      {groups.length > 0 && (
+        <div className="space-y-2">
+          <Label>{m.editor_panel_multi_group()}</Label>
+          <Select onValueChange={(v) => { if (v) void handleBulkAddGroup(v as string); }}>
+            <SelectTrigger>
+              <SelectValue placeholder={m.group_picker_title()} />
+            </SelectTrigger>
+            <SelectContent>
+              {groups.map((g) => (
+                <SelectItem key={g.id} value={g.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="size-3 rounded-full"
+                      style={{ backgroundColor: g.color }}
+                    />
+                    {g.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 }
