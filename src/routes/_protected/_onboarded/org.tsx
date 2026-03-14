@@ -1,8 +1,30 @@
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
-import { Users, Settings, Layers, ArrowLeft, FolderOpen } from "lucide-react";
-import { cn } from "#/lib/utils";
-import { OrgSwitcher } from "#/components/org/org-switcher";
+import {
+  Users,
+  Settings,
+  Layers,
+  FolderOpen,
+  LayoutDashboard,
+} from "lucide-react";
+import { OrgSidebarSwitcher } from "#/components/org/org-sidebar-switcher";
+import { NavUser } from "#/components/org/nav-user";
 import { getActiveOrganization } from "#/lib/org.functions";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+} from "#/components/ui/sidebar";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/_onboarded/org")({
   beforeLoad: async () => {
@@ -12,77 +34,61 @@ export const Route = createFileRoute("/_protected/_onboarded/org")({
   component: OrgLayout,
 });
 
+const NAV_ITEMS = [
+  { to: "/org", icon: LayoutDashboard, label: () => m.org_nav_dashboard(), exact: true },
+  { to: "/org/workspaces", icon: FolderOpen, label: () => m.org_nav_workspaces() },
+  { to: "/org/members", icon: Users, label: () => m.org_nav_members() },
+  { to: "/org/teams", icon: Layers, label: () => m.org_nav_teams() },
+  { to: "/org/settings", icon: Settings, label: () => m.org_nav_settings() },
+] as const;
+
 function OrgLayout() {
+  const { user } = Route.useRouteContext();
+
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-56 shrink-0 flex-col border-r bg-muted/30 p-4">
-        <Link
-          to="/dashboard"
-          className="mb-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Dashboard
-        </Link>
+    <SidebarProvider>
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <OrgSidebarSwitcher />
+        </SidebarHeader>
 
-        <div className="mb-4">
-          <OrgSwitcher />
-        </div>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>{m.common_app_name()}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_ITEMS.map((item) => (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      tooltip={item.label()}
+                      render={
+                        <Link
+                          to={item.to}
+                          activeOptions={
+                            item.exact ? { exact: true } : undefined
+                          }
+                        />
+                      }
+                    >
+                      <item.icon />
+                      <span>{item.label()}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-        <nav className="flex flex-col gap-1">
-          <Link
-            to="/dashboard"
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <FolderOpen className="size-4" />
-            Workspaces
-          </Link>
-          <Link
-            to="/org/members"
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <Users className="size-4" />
-            Members
-          </Link>
-          <Link
-            to="/org/teams"
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <Layers className="size-4" />
-            Teams
-          </Link>
-          <Link
-            to="/org/settings"
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <Settings className="size-4" />
-            Settings
-          </Link>
-        </nav>
-      </aside>
+        <SidebarFooter>
+          <NavUser user={user} />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
 
-      <main className="flex-1 overflow-auto">
+      <SidebarInset>
         <Outlet />
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

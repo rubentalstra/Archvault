@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
   flexRender,
   getCoreRowModel,
@@ -23,6 +23,16 @@ import {
   TableRow,
 } from "#/components/ui/table";
 import { Badge } from "#/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "#/components/ui/breadcrumb";
+import { Separator } from "#/components/ui/separator";
+import { SidebarTrigger } from "#/components/ui/sidebar";
 import { toast } from "sonner";
 import { formatRelativeDate } from "#/lib/admin.utils";
 import {
@@ -85,9 +95,34 @@ function MembersPage() {
   if (!activeOrg) return null;
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
+    <>
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator
+            orientation="vertical"
+            className="mr-2 data-[orientation=vertical]:h-4"
+          />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink render={<Link to="/org" />}>
+                  {m.org_nav_dashboard()}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{m.org_members_title()}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
+
+    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="mx-auto w-full max-w-4xl">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{m.org_members_title()}</h1>
+        <h2 className="text-2xl font-bold">{m.org_members_title()}</h2>
         <Button onClick={() => setInviteOpen(true)}>{m.org_invite_title()}</Button>
       </div>
 
@@ -216,5 +251,7 @@ function MembersPage() {
         onSuccess={refresh}
       />
     </div>
+    </div>
+    </>
   );
 }
