@@ -1,22 +1,17 @@
 import { memo } from "react";
-import { Handle, Position } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import { User } from "lucide-react";
 import type { ActorNodeData } from "#/lib/types/diagram-nodes";
 import { m } from "#/paraglide/messages";
 import { StatusDot } from "./status-dot";
+import { NodeHandles } from "./node-handles";
 
 function ActorNodeComponent({ data, selected }: NodeProps & { data: ActorNodeData }) {
   return (
     <>
-      <Handle id="bottom-target" type="target" position={Position.Bottom} className="!size-2 !border-primary !bg-primary" />
-      <Handle id="bottom-source" type="source" position={Position.Bottom} className="!size-2 !border-primary !bg-primary" />
-      <Handle id="left-target" type="target" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
-      <Handle id="left-source" type="source" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
-      <Handle id="right-target" type="target" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
-      <Handle id="right-source" type="source" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
+      <NodeHandles omitTop />
 
-      {/* Floating person icon badge — actors always show User icon */}
+      {/* Floating person icon badge */}
       <div className="absolute -top-5 left-1/2 z-10 -translate-x-1/2">
         <div className="flex size-10 items-center justify-center rounded-lg border bg-card shadow-sm">
           <User className="size-5 text-foreground" />

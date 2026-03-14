@@ -17,6 +17,26 @@ export interface ContextMenuState {
   edgeId?: string;
 }
 
+// ── Topological sort ──────────────────────────────────────────────
+
+function sortNodesTopologically(nodes: AppNode[]): AppNode[] {
+  const result: AppNode[] = [];
+  const placed = new Set<string>();
+  let remaining = [...nodes];
+
+  while (remaining.length > 0) {
+    const next = remaining.filter((n) => !n.parentId || placed.has(n.parentId));
+    if (next.length === 0) break;
+    for (const n of next) {
+      result.push(n);
+      placed.add(n.id);
+    }
+    remaining = remaining.filter((n) => !placed.has(n.id));
+  }
+  result.push(...remaining);
+  return result;
+}
+
 // ── Store types ────────────────────────────────────────────────────
 
 type EditorMode = "select" | "pan" | "add_element" | "add_connection";
@@ -113,13 +133,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setShowMinimap: (show) => set({ showMinimap: show }),
   setPropertiesPanelOpen: (open) => set({ propertiesPanelOpen: open }),
   setContextMenu: (menu) => set({ contextMenu: menu }),
-  addNode: (node) => set({ nodes: [...get().nodes, node] }),
+  addNode: (node) => set({ nodes: sortNodesTopologically([...get().nodes, node]) }),
   addEdge: (edge) => set({ edges: [...get().edges, edge] }),
   removeNodeById: (id) => {
     const state = get();
+    // Cascade: also remove children of the deleted node
+    const childIds = new Set(state.nodes.filter((n) => n.parentId === id).map((n) => n.id));
+    const allIds = new Set([id, ...childIds]);
     set({
-      nodes: state.nodes.filter((n) => n.id !== id),
-      edges: state.edges.filter((e) => e.source !== id && e.target !== id),
+      nodes: state.nodes.filter((n) => !allIds.has(n.id)),
+      edges: state.edges.filter((e) => !allIds.has(e.source) && !allIds.has(e.target)),
     });
   },
   removeEdgeById: (id) =>

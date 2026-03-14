@@ -1,12 +1,12 @@
 import { memo } from "react";
 import { NodeResizer } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
-import type { GroupNodeData } from "#/lib/types/diagram-nodes";
+import type { BaseNodeData } from "#/lib/types/diagram-nodes";
 
 const MIN_WIDTH = 300;
 const MIN_HEIGHT = 200;
 
-function GroupNodeComponent({ data, selected }: NodeProps & { data: GroupNodeData }) {
+function GroupNodeComponent({ data, selected }: NodeProps & { data: BaseNodeData }) {
   return (
     <>
       <NodeResizer

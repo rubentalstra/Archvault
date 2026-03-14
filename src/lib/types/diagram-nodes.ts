@@ -20,6 +20,8 @@ export interface BaseNodeData {
   external: boolean;
   technologies: string[];
   iconTechSlug: string | null;
+  /** Whether this node acts as a sub-flow container (parent of other nodes) */
+  isParent: boolean;
   [key: string]: unknown;
 }
 
@@ -29,10 +31,6 @@ export type AppNodeData = BaseNodeData;
 export type StoreNodeData = BaseNodeData;
 export type ComponentNodeData = BaseNodeData;
 
-export interface GroupNodeData extends BaseNodeData {
-  isScope: boolean;
-}
-
 // ── Node Types ───────────────────────────────────────────────────────
 
 export type ActorNode = Node<ActorNodeData, "actor">;
@@ -40,7 +38,7 @@ export type SystemNode = Node<SystemNodeData, "system">;
 export type AppContainerNode = Node<AppNodeData, "app">;
 export type StoreNode = Node<StoreNodeData, "store">;
 export type ComponentNode = Node<ComponentNodeData, "component">;
-export type GroupNode = Node<GroupNodeData, "group">;
+export type GroupNode = Node<BaseNodeData, "group">;
 
 export type AppNode =
   | ActorNode

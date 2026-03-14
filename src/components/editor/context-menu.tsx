@@ -229,7 +229,9 @@ function NodeContextMenuItems({
           displayDescription: null,
           status: newElement.status,
           external: newElement.external,
-          ...(node.type === "group" ? { isScope: false } : {}),
+          technologies: [],
+          iconTechSlug: null,
+          isParent: false,
         },
       } as AppNode;
       addNode(newNode);
@@ -348,6 +350,8 @@ function PaneContextMenuItems({ position }: { position: { x: number; y: number }
             status: newElement.status,
             external: newElement.external,
             technologies: [],
+            iconTechSlug: null,
+            isParent: false,
           },
         } as AppNode;
         addNode(newNode);

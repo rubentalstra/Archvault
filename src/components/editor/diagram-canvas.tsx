@@ -6,12 +6,14 @@ import {
   BackgroundVariant,
   SelectionMode,
   ConnectionMode,
+  useReactFlow,
 } from "@xyflow/react";
 import type {
   OnSelectionChangeFunc,
   IsValidConnection,
   OnConnect,
   Connection,
+  NodeDimensionChange,
 } from "@xyflow/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback } from "react";
@@ -69,6 +71,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
   const addEdge = useEditorStore((s) => s.addEdge);
 
   const { onPaneClick: onAddElementPaneClick, isAddMode } = useAddElement();
+  const reactFlow = useReactFlow();
 
   const updateDiagramElementFn = useServerFn(updateDiagramElement);
   const removeDiagramElementFn = useServerFn(removeDiagramElement);
@@ -78,17 +81,37 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
   const addDiagramConnectionFn = useServerFn(addDiagramConnection);
 
   const onNodeDragStop = useCallback(
-    (_event: React.MouseEvent, node: AppNode) => {
-      const update = flowNodeToUpdate(node);
-      updateDiagramElementFn({ data: update });
+    (_event: React.MouseEvent, _node: AppNode, draggedNodes: AppNode[]) => {
+      for (const n of draggedNodes) {
+        const internal = reactFlow.getInternalNode(n.id);
+        const absPos = internal?.internals.positionAbsolute ?? n.position;
+        updateDiagramElementFn({ data: flowNodeToUpdate(n, absPos) });
+      }
     },
-    [updateDiagramElementFn],
+    [updateDiagramElementFn, reactFlow],
   );
 
   const onNodesDelete = useCallback(
     (deletedNodes: AppNode[]) => {
+      // React Flow includes children automatically when deleting a parent sub-flow node,
+      // but collect child IDs defensively
+      const allNodes = useEditorStore.getState().nodes;
+      const deletedIds = new Set(deletedNodes.map((n) => n.id));
+      // Include children that might not be in the deletedNodes list
+      for (const node of allNodes) {
+        if (node.parentId && deletedIds.has(node.parentId)) {
+          deletedIds.add(node.id);
+        }
+      }
+
       for (const node of deletedNodes) {
         removeDiagramElementFn({ data: { id: node.data.diagramElementId } });
+      }
+      // Also delete children not already in deletedNodes
+      for (const node of allNodes) {
+        if (node.parentId && deletedIds.has(node.parentId) && !deletedNodes.some((d) => d.id === node.id)) {
+          removeDiagramElementFn({ data: { id: node.data.diagramElementId } });
+        }
       }
     },
     [removeDiagramElementFn],
@@ -231,18 +254,26 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
     [setContextMenu, isAddMode, onAddElementPaneClick],
   );
 
-  // Unused for now but keeping the callback reference for future NodeResizer onResizeEnd
-  const onResizeEnd = useCallback(
-    (_event: unknown, { id }: { id: string }) => {
-      const node = useEditorStore.getState().nodes.find((n) => n.id === id);
-      if (node) {
-        const update = flowNodeToUpdate(node);
-        updateDiagramElementFn({ data: update });
+  // Persist resize dimensions when a node (parent container or group) is resized
+  const handleNodesChange = useCallback(
+    (changes: import("@xyflow/react").NodeChange<AppNode>[]) => {
+      onNodesChange(changes);
+
+      // After applying changes, check for completed resize operations
+      for (const change of changes) {
+        if (change.type === "dimensions" && (change as NodeDimensionChange).resizing === false) {
+          const dimChange = change as NodeDimensionChange & { id: string };
+          const node = useEditorStore.getState().nodes.find((n) => n.id === dimChange.id);
+          if (node) {
+            const internal = reactFlow.getInternalNode(node.id);
+            const absPos = internal?.internals.positionAbsolute ?? node.position;
+            updateDiagramElementFn({ data: flowNodeToUpdate(node, absPos) });
+          }
+        }
       }
     },
-    [updateDiagramElementFn],
+    [onNodesChange, updateDiagramElementFn, reactFlow],
   );
-  void onResizeEnd;
 
   return (
     <ReactFlow
@@ -251,7 +282,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
       edges={edges}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
-      onNodesChange={readOnly ? undefined : onNodesChange}
+      onNodesChange={readOnly ? undefined : handleNodesChange}
       onEdgesChange={readOnly ? undefined : onEdgesChange}
       onNodeDragStop={readOnly ? undefined : onNodeDragStop}
       onNodesDelete={readOnly ? undefined : onNodesDelete}
