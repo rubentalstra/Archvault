@@ -6,9 +6,10 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { authClient } from "#/lib/auth-client";
 import { getTechnologies } from "#/lib/technology.functions";
 import { TechnologyFormDialog } from "#/components/technologies/technology-form-dialog";
@@ -40,7 +41,7 @@ import {
 } from "#/components/ui/breadcrumb";
 import { Separator } from "#/components/ui/separator";
 import { SidebarTrigger } from "#/components/ui/sidebar";
-import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { TechIcon } from "#/components/technologies/tech-icon";
 import { m } from "#/paraglide/messages";
 
@@ -76,7 +77,7 @@ function getTechColumns({
   const columns: ColumnDef<TechData>[] = [
     {
       accessorKey: "name",
-      header: () => m.technology_label_name(),
+      header: m.technology_label_name,
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           {row.original.iconSlug && (
@@ -114,7 +115,7 @@ function getTechColumns({
     },
     {
       accessorKey: "assignedCount",
-      header: () => m.technology_column_assigned(),
+      header: m.technology_column_assigned,
       cell: ({ row }) => (
         <Badge variant="secondary">{row.original.assignedCount}</Badge>
       ),
@@ -169,6 +170,9 @@ function TechnologiesPage() {
     queryFn: () => getTechnologiesFn({ data: { workspaceId: workspace.id } }),
   });
 
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "name", desc: false },
+  ]);
   const [formOpen, setFormOpen] = useState(false);
   const [editTech, setEditTech] = useState<TechData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TechData | null>(null);
@@ -198,10 +202,12 @@ function TechnologiesPage() {
   const table = useReactTable({
     data: technologies as TechData[],
     columns,
-    state: { globalFilter },
+    state: { globalFilter, sorting },
     onGlobalFilterChange: setGlobalFilter,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     globalFilterFn: (row, _columnId, filterValue: string) => {
       const search = filterValue.toLowerCase();
       return row.original.name.toLowerCase().includes(search);
@@ -276,12 +282,29 @@ function TechnologiesPage() {
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
+                        {header.isPlaceholder ? null : header.column.getCanSort() ? (
+                          <button
+                            type="button"
+                            className="flex cursor-pointer items-center gap-1 select-none"
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            {flexRender(
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
+                            {{
+                              asc: <ArrowUp className="size-3.5" />,
+                              desc: <ArrowDown className="size-3.5" />,
+                            }[header.column.getIsSorted() as string] ?? (
+                              <ArrowUpDown className="size-3.5 text-muted-foreground" />
+                            )}
+                          </button>
+                        ) : (
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )
+                        )}
                       </TableHead>
                     ))}
                   </TableRow>
