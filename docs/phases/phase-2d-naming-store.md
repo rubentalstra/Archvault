@@ -1,6 +1,6 @@
 # Phase 2d — Naming Migration & Store Type
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 
@@ -77,62 +77,71 @@ Stores share the same properties as Apps: name, display description, status, tec
 
 ### Database Migration
 
-- [ ] Generate Drizzle migration to rename enum values (`person` → `actor`, `container` → `app`)
-- [ ] Add `store` value to `element_type` enum
-- [ ] Rename `relationships` table → `connections`
-- [ ] Rename `relationship_tags` → `connection_tags` with column rename
-- [ ] Rename `diagram_relationships` → `diagram_connections` with column rename
-- [ ] Rename `relationship_direction` enum → `connection_direction`
-- [ ] Update all foreign key constraint names
-- [ ] Run migration and verify
+- [x] Generate Drizzle migration to rename enum values (`person` → `actor`, `container` → `app`)
+- [x] Add `store` value to `element_type` enum
+- [x] Rename `relationships` table → `connections`
+- [x] Rename `relationship_tags` → `connection_tags` with column rename
+- [x] Rename `diagram_relationships` → `diagram_connections` with column rename
+- [x] Rename `relationship_direction` enum → `connection_direction`
+- [x] Update all foreign key constraint names
+- [x] Run migration and verify
 
 ### Schema Files
 
-- [ ] Rename `src/lib/schema/relationships.ts` → `src/lib/schema/connections.ts`
-- [ ] Update all Drizzle schema definitions with new table/column names
-- [ ] Update `element_type` enum to include `actor`, `app`, `store` (remove `person`, `container`)
-- [ ] Update `src/lib/schema/index.ts` barrel exports
-- [ ] Rename `diagram_type` enum: `container` → `app` (Context stays, Component stays)
+- [x] Rename `src/lib/schema/relationships.ts` → `src/lib/schema/connections.ts`
+- [x] Update all Drizzle schema definitions with new table/column names
+- [x] Update `element_type` enum to include `actor`, `app`, `store` (remove `person`, `container`)
+- [x] Update `src/lib/schema/index.ts` barrel exports
+- [x] Rename `diagram_type` enum: `context` → `system_context`, `app` → `container` (Component stays)
 
 ### Server Functions
 
-- [ ] Rename `src/lib/server/relationships.ts` → `src/lib/server/connections.ts`
-- [ ] Update all function names: `createRelationship` → `createConnection`, etc.
-- [ ] Update hierarchy validation for new type names + Store rules
-- [ ] Update diagram scope validation for Store type
-- [ ] Update all Zod validators with new enum values
+- [x] Rename `src/lib/server/relationships.ts` → `src/lib/server/connections.ts`
+- [x] Update all function names: `createRelationship` → `createConnection`, etc.
+- [x] Update hierarchy validation for new type names + Store rules
+- [x] Update diagram scope validation for Store type
+- [x] Update all Zod validators with new enum values
 
 ### UI Components
 
-- [ ] Rename `src/components/relationships/` → `src/components/connections/`
-- [ ] Update element form: type selector shows Actor, System, App, Store, Component
-- [ ] Update element tree to use new type names and icons
-- [ ] Update element table columns with new type labels
-- [ ] Update connection (formerly relationship) table columns
-- [ ] Update properties panel labels and type badges
+- [x] Rename `src/components/relationships/` → `src/components/connections/`
+- [x] Update element form: type selector shows Actor, System, App, Store, Component
+- [x] Update element tree to use new type names and icons
+- [x] Update element table columns with new type labels
+- [x] Update connection (formerly relationship) table columns
+- [x] Update properties panel labels and type badges
 
 ### Editor / Canvas
 
-- [ ] Rename `person-node.tsx` → `actor-node.tsx` (update component name, data type)
-- [ ] Rename `container-node.tsx` → `app-node.tsx`
-- [ ] Create `store-node.tsx` — cylinder/database shape with Store icon (Lucide `Database`)
-- [ ] Update `nodeTypes` registry in `src/components/editor/nodes/index.ts`
-- [ ] Update type definitions in `src/lib/types/diagram-nodes.ts`
-- [ ] Update `diagram-to-flow.ts` converter for new type names + Store
-- [ ] Update editor toolbar add-element dropdown (Actor, System, App, Store, Component)
-- [ ] Update context menu labels
+- [x] Rename `person-node.tsx` → `actor-node.tsx` (update component name, data type)
+- [x] Rename `container-node.tsx` → `app-node.tsx`
+- [x] Create `store-node.tsx` — cylinder/database shape with Store icon (Lucide `Database`)
+- [x] Update `nodeTypes` registry in `src/components/editor/nodes/index.ts`
+- [x] Update type definitions in `src/lib/types/diagram-nodes.ts`
+- [x] Update `diagram-to-flow.ts` converter for new type names + Store
+- [x] Update editor toolbar add-element dropdown (Actor, System, App, Store, Component)
+- [x] Update context menu labels
 
 ### i18n
 
-- [ ] Update `messages/en.json`: rename all `person_*` keys → `actor_*`, `container_*` → `app_*`
-- [ ] Add new keys for Store type
-- [ ] Rename all `relationship_*` keys → `connection_*`
-- [ ] Update `messages/nl.json` with same changes
+- [x] Update `messages/en.json`: rename all `person_*` keys → `actor_*`, `container_*` → `app_*`
+- [x] Add new keys for Store type
+- [x] Rename all `relationship_*` keys → `connection_*`
+- [x] Update `messages/nl.json` with same changes
+
+### Diagram Type Rename (added post-spec)
+
+- [x] Rename `diagram_type` enum: `context` → `system_context`, `app` → `container`
+- [x] Update diagram labels to show "Level 1 — System Context", "Level 2 — Container", "Level 3 — Component"
+- [x] Add level descriptions to create dialog
+- [x] Hide scope field for Level 1 (System Context diagrams don't have scope)
+- [x] Contextual scope labels: "Scoped to System" (L2), "Scoped to Container" (L3)
+- [x] Generate and fix DB migration with data conversion for existing rows
 
 ### Routes
 
-- [ ] Rename relationships route/page → connections
-- [ ] Update any route references in navigation
+- [x] Rename relationships route/page → connections
+- [x] Update any route references in navigation
 
 ## Key Files
 
@@ -158,12 +167,13 @@ Stores share the same properties as Apps: name, display description, status, tec
 
 ## Verification
 
-- [ ] Migration runs successfully (new enum values, renamed tables)
-- [ ] All existing data preserved after migration (no data loss)
-- [ ] Create model objects of all 5 types (Actor, System, App, Store, Component)
-- [ ] Hierarchy rules enforced: Store must have System parent, Component must have App parent
-- [ ] Store node renders correctly on canvas (cylinder shape, Database icon)
-- [ ] Connection CRUD works (create, edit, delete) with new naming
-- [ ] All UI labels show new terminology (Actor not Person, App not Container, Connection not Relationship)
-- [ ] Diagram scope validation works with Store type
-- [ ] `pnpm dev` and `pnpm build` succeed
+- [x] Migration runs successfully (new enum values, renamed tables)
+- [x] All existing data preserved after migration (no data loss)
+- [x] Create model objects of all 5 types (Actor, System, App, Store, Component)
+- [x] Hierarchy rules enforced: Store must have System parent, Component must have App parent
+- [x] Store node renders correctly on canvas (cylinder shape, Database icon)
+- [x] Connection CRUD works (create, edit, delete) with new naming
+- [x] All UI labels show new terminology (Actor not Person, App not Container, Connection not Relationship)
+- [x] Diagram scope validation works with Store type
+- [x] Diagram types show C4 levels: Level 1 (System Context), Level 2 (Container), Level 3 (Component)
+- [x] `pnpm dev` and `pnpm build` succeed
