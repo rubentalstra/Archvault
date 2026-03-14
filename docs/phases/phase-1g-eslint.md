@@ -1,6 +1,6 @@
 # Phase 1g — ESLint
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 
@@ -201,10 +201,10 @@ many false positives for the codebase, disable them in the overrides section wit
 
 ## Verification
 
-- [ ] `pnpm lint` runs without crashing
-- [ ] All auto-fixable issues resolved via `pnpm lint:fix`
-- [ ] Remaining violations reviewed and either fixed or intentionally suppressed
-- [ ] TanStack Router property order rule works on route files
-- [ ] TanStack Query rules detect issues in query hooks
-- [ ] `pnpm dev` starts without errors
-- [ ] `pnpm build` succeeds
+- [x] `pnpm lint` runs without crashing
+- [x] All auto-fixable issues resolved via `pnpm lint:fix`
+- [x] Remaining violations reviewed and either fixed or intentionally suppressed
+- [x] TanStack Router property order rule works on route files
+- [x] TanStack Query rules detect issues in query hooks
+- [x] `pnpm dev` starts without errors
+- [x] `pnpm build` succeeds
