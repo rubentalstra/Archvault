@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "#/components/ui/button";
-import { ChevronRight, ChevronDown, Plus, User, Server, Package, Cpu } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus, User, Layers, Server, Package, Database, Cpu } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { ElementType, ElementStatus } from "#/lib/element.validators";
 
@@ -26,9 +26,11 @@ interface FlatNode {
 }
 
 const TYPE_ICONS: Record<ElementType, typeof User> = {
-  person: User,
+  actor: User,
+  group: Layers,
   system: Server,
-  container: Package,
+  app: Package,
+  store: Database,
   component: Cpu,
 };
 
@@ -77,9 +79,11 @@ function flattenTree(
 
 // Valid child types for "Add Child" button
 const VALID_CHILDREN: Record<ElementType, ElementType[]> = {
-  person: [],
-  system: ["system", "container"],
-  container: ["component"],
+  actor: [],
+  group: ["group", "actor", "system"],
+  system: ["app", "store"],
+  app: ["component"],
+  store: [],
   component: [],
 };
 

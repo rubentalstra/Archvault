@@ -43,6 +43,9 @@ import { SidebarTrigger } from "#/components/ui/sidebar";
 import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
 
+type WorkspaceTag = { id: string; name: string; color: string; icon: string | null };
+type WorkspaceElement = ElementRow & { tags?: WorkspaceTag[] };
+
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/elements",
 )({
@@ -59,15 +62,17 @@ function ElementsPage() {
   const canDelete = ["owner", "admin"].includes(memberRole ?? "");
 
   const getElementsFn = useServerFn(getElements);
-  const { data: elements = [], isLoading } = useQuery({
+  const { data: elements = [], isLoading } = useQuery<WorkspaceElement[]>({
     queryKey: ["elements", workspace.id],
-    queryFn: () => getElementsFn({ data: { workspaceId: workspace.id } }),
+    queryFn: async () =>
+      (await getElementsFn({ data: { workspaceId: workspace.id } })) as WorkspaceElement[],
   });
 
   const getTagsFn = useServerFn(getTags);
-  const { data: workspaceTags = [] } = useQuery({
+  const { data: workspaceTags = [] } = useQuery<WorkspaceTag[]>({
     queryKey: ["tags", workspace.id],
-    queryFn: () => getTagsFn({ data: { workspaceId: workspace.id } }),
+    queryFn: async () =>
+      (await getTagsFn({ data: { workspaceId: workspace.id } })) as WorkspaceTag[],
   });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -102,7 +107,7 @@ function ElementsPage() {
     elements.some((el) => el.parentElementId === id);
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["elements", workspace.id] });
+    void queryClient.invalidateQueries({ queryKey: ["elements", workspace.id] });
   };
 
   const columns = useMemo(
@@ -120,13 +125,12 @@ function ElementsPage() {
   const filteredElements = useMemo(() => {
     if (selectedTagIds.length === 0) return elements;
     return elements.filter((el) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (el as any).tags?.some((t: { id: string }) => selectedTagIds.includes(t.id)),
+      el.tags?.some((t) => selectedTagIds.includes(t.id)),
     );
   }, [elements, selectedTagIds]);
 
   const table = useReactTable({
-    data: filteredElements as ElementRow[],
+    data: filteredElements,
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,
@@ -299,6 +303,7 @@ function ElementsPage() {
                     technologies: editElement.technologies,
                     links: editElement.links,
                     tags: editElement.tags ?? [],
+                    groups: editElement.groups ?? [],
                   }
                 : undefined
             }

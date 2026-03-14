@@ -29,15 +29,17 @@ import {
   User,
   Box,
   Package,
+  Database,
   Cpu,
 } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
 
 const ADD_ELEMENT_OPTIONS: { type: ElementType; label: () => string; icon: React.ReactNode }[] = [
-  { type: "person", label: () => m.editor_toolbar_add_person(), icon: <User className="mr-2 size-4" /> },
+  { type: "actor", label: () => m.editor_toolbar_add_person(), icon: <User className="mr-2 size-4" /> },
   { type: "system", label: () => m.editor_toolbar_add_system(), icon: <Box className="mr-2 size-4" /> },
-  { type: "container", label: () => m.editor_toolbar_add_container(), icon: <Package className="mr-2 size-4" /> },
+  { type: "app", label: () => m.editor_toolbar_add_container(), icon: <Package className="mr-2 size-4" /> },
+  { type: "store", label: () => m.element_type_container(), icon: <Database className="mr-2 size-4" /> },
   { type: "component", label: () => m.editor_toolbar_add_component(), icon: <Cpu className="mr-2 size-4" /> },
 ];
 
@@ -81,14 +83,18 @@ export function EditorToolbar() {
 
         <DropdownMenu>
           <ToolbarTooltip label={m.editor_toolbar_add_element()}>
-            <DropdownMenuTrigger asChild>
-              <Toggle
-                size="sm"
-                pressed={mode === "add_element"}
-                aria-label={m.editor_toolbar_add_element()}
-              >
-                <Plus className="size-4" />
-              </Toggle>
+            <DropdownMenuTrigger
+              render={
+                <Toggle
+                  size="sm"
+                  pressed={mode === "add_element"}
+                  aria-label={m.editor_toolbar_add_element()}
+                >
+                  <Plus className="size-4" />
+                </Toggle>
+              }
+            >
+              <Plus className="size-4" />
             </DropdownMenuTrigger>
           </ToolbarTooltip>
           <DropdownMenuContent align="center">
@@ -197,10 +203,10 @@ export function EditorToolbar() {
   );
 }
 
-function ToolbarTooltip({ label, children }: { label: string; children: React.ReactNode }) {
+function ToolbarTooltip({ label, children }: { label: string; children: React.ReactElement }) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipTrigger render={children} />
       <TooltipContent side="bottom" className="text-xs">
         {label}
       </TooltipContent>

@@ -111,7 +111,7 @@ export const removeDiagramRelationshipSchema = z.object({
 const VALID_SCOPE_TYPES: Record<DiagramType, ElementType[] | null> = {
   context: ["system"],
   container: ["system"],
-  component: ["container"],
+  component: ["app"],
 };
 
 const SCOPE_REQUIRED: Record<DiagramType, boolean> = {
@@ -129,7 +129,7 @@ export function validateDiagramScope(
 
   if (!scopeElementType) {
     if (required) {
-      const needed = diagramType === "container" ? "system" : "container";
+      const needed = diagramType === "container" ? "system" : "app";
       return { valid: false, message: `A ${diagramType} diagram requires a ${needed} as its scope element.` };
     }
     return { valid: true };
@@ -146,9 +146,9 @@ export function validateDiagramScope(
 // ── Element-for-diagram validation ──────────────────────────────────
 
 const ALLOWED_ELEMENT_TYPES: Record<DiagramType, ElementType[]> = {
-  context: ["person", "system"],
-  container: ["person", "system", "container"],
-  component: ["person", "system", "container", "component"],
+  context: ["actor", "system"],
+  container: ["actor", "system", "app", "store"],
+  component: ["actor", "system", "app", "store", "component"],
 };
 
 export function validateElementForDiagram(

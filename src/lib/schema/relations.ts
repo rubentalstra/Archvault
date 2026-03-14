@@ -16,7 +16,7 @@ import {
 } from "./auth-schema";
 import {workspace} from "./workspaces";
 import {element} from "./elements";
-import {elementTechnology} from "./element-technologies";
+import {technology, elementTechnology} from "./element-technologies";
 import {elementLink} from "./element-links";
 import {relationship} from "./relationships";
 import {tag, elementTag, relationshipTag} from "./tags";
@@ -41,6 +41,7 @@ export const relations = defineRelations(
         scimProvider,
         workspace,
         element,
+        technology,
         elementTechnology,
         elementLink,
         relationship,
@@ -256,6 +257,7 @@ export const relations = defineRelations(
             elements: r.many.element(),
             relationships: r.many.relationship(),
             tags: r.many.tag(),
+            technologies: r.many.technology(),
             diagrams: r.many.diagram(),
         },
 
@@ -290,7 +292,10 @@ export const relations = defineRelations(
                 to: r.user.id,
                 alias: "element_updated_by",
             }),
-            technologies: r.many.elementTechnology(),
+            technologies: r.many.technology({
+                from: r.element.id.through(r.elementTechnology.elementId),
+                to: r.technology.id.through(r.elementTechnology.technologyId),
+            }),
             links: r.many.elementLink(),
             // Two FKs from relationship to element → aliases required
             sourceRelationships: r.many.relationship({
@@ -326,6 +331,26 @@ export const relations = defineRelations(
                 from: r.elementTechnology.elementId,
                 to: r.element.id,
                 optional: false,
+            }),
+            technology: r.one.technology({
+                from: r.elementTechnology.technologyId,
+                to: r.technology.id,
+                optional: false,
+            }),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // technology
+        // ─────────────────────────────────────────────────────────────────
+        technology: {
+            workspace: r.one.workspace({
+                from: r.technology.workspaceId,
+                to: r.workspace.id,
+                optional: false,
+            }),
+            elements: r.many.element({
+                from: r.technology.id.through(r.elementTechnology.technologyId),
+                to: r.element.id.through(r.elementTechnology.elementId),
             }),
         },
 

@@ -32,17 +32,21 @@ import { useAddElement } from "#/components/editor/use-add-element";
 import { m } from "#/paraglide/messages";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
+type CreatedRelationship = { id: string };
+type CreatedDiagramRelationship = { id: string };
+
 interface DiagramCanvasProps {
   readOnly?: boolean;
   onNodeDoubleClick?: (event: React.MouseEvent, node: AppNode) => void;
 }
 
 const NODE_COLOR_MAP: Record<string, string> = {
-  person: "#60a5fa",
-  system: "#34d399",
-  container: "#a78bfa",
-  component: "#fb923c",
+  actor: "#60a5fa",
   group: "#94a3b8",
+  system: "#34d399",
+  app: "#a78bfa",
+  store: "#22c55e",
+  component: "#fb923c",
 };
 
 function getNodeColor(node: { type?: string }) {
@@ -134,26 +138,26 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
       if (!sourceNode || !targetNode) return;
 
       try {
-        const rel = await createRelationshipFn({
+        const rel = (await createRelationshipFn({
           data: {
             workspaceId: store.workspaceId,
             sourceElementId: sourceNode.data.elementId,
             targetElementId: targetNode.data.elementId,
           },
-        });
+        })) as CreatedRelationship;
 
-        const diagramRel = await addDiagramRelationshipFn({
+        const diagramRel = (await addDiagramRelationshipFn({
           data: {
             diagramId: store.diagramId,
             relationshipId: rel.id,
           },
-        });
+        })) as CreatedDiagramRelationship;
 
         const newEdge: AppEdge = {
           id: diagramRel.id,
           source: connection.source,
           target: connection.target,
-          type: "default",
+          type: "curved",
           markerEnd: { type: "arrowclosed" as const },
           data: {
             diagramRelationshipId: diagramRel.id,
@@ -201,7 +205,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
   );
 
   const onPaneContextMenu = useCallback(
-    (event: React.MouseEvent) => {
+    (event: MouseEvent | React.MouseEvent) => {
       event.preventDefault();
       setContextMenu({
         type: "pane",

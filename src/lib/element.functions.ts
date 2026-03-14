@@ -1,16 +1,16 @@
 import {createServerFn} from "@tanstack/react-start";
-import {and, eq, isNull, inArray} from "drizzle-orm";
+import {and, eq, isNull, inArray, desc} from "drizzle-orm";
 import {db} from "./database";
-import {element, elementTechnology, elementLink, tag, elementTag} from "./schema";
+import {element, technology, elementTechnology, elementLink, tag, elementTag, elementGroup} from "./schema";
 import {
     createElementSchema,
     updateElementSchema,
     deleteElementSchema,
     getElementsSchema,
+    addElementToGroupSchema,
+    removeElementFromGroupSchema,
     addTechnologySchema,
-    updateTechnologySchema,
     removeTechnologySchema,
-    reorderTechnologiesSchema,
     addLinkSchema,
     updateLinkSchema,
     removeLinkSchema,
@@ -41,8 +41,15 @@ export const getElements = createServerFn({method: "GET"})
         if (elementIds.length === 0) return [];
 
         const technologies = await db
-            .select()
+            .select({
+                elementId: elementTechnology.elementId,
+                technologyId: elementTechnology.technologyId,
+                sortOrder: elementTechnology.sortOrder,
+                name: technology.name,
+                iconSlug: technology.iconSlug,
+            })
             .from(elementTechnology)
+            .innerJoin(technology, eq(elementTechnology.technologyId, technology.id))
             .where(inArray(elementTechnology.elementId, elementIds));
 
         const links = await db
@@ -60,6 +67,16 @@ export const getElements = createServerFn({method: "GET"})
             : [];
         const tagMap = new Map(tags.map((t) => [t.id, t]));
 
+        const groupRows = await db
+            .select({
+                elementId: elementGroup.elementId,
+                groupElementId: elementGroup.groupElementId,
+                groupName: element.name,
+            })
+            .from(elementGroup)
+            .innerJoin(element, eq(elementGroup.groupElementId, element.id))
+            .where(inArray(elementGroup.elementId, elementIds));
+
         return elements.map((el) => ({
             ...el,
             technologies: technologies
@@ -72,6 +89,9 @@ export const getElements = createServerFn({method: "GET"})
                 .filter((r) => r.elementId === el.id)
                 .map((r) => tagMap.get(r.tagId))
                 .filter(Boolean),
+            groups: groupRows
+                .filter((g) => g.elementId === el.id)
+                .map((g) => ({id: g.groupElementId, name: g.groupName})),
         }));
     });
 
@@ -89,8 +109,14 @@ export const getElementById = createServerFn({method: "GET"})
         if (!el) throw new Error("Element not found");
 
         const technologies = await db
-            .select()
+            .select({
+                technologyId: elementTechnology.technologyId,
+                sortOrder: elementTechnology.sortOrder,
+                name: technology.name,
+                iconSlug: technology.iconSlug,
+            })
             .from(elementTechnology)
+            .innerJoin(technology, eq(elementTechnology.technologyId, technology.id))
             .where(eq(elementTechnology.elementId, el.id));
 
         const links = await db
@@ -98,10 +124,20 @@ export const getElementById = createServerFn({method: "GET"})
             .from(elementLink)
             .where(eq(elementLink.elementId, el.id));
 
+        const groups = await db
+            .select({
+                id: elementGroup.groupElementId,
+                name: element.name,
+            })
+            .from(elementGroup)
+            .innerJoin(element, eq(elementGroup.groupElementId, element.id))
+            .where(eq(elementGroup.elementId, el.id));
+
         return {
             ...el,
             technologies: technologies.sort((a, b) => a.sortOrder - b.sortOrder),
             links: links.sort((a, b) => a.sortOrder - b.sortOrder),
+            groups,
         };
     });
 
@@ -246,7 +282,7 @@ export const deleteElement = createServerFn({method: "POST"})
         return {success: true};
     });
 
-// ── Technology CRUD ────────────────────────────────────────────────────
+// ── Technology CRUD ──────────��────────────────────────────────────────
 
 export const addTechnology = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => addTechnologySchema.parse(input))
@@ -254,36 +290,37 @@ export const addTechnology = createServerFn({method: "POST"})
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
-        const id = crypto.randomUUID();
-        const [created] = await db
-            .insert(elementTechnology)
+        const [el] = await db
+            .select({workspaceId: element.workspaceId})
+            .from(element)
+            .where(and(eq(element.id, data.elementId), isNull(element.deletedAt)));
+        if (!el) throw new Error("Element not found");
+
+        const [lastTechnology] = await db
+            .select({sortOrder: elementTechnology.sortOrder})
+            .from(elementTechnology)
+            .where(eq(elementTechnology.elementId, data.elementId))
+            .orderBy(desc(elementTechnology.sortOrder))
+            .limit(1);
+
+        const technologyId = crypto.randomUUID();
+        const [createdTech] = await db
+            .insert(technology)
             .values({
-                id,
-                elementId: data.elementId,
+                id: technologyId,
+                workspaceId: el.workspaceId,
                 name: data.name,
                 iconSlug: data.iconSlug ?? null,
-                sortOrder: data.sortOrder,
             })
             .returning();
 
-        return created;
-    });
+        await db.insert(elementTechnology).values({
+            elementId: data.elementId,
+            technologyId,
+            sortOrder: Number(lastTechnology?.sortOrder ?? -1) + 1,
+        });
 
-export const updateTechnology = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => updateTechnologySchema.parse(input))
-    .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
-
-        const {id, ...updates} = data;
-        const [updated] = await db
-            .update(elementTechnology)
-            .set(updates)
-            .where(eq(elementTechnology.id, id))
-            .returning();
-
-        if (!updated) throw new Error("Technology not found");
-        return updated;
+        return createdTech;
     });
 
 export const removeTechnology = createServerFn({method: "POST"})
@@ -292,32 +329,62 @@ export const removeTechnology = createServerFn({method: "POST"})
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
-        const [deleted] = await db
-            .delete(elementTechnology)
-            .where(eq(elementTechnology.id, data.id))
-            .returning();
+        await db.delete(elementTechnology).where(eq(elementTechnology.technologyId, data.id));
+        await db.delete(technology).where(eq(technology.id, data.id));
 
-        if (!deleted) throw new Error("Technology not found");
         return {success: true};
     });
 
-export const reorderTechnologies = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => reorderTechnologiesSchema.parse(input))
+// ── Group assignment CRUD ────────────────────────────────────────────
+
+export const addElementToGroup = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => addElementToGroupSchema.parse(input))
     .handler(async ({data}) => {
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
-        await Promise.all(
-            data.orderedIds.map((id, index) =>
-                db
-                    .update(elementTechnology)
-                    .set({sortOrder: index})
-                    .where(
-                        and(
-                            eq(elementTechnology.id, id),
-                            eq(elementTechnology.elementId, data.elementId),
-                        ),
-                    ),
+        if (data.elementId === data.groupElementId) {
+            throw new Error("An element cannot be assigned to itself as a group.");
+        }
+
+        const [memberElement] = await db
+            .select({id: element.id, workspaceId: element.workspaceId, elementType: element.elementType})
+            .from(element)
+            .where(and(eq(element.id, data.elementId), isNull(element.deletedAt)));
+        const [groupElement] = await db
+            .select({id: element.id, workspaceId: element.workspaceId, elementType: element.elementType})
+            .from(element)
+            .where(and(eq(element.id, data.groupElementId), isNull(element.deletedAt)));
+
+        if (!memberElement || !groupElement) throw new Error("Element not found");
+        if (memberElement.workspaceId !== groupElement.workspaceId) {
+            throw new Error("Elements must belong to the same workspace.");
+        }
+        if (groupElement.elementType !== "group") {
+            throw new Error("Group assignment target must be a group element.");
+        }
+        if (memberElement.elementType === "group") {
+            throw new Error("Groups cannot be assigned to groups.");
+        }
+
+        await db.insert(elementGroup).values({
+            elementId: data.elementId,
+            groupElementId: data.groupElementId,
+        }).onConflictDoNothing();
+
+        return {success: true};
+    });
+
+export const removeElementFromGroup = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => removeElementFromGroupSchema.parse(input))
+    .handler(async ({data}) => {
+        const {memberRole} = await getSessionAndOrg();
+        assertRole(memberRole, ["owner", "admin", "editor"]);
+
+        await db.delete(elementGroup).where(
+            and(
+                eq(elementGroup.elementId, data.elementId),
+                eq(elementGroup.groupElementId, data.groupElementId),
             ),
         );
 

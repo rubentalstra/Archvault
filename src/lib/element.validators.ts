@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-export const elementTypes = ["person", "system", "container", "component"] as const;
+export const elementTypes = ["actor", "group", "system", "app", "store", "component"] as const;
 export type ElementType = (typeof elementTypes)[number];
 
 export const elementStatuses = ["planned", "live", "deprecated"] as const;
@@ -39,29 +39,24 @@ export const getElementsSchema = z.object({
   workspaceId: z.string(),
 });
 
-// ── Technology schemas ─────────────────────────────────────────────────
+export const addElementToGroupSchema = z.object({
+  elementId: z.string(),
+  groupElementId: z.string(),
+});
+
+export const removeElementFromGroupSchema = z.object({
+  elementId: z.string(),
+  groupElementId: z.string(),
+});
 
 export const addTechnologySchema = z.object({
   elementId: z.string(),
   name: z.string().min(1).max(100),
   iconSlug: z.string().optional(),
-  sortOrder: z.number().int().default(0),
-});
-
-export const updateTechnologySchema = z.object({
-  id: z.string(),
-  name: z.string().min(1).max(100).optional(),
-  iconSlug: z.string().nullable().optional(),
-  sortOrder: z.number().int().optional(),
 });
 
 export const removeTechnologySchema = z.object({
   id: z.string(),
-});
-
-export const reorderTechnologiesSchema = z.object({
-  elementId: z.string(),
-  orderedIds: z.array(z.string()),
 });
 
 // ── Link schemas ───────────────────────────────────────────────────────
@@ -87,10 +82,12 @@ export const removeLinkSchema = z.object({
 // ── Hierarchy validation ───────────────────────────────────────────────
 
 const VALID_PARENTS: Record<ElementType, ElementType[] | null> = {
-  person: null,
-  system: ["system"],
-  container: ["system"],
-  component: ["container"],
+  actor: ["group"],
+  group: ["group"],
+  system: ["group"],
+  app: ["system"],
+  store: ["system"],
+  component: ["app"],
 };
 
 export function validateElementHierarchy(
@@ -99,30 +96,27 @@ export function validateElementHierarchy(
 ): { valid: boolean; message?: string } {
   const allowedParents = VALID_PARENTS[elementType];
 
-  if (allowedParents === null) {
-    // person: no parent allowed
-    if (parentType) {
-      return { valid: false, message: `A ${elementType} cannot have a parent element.` };
+  if (!allowedParents) {
+    return parentType
+      ? { valid: false, message: `A ${elementType} cannot have a parent element.` }
+      : { valid: true };
+  }
+
+  if (!parentType) {
+    if (elementType === "app" || elementType === "store" || elementType === "component") {
+      return {
+        valid: false,
+        message: `A ${elementType} must be nested under ${allowedParents.join(" or ")}.`,
+      };
     }
     return { valid: true };
   }
 
-  if (elementType === "system") {
-    // system: no parent OR parent is system
-    if (!parentType) return { valid: true };
-    if (allowedParents.includes(parentType)) return { valid: true };
-    return { valid: false, message: "A system can only be nested under another system." };
-  }
-
-  // container/component: parent is required
-  if (!parentType) {
-    const required = elementType === "container" ? "system" : "container";
-    return { valid: false, message: `A ${elementType} must have a ${required} as its parent.` };
-  }
-
   if (!allowedParents.includes(parentType)) {
-    const required = elementType === "container" ? "system" : "container";
-    return { valid: false, message: `A ${elementType} must have a ${required} as its parent, not a ${parentType}.` };
+    return {
+      valid: false,
+      message: `A ${elementType} must be nested under ${allowedParents.join(" or ")}, not ${parentType}.`,
+    };
   }
 
   return { valid: true };

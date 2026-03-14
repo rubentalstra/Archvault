@@ -28,11 +28,15 @@ import {
   updateElement,
   addTechnology,
   removeTechnology,
+  addElementToGroup,
+  removeElementFromGroup,
   addLink,
   removeLink,
 } from "#/lib/element.functions";
 import { addElementTag, removeElementTag } from "#/lib/tag.functions";
 import { TagPicker } from "#/components/tags/tag-picker";
+
+type CreatedElement = { id: string };
 
 interface ElementData {
   id: string;
@@ -46,6 +50,7 @@ interface ElementData {
   technologies: { id: string; name: string; iconSlug: string | null }[];
   links: { id: string; url: string; label: string | null }[];
   tags: { id: string; name: string; color: string; icon: string | null }[];
+  groups: { id: string; name: string }[];
 }
 
 interface ParentOption {
@@ -74,9 +79,11 @@ interface ElementFormDialogProps {
 }
 
 const TYPE_LABELS: Record<ElementType, () => string> = {
-  person: () => m.element_type_person(),
+  actor: () => m.element_type_person(),
+  group: () => m.element_type_system(),
   system: () => m.element_type_system(),
-  container: () => m.element_type_container(),
+  app: () => m.element_type_container(),
+  store: () => m.element_type_container(),
   component: () => m.element_type_component(),
 };
 
@@ -108,6 +115,11 @@ export function ElementFormDialog({
   const [localTagIds, setLocalTagIds] = useState<string[]>(
     editElement?.tags?.map((t) => t.id) ?? [],
   );
+  const [localGroupIds, setLocalGroupIds] = useState<string[]>(
+    editElement?.groups?.map((g) => g.id) ?? [],
+  );
+
+  const groupOptions = parentOptions.filter((p) => p.elementType === "group");
 
   const form = useForm({
     defaultValues: {
@@ -192,9 +204,27 @@ export function ElementFormDialog({
             }
           }
 
+          // Sync group assignments
+          const existingGroupIds = new Set(editElement.groups.map((g) => g.id));
+          const currentGroupIds = new Set(localGroupIds);
+          for (const groupId of existingGroupIds) {
+            if (!currentGroupIds.has(groupId)) {
+              await removeElementFromGroup({
+                data: { elementId: editElement.id, groupElementId: groupId },
+              });
+            }
+          }
+          for (const groupId of currentGroupIds) {
+            if (!existingGroupIds.has(groupId)) {
+              await addElementToGroup({
+                data: { elementId: editElement.id, groupElementId: groupId },
+              });
+            }
+          }
+
           toast.success(m.element_edit_success());
         } else {
-          const created = await createElement({
+          const created = (await createElement({
             data: {
               workspaceId,
               elementType: value.elementType,
@@ -205,7 +235,7 @@ export function ElementFormDialog({
               external: value.external,
               parentElementId: value.parentElementId || undefined,
             },
-          });
+          })) as CreatedElement;
 
           // Add technologies, links, and tags to newly created element
           for (const t of localTechs) {
@@ -220,6 +250,11 @@ export function ElementFormDialog({
           }
           for (const tagId of localTagIds) {
             await addElementTag({ data: { elementId: created.id, tagId } });
+          }
+          for (const groupId of localGroupIds) {
+            await addElementToGroup({
+              data: { elementId: created.id, groupElementId: groupId },
+            });
           }
 
           toast.success(m.element_create_success());
@@ -248,10 +283,12 @@ export function ElementFormDialog({
 
   const getValidParentOptions = (type: ElementType) => {
     return parentOptions.filter((p) => {
-      if (type === "person") return false;
-      if (type === "system") return p.elementType === "system";
-      if (type === "container") return p.elementType === "system";
-      if (type === "component") return p.elementType === "container";
+      if (type === "actor") return p.elementType === "group";
+      if (type === "group") return p.elementType === "group";
+      if (type === "system") return p.elementType === "group";
+      if (type === "app") return p.elementType === "system";
+      if (type === "store") return p.elementType === "system";
+      if (type === "component") return p.elementType === "app";
       return false;
     });
   };
@@ -409,7 +446,7 @@ export function ElementFormDialog({
               <form.Field name="parentElementId">
                 {(field) => {
                   const validParents = getValidParentOptions(typeField.state.value);
-                  const isPerson = typeField.state.value === "person";
+                  const allowsNoParent = ["actor", "group", "system"].includes(typeField.state.value);
                   return (
                     <div className="flex flex-col gap-1.5">
                       <Label>{m.element_label_parent()}</Label>
@@ -420,7 +457,7 @@ export function ElementFormDialog({
                           field.handleChange(e.target.value);
                           handleTypeOrParentChange(typeField.state.value, e.target.value);
                         }}
-                        disabled={isPerson}
+                        disabled={!allowsNoParent && validParents.length === 0}
                       >
                         <option value="">{m.element_no_parent()}</option>
                         {validParents.map((p) => (
@@ -550,6 +587,34 @@ export function ElementFormDialog({
                 selectedTagIds={localTagIds}
                 onChange={setLocalTagIds}
               />
+            </div>
+          )}
+
+          {/* Group assignments */}
+          {groupOptions.length > 0 && form.getFieldValue("elementType") !== "group" && (
+            <div className="flex flex-col gap-2">
+              <Label>{m.element_label_parent()}</Label>
+              <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2">
+                {groupOptions.map((group) => {
+                  const checked = localGroupIds.includes(group.id);
+                  return (
+                    <label key={group.id} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          setLocalGroupIds((prev) =>
+                            e.target.checked
+                              ? [...prev, group.id]
+                              : prev.filter((id) => id !== group.id),
+                          );
+                        }}
+                      />
+                      <span>{group.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           )}
 

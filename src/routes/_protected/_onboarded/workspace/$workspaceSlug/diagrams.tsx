@@ -43,6 +43,20 @@ import { Plus } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
 
+type WorkspaceElement = { id: string; name: string; elementType: ElementType };
+type WorkspaceDiagram = {
+  id: string;
+  name: string;
+  diagramType: DiagramRow["diagramType"];
+  scopeElementName: string | null;
+  scopeElementId: string | null;
+  elementCount: number | string;
+  description: string | null;
+  gridSize: number;
+  snapToGrid: boolean;
+  updatedAt: string | Date;
+};
+
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/diagrams",
 )({
@@ -59,15 +73,17 @@ function DiagramsPage() {
   const canDelete = ["owner", "admin"].includes(memberRole ?? "");
 
   const getDiagramsFn = useServerFn(getDiagrams);
-  const { data: diagrams = [], isLoading } = useQuery({
+  const { data: diagrams = [], isLoading } = useQuery<WorkspaceDiagram[]>({
     queryKey: ["diagrams", workspace.id],
-    queryFn: () => getDiagramsFn({ data: { workspaceId: workspace.id } }),
+    queryFn: async () =>
+      (await getDiagramsFn({ data: { workspaceId: workspace.id } })) as WorkspaceDiagram[],
   });
 
   const getElementsFn = useServerFn(getElements);
-  const { data: elements = [] } = useQuery({
+  const { data: elements = [] } = useQuery<WorkspaceElement[]>({
     queryKey: ["elements", workspace.id],
-    queryFn: () => getElementsFn({ data: { workspaceId: workspace.id } }),
+    queryFn: async () =>
+      (await getElementsFn({ data: { workspaceId: workspace.id } })) as WorkspaceElement[],
   });
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -81,13 +97,13 @@ function DiagramsPage() {
       elements.map((el) => ({
         id: el.id,
         name: el.name,
-        elementType: el.elementType as ElementType,
+        elementType: el.elementType,
       })),
     [elements],
   );
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["diagrams", workspace.id] });
+    void queryClient.invalidateQueries({ queryKey: ["diagrams", workspace.id] });
   };
 
   const columns = useMemo(
@@ -120,7 +136,7 @@ function DiagramsPage() {
   );
 
   const table = useReactTable({
-    data: tableData as DiagramRow[],
+    data: tableData,
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,

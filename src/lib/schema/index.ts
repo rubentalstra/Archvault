@@ -7,6 +7,7 @@ export * from "./workspaces";
 export * from "./elements";
 export * from "./element-technologies";
 export * from "./element-links";
+export * from "./element-groups";
 // Phase 2b: relationships
 export * from "./relationships";
 // Phase 2c: tags

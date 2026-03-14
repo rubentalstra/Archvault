@@ -6,6 +6,8 @@ import {
     diagramElement,
     diagramRelationship,
     element,
+    technology,
+    elementTechnology,
     relationship,
 } from "./schema";
 import {
@@ -170,7 +172,35 @@ export const getDiagramData = createServerFn({method: "GET"})
                 ),
             );
 
-        return {diagram: d, elements, relationships};
+        // Fetch technologies for all elements on this diagram
+        const elementIds = elements.map((e) => e.elementId);
+        let techMap = new Map<string, string[]>();
+        if (elementIds.length > 0) {
+            const {inArray} = await import("drizzle-orm");
+            const techs = await db
+                .select({
+                    elementId: elementTechnology.elementId,
+                    name: technology.name,
+                    sortOrder: elementTechnology.sortOrder,
+                })
+                .from(elementTechnology)
+                .innerJoin(technology, eq(elementTechnology.technologyId, technology.id))
+                .where(inArray(elementTechnology.elementId, elementIds));
+
+            techMap = new Map<string, string[]>();
+            for (const t of techs.sort((a, b) => a.sortOrder - b.sortOrder)) {
+                const existing = techMap.get(t.elementId) ?? [];
+                existing.push(t.name);
+                techMap.set(t.elementId, existing);
+            }
+        }
+
+        const elementsWithTech = elements.map((e) => ({
+            ...e,
+            technologies: techMap.get(e.elementId) ?? [],
+        }));
+
+        return {diagram: d, elements: elementsWithTech, relationships};
     });
 
 export const createDiagram = createServerFn({method: "POST"})
@@ -180,25 +210,25 @@ export const createDiagram = createServerFn({method: "POST"})
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
         // Inline helper: fetch element type
-        async function fetchElementType(elementId: string): Promise<{type: ElementType; workspaceId: string}> {
+        async function fetchElementType(elementId: string): Promise<{ type: ElementType; workspaceId: string }> {
             const [el] = await db
                 .select({type: element.elementType, workspaceId: element.workspaceId})
                 .from(element)
                 .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
             if (!el) throw new Error("Element not found");
-            return {type: el.type as ElementType, workspaceId: el.workspaceId};
+            return {type: el.type, workspaceId: el.workspaceId};
         }
 
         if (data.scopeElementId) {
             const scopeEl = await fetchElementType(data.scopeElementId);
             const validation = validateDiagramScope(
-                data.diagramType as DiagramType,
+                data.diagramType,
                 scopeEl.type,
             );
             if (!validation.valid) throw new Error(validation.message);
         } else {
             const validation = validateDiagramScope(
-                data.diagramType as DiagramType,
+                data.diagramType,
                 null,
             );
             if (!validation.valid) throw new Error(validation.message);
@@ -231,13 +261,13 @@ export const updateDiagram = createServerFn({method: "POST"})
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
         // Inline helper
-        async function fetchElementType(elementId: string): Promise<{type: ElementType; workspaceId: string}> {
+        async function fetchElementType(elementId: string): Promise<{ type: ElementType; workspaceId: string }> {
             const [el] = await db
                 .select({type: element.elementType, workspaceId: element.workspaceId})
                 .from(element)
                 .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
             if (!el) throw new Error("Element not found");
-            return {type: el.type as ElementType, workspaceId: el.workspaceId};
+            return {type: el.type, workspaceId: el.workspaceId};
         }
 
         const {id, ...updates} = data;
@@ -252,13 +282,13 @@ export const updateDiagram = createServerFn({method: "POST"})
             if (updates.scopeElementId) {
                 const scopeEl = await fetchElementType(updates.scopeElementId);
                 const validation = validateDiagramScope(
-                    existing.diagramType as DiagramType,
+                    existing.diagramType,
                     scopeEl.type,
                 );
                 if (!validation.valid) throw new Error(validation.message);
             } else {
                 const validation = validateDiagramScope(
-                    existing.diagramType as DiagramType,
+                    existing.diagramType,
                     null,
                 );
                 if (!validation.valid) throw new Error(validation.message);
@@ -313,20 +343,20 @@ export const addDiagramElement = createServerFn({method: "POST"})
             return d;
         }
 
-        async function fetchElementType(elementId: string): Promise<{type: ElementType; workspaceId: string}> {
+        async function fetchElementType(elementId: string): Promise<{ type: ElementType; workspaceId: string }> {
             const [el] = await db
                 .select({type: element.elementType, workspaceId: element.workspaceId})
                 .from(element)
                 .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
             if (!el) throw new Error("Element not found");
-            return {type: el.type as ElementType, workspaceId: el.workspaceId};
+            return {type: el.type, workspaceId: el.workspaceId};
         }
 
         const d = await assertDiagramInWorkspace(data.diagramId);
         const el = await fetchElementType(data.elementId);
 
         const validation = validateElementForDiagram(
-            d.diagramType as DiagramType,
+            d.diagramType,
             el.type,
         );
         if (!validation.valid) throw new Error(validation.message);

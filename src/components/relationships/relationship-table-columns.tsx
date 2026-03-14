@@ -22,8 +22,10 @@ import {
   ArrowLeftRight,
   Minus,
   User,
+  Layers,
   Server,
   Package,
+  Database,
   Cpu,
 } from "lucide-react";
 import { formatRelativeDate } from "#/lib/admin.utils";
@@ -53,9 +55,11 @@ export interface RelationshipTableActions {
 }
 
 const TYPE_ICONS: Record<ElementType, typeof User> = {
-  person: User,
+  actor: User,
+  group: Layers,
   system: Server,
-  container: Package,
+  app: Package,
+  store: Database,
   component: Cpu,
 };
 

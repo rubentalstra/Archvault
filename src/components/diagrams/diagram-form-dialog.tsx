@@ -58,7 +58,7 @@ const TYPE_LABELS: Record<DiagramType, () => string> = {
 const SCOPE_FILTER: Record<DiagramType, ElementType[]> = {
   context: ["system"],
   container: ["system"],
-  component: ["container"],
+  component: ["app"],
 };
 
 export function DiagramFormDialog({

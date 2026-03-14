@@ -20,7 +20,7 @@ import { m } from "#/paraglide/messages";
 import { Separator } from "#/components/ui/separator";
 import { useReactFlow } from "@xyflow/react";
 import type { AppNode } from "#/lib/types/diagram-nodes";
-import type { ElementType } from "#/lib/element.validators";
+import type { ElementStatus, ElementType } from "#/lib/element.validators";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,26 +33,35 @@ import {
 } from "#/components/ui/alert-dialog";
 import { useState } from "react";
 
+type CreatedElement = { id: string; name: string; status: ElementStatus; external: boolean };
+type CreatedDiagramElement = { id: string };
+
 const DEFAULT_SIZES: Record<ElementType, { width: number; height: number }> = {
-  person: { width: 160, height: 100 },
+  actor: { width: 160, height: 100 },
+  group: { width: 320, height: 220 },
   system: { width: 200, height: 120 },
-  container: { width: 180, height: 110 },
+  app: { width: 180, height: 110 },
+  store: { width: 180, height: 110 },
   component: { width: 160, height: 100 },
 };
 
-const ELEMENT_TYPES: ElementType[] = ["person", "system", "container", "component"];
+const ELEMENT_TYPES: ElementType[] = ["actor", "group", "system", "app", "store", "component"];
 
 const ELEMENT_LABELS: Record<ElementType, () => string> = {
-  person: () => m.editor_toolbar_add_person(),
+  actor: () => m.editor_toolbar_add_person(),
+  group: () => m.element_type_system(),
   system: () => m.editor_toolbar_add_system(),
-  container: () => m.editor_toolbar_add_container(),
+  app: () => m.editor_toolbar_add_container(),
+  store: () => m.element_type_container(),
   component: () => m.editor_toolbar_add_component(),
 };
 
 const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
-  person: () => m.editor_new_person(),
+  actor: () => m.editor_new_person(),
+  group: () => m.editor_new_system(),
   system: () => m.editor_new_system(),
-  container: () => m.editor_new_container(),
+  app: () => m.editor_new_container(),
+  store: () => m.editor_new_container(),
   component: () => m.editor_new_component(),
 };
 
@@ -189,15 +198,15 @@ function NodeContextMenuItems({
     const store = useEditorStore.getState();
     if (!store.workspaceId || !store.diagramId) return;
     try {
-      const newElement = await createElementFn({
+      const newElement = (await createElementFn({
         data: {
           workspaceId: store.workspaceId,
-          elementType: (node.type === "group" ? "system" : node.type) as ElementType,
+          elementType: node.type as ElementType,
           name: `Copy of ${node.data.name}`,
         },
-      });
-      const size = DEFAULT_SIZES[(node.type === "group" ? "system" : node.type) as ElementType];
-      const diagramElement = await addDiagramElementFn({
+      })) as CreatedElement;
+      const size = DEFAULT_SIZES[node.type as ElementType];
+      const diagramElement = (await addDiagramElementFn({
         data: {
           diagramId: store.diagramId,
           elementId: newElement.id,
@@ -206,7 +215,7 @@ function NodeContextMenuItems({
           width: Number(node.style?.width ?? size.width),
           height: Number(node.style?.height ?? size.height),
         },
-      });
+      })) as CreatedDiagramElement;
       const newNode: AppNode = {
         id: diagramElement.id,
         type: node.type,
@@ -307,15 +316,15 @@ function PaneContextMenuItems({ position }: { position: { x: number; y: number }
       const flowPos = reactFlow.screenToFlowPosition({ x: position.x, y: position.y });
 
       try {
-        const newElement = await createElementFn({
+        const newElement = (await createElementFn({
           data: {
             workspaceId: store.workspaceId,
             elementType: type,
             name: NEW_ELEMENT_NAMES[type](),
           },
-        });
+        })) as CreatedElement;
         const size = DEFAULT_SIZES[type];
-        const diagramElement = await addDiagramElementFn({
+        const diagramElement = (await addDiagramElementFn({
           data: {
             diagramId: store.diagramId,
             elementId: newElement.id,
@@ -324,7 +333,7 @@ function PaneContextMenuItems({ position }: { position: { x: number; y: number }
             width: size.width,
             height: size.height,
           },
-        });
+        })) as CreatedDiagramElement;
         const newNode: AppNode = {
           id: diagramElement.id,
           type,
@@ -338,6 +347,7 @@ function PaneContextMenuItems({ position }: { position: { x: number; y: number }
             displayDescription: null,
             status: newElement.status,
             external: newElement.external,
+            technologies: [],
           },
         } as AppNode;
         addNode(newNode);

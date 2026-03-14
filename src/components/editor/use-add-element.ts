@@ -8,18 +8,26 @@ import { addDiagramElement } from "#/lib/diagram.functions";
 import { m } from "#/paraglide/messages";
 import type { AppNode } from "#/lib/types/diagram-nodes";
 import type { ElementType } from "#/lib/element.validators";
+import type { ElementStatus } from "#/lib/element.validators";
+
+type CreatedElement = { id: string; name: string; status: ElementStatus; external: boolean };
+type CreatedDiagramElement = { id: string };
 
 const DEFAULT_SIZES: Record<ElementType, { width: number; height: number }> = {
-  person: { width: 160, height: 100 },
+  actor: { width: 160, height: 100 },
+  group: { width: 320, height: 220 },
   system: { width: 200, height: 120 },
-  container: { width: 180, height: 110 },
+  app: { width: 180, height: 110 },
+  store: { width: 180, height: 110 },
   component: { width: 160, height: 100 },
 };
 
 const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
-  person: () => m.editor_new_person(),
+  actor: () => m.editor_new_person(),
+  group: () => m.editor_new_system(),
   system: () => m.editor_new_system(),
-  container: () => m.editor_new_container(),
+  app: () => m.editor_new_container(),
+  store: () => m.editor_new_container(),
   component: () => m.editor_new_component(),
 };
 
@@ -57,16 +65,16 @@ export function useAddElement() {
       });
 
       try {
-        const newElement = await createElementFn({
+        const newElement = (await createElementFn({
           data: {
             workspaceId: store.workspaceId,
             elementType: addElementType,
             name: NEW_ELEMENT_NAMES[addElementType](),
           },
-        });
+        })) as CreatedElement;
 
         const size = DEFAULT_SIZES[addElementType];
-        const diagramElement = await addDiagramElementFn({
+        const diagramElement = (await addDiagramElementFn({
           data: {
             diagramId: store.diagramId,
             elementId: newElement.id,
@@ -75,7 +83,7 @@ export function useAddElement() {
             width: size.width,
             height: size.height,
           },
-        });
+        })) as CreatedDiagramElement;
 
         const newNode: AppNode = {
           id: diagramElement.id,
@@ -90,6 +98,7 @@ export function useAddElement() {
             displayDescription: null,
             status: newElement.status,
             external: newElement.external,
+            technologies: [],
           },
         } as AppNode;
 

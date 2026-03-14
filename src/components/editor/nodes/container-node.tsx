@@ -2,14 +2,14 @@ import { memo } from "react";
 import { Handle, Position, NodeResizer } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import { Package } from "lucide-react";
-import type { ContainerNodeData } from "#/lib/types/diagram-nodes";
+import type { AppNodeData } from "#/lib/types/diagram-nodes";
 import { m } from "#/paraglide/messages";
 import { StatusDot } from "./status-dot";
 
 const MIN_WIDTH = 160;
 const MIN_HEIGHT = 90;
 
-function ContainerNodeComponent({ data, selected }: NodeProps & { data: ContainerNodeData }) {
+function ContainerNodeComponent({ data, selected }: NodeProps & { data: AppNodeData }) {
   return (
     <>
       <NodeResizer
@@ -39,6 +39,7 @@ function ContainerNodeComponent({ data, selected }: NodeProps & { data: Containe
             {data.displayDescription}
           </span>
         )}
+        <span className="text-xs text-muted-foreground">{m.element_type_container()}</span>
         {data.external && (
           <span className="text-[10px] text-muted-foreground">{m.canvas_node_external()}</span>
         )}

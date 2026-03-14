@@ -33,6 +33,15 @@ import { ElementConnections } from "./element-connections";
 import type { ElementStatus } from "#/lib/element.validators";
 import type { AppNode } from "#/lib/types/diagram-nodes";
 
+interface ElementDetails {
+  id: string;
+  parentElementId: string | null;
+  description: string | null;
+  technologies: Array<{ id: string; name: string; iconSlug: string | null }>;
+  links: Array<{ id: string; url: string; label: string | null }>;
+  tags?: Array<{ tagId: string }>;
+}
+
 const STATUS_OPTIONS: { value: ElementStatus; label: () => string }[] = [
   { value: "planned", label: () => m.element_status_planned() },
   { value: "live", label: () => m.element_status_live() },
@@ -47,9 +56,9 @@ export function ElementProperties({ node }: { node: AppNode }) {
   const getElementByIdFn = useServerFn(getElementById);
   const updateElementFn = useServerFn(updateElement);
 
-  const { data: element } = useQuery({
+  const { data: element } = useQuery<ElementDetails>({
     queryKey: ["element", node.data.elementId],
-    queryFn: () => getElementByIdFn({ data: { id: node.data.elementId } }),
+    queryFn: async () => (await getElementByIdFn({ data: { id: node.data.elementId } })) as ElementDetails,
   });
 
   const [name, setName] = useState(node.data.name);
@@ -109,8 +118,9 @@ export function ElementProperties({ node }: { node: AppNode }) {
   );
 
   const handleStatusChange = useCallback(
-    async (status: string) => {
-      await saveField("status", status);
+    (status: string | null) => {
+      if (!status) return;
+      void saveField("status", status);
       updateNodeData(node.id, { status: status as ElementStatus });
     },
     [node.id, saveField, updateNodeData],

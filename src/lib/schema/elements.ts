@@ -13,9 +13,11 @@ import {workspace} from "./workspaces";
 import {user} from "./auth-schema";
 
 export const elementTypeEnum = pgEnum("element_type", [
-    "person",
+    "actor",
+    "group",
     "system",
-    "container",
+    "app",
+    "store",
     "component",
 ]);
 

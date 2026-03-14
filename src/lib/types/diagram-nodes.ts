@@ -18,12 +18,14 @@ export interface BaseNodeData {
   displayDescription: string | null;
   status: ElementStatus;
   external: boolean;
+  technologies: string[];
   [key: string]: unknown;
 }
 
-export type PersonNodeData = BaseNodeData;
+export type ActorNodeData = BaseNodeData;
 export type SystemNodeData = BaseNodeData;
-export type ContainerNodeData = BaseNodeData;
+export type AppNodeData = BaseNodeData;
+export type StoreNodeData = BaseNodeData;
 export type ComponentNodeData = BaseNodeData;
 
 export interface GroupNodeData extends BaseNodeData {
@@ -32,16 +34,18 @@ export interface GroupNodeData extends BaseNodeData {
 
 // ── Node Types ───────────────────────────────────────────────────────
 
-export type PersonNode = Node<PersonNodeData, "person">;
+export type ActorNode = Node<ActorNodeData, "actor">;
 export type SystemNode = Node<SystemNodeData, "system">;
-export type ContainerNode = Node<ContainerNodeData, "container">;
+export type AppContainerNode = Node<AppNodeData, "app">;
+export type StoreNode = Node<StoreNodeData, "store">;
 export type ComponentNode = Node<ComponentNodeData, "component">;
 export type GroupNode = Node<GroupNodeData, "group">;
 
 export type AppNode =
-  | PersonNode
+  | ActorNode
   | SystemNode
-  | ContainerNode
+  | AppContainerNode
+  | StoreNode
   | ComponentNode
   | GroupNode;
 

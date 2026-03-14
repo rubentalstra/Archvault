@@ -43,6 +43,11 @@ import { Separator } from "#/components/ui/separator";
 import { SidebarTrigger } from "#/components/ui/sidebar";
 import { Plus } from "lucide-react";
 import { m } from "#/paraglide/messages";
+import type { ElementType } from "#/lib/element.validators";
+
+type WorkspaceTag = { id: string; name: string; color: string; icon: string | null };
+type WorkspaceElement = { id: string; name: string; elementType: ElementType };
+type WorkspaceRelationship = RelationshipRow & { tags?: WorkspaceTag[] };
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/relationships",
@@ -60,21 +65,24 @@ function RelationshipsPage() {
   const canDelete = ["owner", "admin"].includes(memberRole ?? "");
 
   const getRelationshipsFn = useServerFn(getRelationships);
-  const { data: relationships = [], isLoading } = useQuery({
+  const { data: relationships = [], isLoading } = useQuery<WorkspaceRelationship[]>({
     queryKey: ["relationships", workspace.id],
-    queryFn: () => getRelationshipsFn({ data: { workspaceId: workspace.id } }),
+    queryFn: async () =>
+      (await getRelationshipsFn({ data: { workspaceId: workspace.id } })) as WorkspaceRelationship[],
   });
 
   const getElementsFn = useServerFn(getElements);
-  const { data: elements = [] } = useQuery({
+  const { data: elements = [] } = useQuery<WorkspaceElement[]>({
     queryKey: ["elements", workspace.id],
-    queryFn: () => getElementsFn({ data: { workspaceId: workspace.id } }),
+    queryFn: async () =>
+      (await getElementsFn({ data: { workspaceId: workspace.id } })) as WorkspaceElement[],
   });
 
   const getTagsFn = useServerFn(getTags);
-  const { data: workspaceTags = [] } = useQuery({
+  const { data: workspaceTags = [] } = useQuery<WorkspaceTag[]>({
     queryKey: ["tags", workspace.id],
-    queryFn: () => getTagsFn({ data: { workspaceId: workspace.id } }),
+    queryFn: async () =>
+      (await getTagsFn({ data: { workspaceId: workspace.id } })) as WorkspaceTag[],
   });
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -96,7 +104,7 @@ function RelationshipsPage() {
   }, [elements]);
 
   const elementTypeMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, ElementType>();
     for (const el of elements) {
       map.set(el.id, el.elementType);
     }
@@ -113,7 +121,7 @@ function RelationshipsPage() {
   );
 
   const invalidate = () => {
-    queryClient.invalidateQueries({
+    void queryClient.invalidateQueries({
       queryKey: ["relationships", workspace.id],
     });
   };
@@ -126,11 +134,7 @@ function RelationshipsPage() {
         canEdit,
         canDelete,
         elementNameMap,
-        elementTypeMap:
-          elementTypeMap as Map<
-            string,
-            import("#/lib/element.validators").ElementType
-          >,
+        elementTypeMap,
       }),
     [canEdit, canDelete, elementNameMap, elementTypeMap],
   );
@@ -138,15 +142,14 @@ function RelationshipsPage() {
   const filteredRelationships = useMemo(() => {
     if (selectedTagIds.length === 0) return relationships;
     return relationships.filter((rel) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (rel as any).tags?.some((t: { id: string }) =>
+      rel.tags?.some((t) =>
         selectedTagIds.includes(t.id),
       ),
     );
   }, [relationships, selectedTagIds]);
 
   const table = useReactTable({
-    data: filteredRelationships as RelationshipRow[],
+    data: filteredRelationships,
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,

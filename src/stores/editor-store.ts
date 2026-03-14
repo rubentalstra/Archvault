@@ -126,7 +126,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   updateNodeData: (nodeId, data) =>
     set({
       nodes: get().nodes.map((n) =>
-        n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n,
+        n.id === nodeId ? ({ ...n, data: { ...n.data, ...data } } as AppNode) : n,
       ),
     }),
   updateNodeZIndex: (nodeId, zIndex) =>
