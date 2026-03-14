@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { m } from "#/paraglide/messages";
 import { authClient } from "#/lib/auth-client";
+import { getEnabledSocialProviders } from "#/lib/auth.functions";
+import type { SocialProviderId } from "#/lib/auth.social";
 import { Button } from "#/components/ui/button";
 import {
   Card,
@@ -37,6 +41,11 @@ export const Route = createFileRoute("/signup")({
 function SignUpPage() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const getEnabledSocialProvidersFn = useServerFn(getEnabledSocialProviders);
+  const { data: enabledSocialProviders = [] } = useQuery({
+    queryKey: ["auth-social-providers"],
+    queryFn: () => getEnabledSocialProvidersFn(),
+  });
 
   const form = useForm({
     defaultValues: {
@@ -69,16 +78,29 @@ function SignUpPage() {
       }
 
       toast.success(m.auth_account_created());
-      navigate({ to: "/dashboard" });
+      void navigate({ to: "/dashboard" });
     },
   });
 
-  const handleSocial = (provider: "github" | "google" | "microsoft") => {
-    authClient.signIn.social({
+  const handleSocial = (provider: SocialProviderId) => {
+    void authClient.signIn.social({
       provider,
       callbackURL: "/dashboard",
     });
   };
+
+  const socialProviderMap: Record<SocialProviderId, { label: string; icon: ReactNode }> = {
+    github: { label: m.auth_social_github(), icon: <Github className="size-4" /> },
+    google: { label: m.auth_social_google(), icon: null },
+    microsoft: { label: m.auth_social_microsoft(), icon: null },
+  };
+
+  const socialProviders = enabledSocialProviders.map((id) => ({
+    id,
+    ...socialProviderMap[id],
+  }));
+
+  const hasSocialProviders = socialProviders.length > 0;
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
@@ -90,38 +112,31 @@ function SignUpPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => handleSocial("github")}
-            >
-              <Github className="size-4" />
-              {m.auth_continue_with({ provider: m.auth_social_github() })}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => handleSocial("google")}
-            >
-              {m.auth_continue_with({ provider: m.auth_social_google() })}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => handleSocial("microsoft")}
-            >
-              {m.auth_continue_with({ provider: m.auth_social_microsoft() })}
-            </Button>
-          </div>
+          {hasSocialProviders && (
+            <>
+              <div className="flex flex-col gap-2">
+                {socialProviders.map(({ id, label, icon }) => (
+                  <Button
+                    key={id}
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleSocial(id)}
+                  >
+                    {icon}
+                    {m.auth_continue_with({ provider: label })}
+                  </Button>
+                ))}
+              </div>
 
-          <div className="flex items-center gap-3">
-            <Separator className="flex-1" />
-            <span className="text-xs text-muted-foreground">
-              {m.auth_or_continue_with_email()}
-            </span>
-            <Separator className="flex-1" />
-          </div>
+              <div className="flex items-center gap-3">
+                <Separator className="flex-1" />
+                <span className="text-xs text-muted-foreground">
+                  {m.auth_or_continue_with_email()}
+                </span>
+                <Separator className="flex-1" />
+              </div>
+            </>
+          )}
 
           {error && (
             <p className="text-sm text-destructive text-center">{error}</p>
@@ -130,7 +145,7 @@ function SignUpPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              form.handleSubmit();
+              void form.handleSubmit();
             }}
             className="flex flex-col gap-3"
           >

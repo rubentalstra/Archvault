@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { auth } from "./auth";
+import { enabledSocialProviderIds } from "./auth.providers";
 
 export const getSession = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -20,3 +21,8 @@ export const ensureSession = createServerFn({ method: "GET" }).handler(
     return session;
   },
 );
+
+export const getEnabledSocialProviders = createServerFn({ method: "GET" }).handler(
+  () => enabledSocialProviderIds,
+);
+

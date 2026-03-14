@@ -60,6 +60,21 @@ interface SSOProviderRow {
   domainVerificationToken?: string;
 }
 
+function normalizeSSOProviders(data: unknown): SSOProviderRow[] {
+  if (Array.isArray(data)) {
+    return data as SSOProviderRow[];
+  }
+
+  if (data && typeof data === "object") {
+    const maybeProviders = (data as { providers?: unknown }).providers;
+    if (Array.isArray(maybeProviders)) {
+      return maybeProviders as SSOProviderRow[];
+    }
+  }
+
+  return [];
+}
+
 const columnHelper = createColumnHelper<SSOProviderRow>();
 
 function SSOProvidersPage() {
@@ -73,7 +88,7 @@ function SSOProvidersPage() {
     queryFn: async () => {
       const { data, error } = await authClient.sso.providers();
       if (error) throw new Error("Failed to load SSO providers");
-      return (data ?? []) as unknown as SSOProviderRow[];
+      return normalizeSSOProviders(data);
     },
   });
 
@@ -89,7 +104,7 @@ function SSOProvidersPage() {
       toast.error((error as { message?: string }).message ?? m.admin_sso_verify_failed());
     } else {
       toast.success(m.admin_sso_verify_success());
-      refetchProviders();
+      void refetchProviders();
     }
     setVerifyingId(null);
   };
@@ -103,7 +118,7 @@ function SSOProvidersPage() {
       toast.error((error as { message?: string }).message ?? m.admin_sso_delete_failed());
     } else {
       toast.success(m.admin_sso_delete_success());
-      refetchProviders();
+      void refetchProviders();
     }
     setDeleteProvider(null);
   };

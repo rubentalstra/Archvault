@@ -17,6 +17,9 @@ import * as schema from "./schema";
 import {platformAc, platformRoles, orgAc, orgRoles} from "./permissions";
 import {sendEmail} from "./email";
 import {OtpEmail, InvitationEmail} from "@archvault/transactional";
+import {socialProvidersConfig} from "./auth.providers";
+
+const hasSocialProviders = Object.keys(socialProvidersConfig).length > 0;
 
 export const auth = betterAuth({
     appName: "Archvault",
@@ -27,21 +30,7 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
-    socialProviders: {
-        github: {
-            clientId: process.env.GITHUB_CLIENT_ID!,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-        },
-        google: {
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        },
-        microsoft: {
-            clientId: process.env.MICROSOFT_CLIENT_ID!,
-            clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-            tenantId: process.env.MICROSOFT_TENANT_ID ?? "common",
-        },
-    },
+    ...(hasSocialProviders ? {socialProviders: socialProvidersConfig} : {}),
     plugins: [
         tanstackStartCookies(),
         admin({ac: platformAc, roles: platformRoles}),

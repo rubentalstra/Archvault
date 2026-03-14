@@ -52,3 +52,10 @@ pnpm drizzle-kit migrate
 - [x] Protected routes redirect to login when unauthenticated
 - [x] Social provider buttons render (full OAuth flow depends on provider config)
 - [x] `pnpm dev` and `pnpm build` succeed
+
+## Social Provider Configuration
+- Social providers are enabled per provider, not globally.
+- Set `AUTH_SOCIAL_<PROVIDER>_ENABLED=true` to force-enable a provider.
+- If the toggle is omitted, provider auto-enables only when both credentials exist.
+- Login and signup pages render only providers that are enabled at runtime.
+
