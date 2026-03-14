@@ -14,7 +14,7 @@
 | 1h    | Internationalization (i18n)  | Complete    | 1a, 1c       |
 | 1i    | SSO (Single Sign-On)         | Complete    | 1c           |
 | 1j    | SCIM Provisioning            | Complete    | 1i           |
-| 2a    | Elements                     | Not Started | 1f           |
+| 2a    | Elements                     | Complete    | 1f           |
 | 2b    | Relationships                | Not Started | 2a           |
 | 2c    | Tags                         | Not Started | 2b           |
 | 3a    | Diagram CRUD & Schema        | Not Started | 2a           |

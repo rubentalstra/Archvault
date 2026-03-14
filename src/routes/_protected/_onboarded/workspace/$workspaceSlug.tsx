@@ -1,5 +1,5 @@
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
-import { LayoutDashboard, Settings, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Settings, ArrowLeft, Boxes } from "lucide-react";
 import { cn } from "#/lib/utils";
 import { getWorkspaceBySlug } from "#/lib/workspace.functions";
 import { m } from "#/paraglide/messages";
@@ -53,6 +53,19 @@ function WorkspaceLayout() {
           >
             <LayoutDashboard className="size-4" />
             {m.workspace_nav_dashboard()}
+          </Link>
+          <Link
+            to="/workspace/$workspaceSlug/elements"
+            params={{ workspaceSlug: workspace.slug }}
+            className={cn(
+              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+            )}
+            activeProps={{
+              className: "bg-accent text-accent-foreground",
+            }}
+          >
+            <Boxes className="size-4" />
+            {m.element_nav_title()}
           </Link>
           <Link
             to="/workspace/$workspaceSlug/settings"
