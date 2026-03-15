@@ -2,33 +2,33 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="public/logo/logo.svg" />
     <source media="(prefers-color-scheme: light)" srcset="public/logo/logo-dark.svg" />
-    <img alt="Archvault" src="public/logo/logo-dark.svg" width="48" height="48" />
+    <img alt="ArchVault" src="public/logo/logo-dark.svg" width="48" height="48" />
   </picture>
 </p>
 
-<h1 align="center">Archvault</h1>
+<h1 align="center">ArchVault</h1>
 
 <p align="center">
   Self-hosted visual C4 architecture platform
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/rubentalstra/Archvault?style=flat-square" alt="License" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/rubentalstra/ArchVault?style=flat-square" alt="License" /></a>
   <img src="https://img.shields.io/badge/TanStack_Start-React_19-blue?style=flat-square" alt="TanStack Start" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/PostgreSQL-18-336791?style=flat-square" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/pnpm-10-F69220?style=flat-square" alt="pnpm" />
-  <a href="https://github.com/rubentalstra/Archvault/stargazers"><img src="https://img.shields.io/github/stars/rubentalstra/Archvault?style=flat-square" alt="Stars" /></a>
-  <a href="https://github.com/rubentalstra/Archvault/issues"><img src="https://img.shields.io/github/issues/rubentalstra/Archvault?style=flat-square" alt="Issues" /></a>
-  <a href="https://github.com/rubentalstra/Archvault/discussions"><img src="https://img.shields.io/github/discussions/rubentalstra/Archvault?style=flat-square" alt="Discussions" /></a>
+  <a href="https://github.com/rubentalstra/ArchVault/stargazers"><img src="https://img.shields.io/github/stars/rubentalstra/ArchVault?style=flat-square" alt="Stars" /></a>
+  <a href="https://github.com/rubentalstra/ArchVault/issues"><img src="https://img.shields.io/github/issues/rubentalstra/ArchVault?style=flat-square" alt="Issues" /></a>
+  <a href="https://github.com/rubentalstra/ArchVault/discussions"><img src="https://img.shields.io/github/discussions/rubentalstra/ArchVault?style=flat-square" alt="Discussions" /></a>
 </p>
 
 ---
 
 <!-- TODO: Add screenshot -->
 
-Archvault is an open-source, self-hosted platform for modeling software architecture using
+ArchVault is an open-source, self-hosted platform for modeling software architecture using
 the [C4 model](https://c4model.com) (Levels 1-3). Users create systems, diagrams, and reusable architecture blocks
 entirely through a visual UI — no code required.
 
@@ -46,8 +46,8 @@ entirely through a visual UI — no code required.
 ## Quick Start (Docker Compose)
 
 ```bash
-git clone https://github.com/rubentalstra/Archvault.git
-cd Archvault
+git clone https://github.com/rubentalstra/ArchVault.git
+cd ArchVault
 cp .env.example .env    # Edit with your secrets
 docker compose up -d
 ```
@@ -59,8 +59,8 @@ Open [http://localhost:3000](http://localhost:3000).
 **Prerequisites:** Node.js 24+, pnpm 10+, PostgreSQL 18+
 
 ```bash
-git clone https://github.com/rubentalstra/Archvault.git
-cd Archvault
+git clone https://github.com/rubentalstra/ArchVault.git
+cd ArchVault
 pnpm install
 cp .env.example .env    # Configure DATABASE_URL, BETTER_AUTH_SECRET, etc.
 pnpm db:migrate
@@ -85,7 +85,7 @@ pnpm dev
 
 ## Roadmap
 
-Archvault is built in phases. See the full phase tracker and dependency graph in [
+ArchVault is built in phases. See the full phase tracker and dependency graph in [
 `docs/phases/README.md`](docs/phases/README.md).
 
 **Completed:** Project scaffold, auth, organizations, workspaces, model objects, connections, tags, diagrams, canvas
@@ -97,7 +97,7 @@ editor, i18n, Docker setup.
 
 ## Internationalization
 
-Archvault ships with English (default) and Dutch. Translations are compile-time type-safe
+ArchVault ships with English (default) and Dutch. Translations are compile-time type-safe
 via [Paraglide JS](https://inlang.com/m/gerre34r/paraglide-js). All locales use a URL prefix (`/en/...`, `/nl/...`).
 
 Adding a new locale:
@@ -112,15 +112,15 @@ Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md)
 
 ## Community
 
-- [GitHub Discussions](https://github.com/rubentalstra/Archvault/discussions) — Questions, ideas, and general chat
-- [Issue Tracker](https://github.com/rubentalstra/Archvault/issues) — Bug reports and feature requests
+- [GitHub Discussions](https://github.com/rubentalstra/ArchVault/discussions) — Questions, ideas, and general chat
+- [Issue Tracker](https://github.com/rubentalstra/ArchVault/issues) — Bug reports and feature requests
 
 ## Security
 
 To report a vulnerability, please
-use [GitHub Security Advisories](https://github.com/rubentalstra/Archvault/security/advisories/new) instead of public
+use [GitHub Security Advisories](https://github.com/rubentalstra/ArchVault/security/advisories/new) instead of public
 issues. See [SECURITY.md](SECURITY.md) for details.
 
 ## License
 
-Archvault is licensed under the [GNU General Public License v3.0](LICENSE).
+ArchVault is licensed under the [GNU General Public License v3.0](LICENSE).
