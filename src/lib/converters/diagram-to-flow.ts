@@ -189,6 +189,12 @@ function getStrokeDasharray(lineStyle: LineStyle): string | undefined {
   }
 }
 
+/** Map an anchor point value to a React Flow handle ID. "auto" → undefined (let React Flow pick). */
+function anchorToHandleId(anchor: string): string | undefined {
+  if (anchor === "auto") return undefined;
+  return anchor; // "top" | "bottom" | "left" | "right" match our handle IDs
+}
+
 export function toFlowEdges(
   rows: DiagramConnectionRow[],
   elementIdToNodeId: Map<string, string>,
@@ -210,6 +216,8 @@ export function toFlowEdges(
       id: row.id,
       source,
       target,
+      sourceHandle: anchorToHandleId(row.sourceAnchor),
+      targetHandle: anchorToHandleId(row.targetAnchor),
       type: PATH_TYPE_TO_EDGE_TYPE[pathType],
       markerEnd: getMarker(direction, "target"),
       markerStart: getMarker(direction, "source"),

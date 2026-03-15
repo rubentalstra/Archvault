@@ -183,10 +183,16 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
           },
         })) as CreatedConnection;
 
+        // Map handle IDs to anchor values for DB storage
+        const sourceAnchor = (connection.sourceHandle ?? "auto") as "auto" | "top" | "bottom" | "left" | "right";
+        const targetAnchor = (connection.targetHandle ?? "auto") as "auto" | "top" | "bottom" | "left" | "right";
+
         const diagramRel = (await addDiagramConnectionFn({
           data: {
             diagramId: store.diagramId,
             connectionId: rel.id,
+            sourceAnchor,
+            targetAnchor,
           },
         })) as CreatedDiagramConnection;
 
@@ -206,8 +212,8 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
             iconTechSlug: null,
             direction: "outgoing",
             lineStyle: "solid",
-            sourceAnchor: "auto",
-            targetAnchor: "auto",
+            sourceAnchor,
+            targetAnchor,
             labelPosition: 0.5,
           },
         } as AppEdge;
