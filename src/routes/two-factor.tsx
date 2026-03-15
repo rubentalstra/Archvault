@@ -15,6 +15,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
+import { ArchvaultLogo } from "#/components/archvault-logo";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -92,6 +93,9 @@ function TwoFactorPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex justify-center">
+            <ArchvaultLogo className="size-10" />
+          </div>
           <CardTitle className="text-2xl font-bold">
             {m.auth_two_factor_title()}
           </CardTitle>

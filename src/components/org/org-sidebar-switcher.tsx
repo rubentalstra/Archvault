@@ -19,6 +19,7 @@ import {
 } from "#/components/ui/sidebar";
 import { CreateOrgDialog } from "./create-org-dialog";
 import { m } from "#/paraglide/messages";
+import { ArchvaultLogo } from "#/components/archvault-logo";
 
 export function OrgSidebarSwitcher() {
   const router = useRouter();
@@ -65,7 +66,8 @@ export function OrgSidebarSwitcher() {
               sideOffset={4}
             >
               <DropdownMenuGroup>
-                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                <DropdownMenuLabel className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <ArchvaultLogo className="size-4" />
                   {m.common_app_name()}
                 </DropdownMenuLabel>
                 {orgs?.map((org) => (

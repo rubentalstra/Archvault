@@ -14,6 +14,7 @@ import { buttonVariants } from '#/components/ui/button'
 import { TooltipProvider } from '#/components/ui/tooltip'
 import { Toaster } from '#/components/ui/sonner'
 import { ImpersonationBanner } from '#/components/admin/impersonation-banner'
+import { ArchvaultLogo } from '#/components/archvault-logo'
 import { getLocale } from '#/paraglide/runtime'
 import { m } from '#/paraglide/messages'
 
@@ -28,7 +29,13 @@ export const Route = createRootRouteWithContext<{
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Archvault' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', type: 'image/svg+xml', href: '/logo/logo.svg' },
+      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      { rel: 'manifest', href: '/manifest.json' },
+      { rel: 'apple-touch-icon', href: '/logo192.png' },
+    ],
   }),
   component: RootComponent,
   notFoundComponent: RootNotFoundComponent,
@@ -73,6 +80,7 @@ function RootNotFoundComponent() {
   return (
     <RootDocument>
       <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-4 p-6 text-center">
+        <ArchvaultLogo className="size-12" />
         <h1 className="text-2xl font-semibold">{m.common_not_found_title()}</h1>
         <p className="text-muted-foreground">{m.common_not_found_description()}</p>
         <Link to="/" className={buttonVariants({ variant: 'outline' })}>

@@ -23,6 +23,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "#/components/ui/tabs";
 import {Badge} from "#/components/ui/badge";
 import {toast} from "sonner";
 import {SiGithub, SiGoogle, SiOpenid} from "@icons-pack/react-simple-icons";
+import {ArchvaultLogo} from "#/components/archvault-logo";
 
 const searchSchema = z.object({
     redirect: z.string().optional(),
@@ -152,6 +153,9 @@ function LoginPage() {
         <main className="flex min-h-screen items-center justify-center p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
+                    <div className="flex justify-center">
+                        <ArchvaultLogo className="size-10" />
+                    </div>
                     <CardTitle className="text-2xl font-bold">{m.auth_sign_in()}</CardTitle>
                     <CardDescription>{m.auth_sign_in_description()}</CardDescription>
                 </CardHeader>
