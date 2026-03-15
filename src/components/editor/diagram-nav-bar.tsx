@@ -28,7 +28,9 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { m } from "#/paraglide/messages";
@@ -52,6 +54,7 @@ const DIAGRAM_TYPE_ICONS: Record<DiagramType, typeof Box> = {
 export interface DiagramNavBarProps {
   workspaceSlug: string;
   workspaceName: string;
+  currentDiagramId: string;
   currentDiagramName: string;
   currentDiagramType: DiagramType;
   ancestry: AncestrySegment[];
@@ -61,6 +64,7 @@ export interface DiagramNavBarProps {
 export function DiagramNavBar({
   workspaceSlug,
   workspaceName,
+  currentDiagramId,
   currentDiagramName,
   currentDiagramType,
   ancestry,
@@ -102,8 +106,8 @@ export function DiagramNavBar({
 
             {/* Ancestor segments with dropdown */}
             {ancestry.map((segment) => {
-              const LinkIcon =
-                ELEMENT_TYPE_ICONS[segment.linkElementType] ?? Box;
+              const DiagramIcon =
+                DIAGRAM_TYPE_ICONS[segment.diagramType as DiagramType] ?? Box;
               return (
                 <BreadcrumbItem
                   key={segment.diagramId}
@@ -112,38 +116,57 @@ export function DiagramNavBar({
                   <BreadcrumbSeparator />
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-                      <LinkIcon className="size-3.5" />
-                      {segment.linkElementName}
+                      <DiagramIcon className="size-3.5" />
+                      {segment.diagramName}
                       <ChevronDown className="size-3" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      {segment.siblings.map((sibling) => {
-                        const SibIcon =
-                          ELEMENT_TYPE_ICONS[sibling.elementType] ?? Box;
-                        const isCurrent =
-                          sibling.elementId === segment.linkElementId;
-                        return (
-                          <DropdownMenuItem
-                            key={sibling.elementId}
-                            disabled={!sibling.deeperDiagramId}
-                            className={isCurrent ? "bg-accent" : ""}
-                            render={
-                              sibling.deeperDiagramId ? (
-                                <Link
-                                  to="/workspace/$workspaceSlug/diagram/$diagramId"
-                                  params={{
-                                    workspaceSlug,
-                                    diagramId: sibling.deeperDiagramId,
-                                  }}
-                                />
-                              ) : undefined
-                            }
-                          >
-                            <SibIcon className="mr-2 size-4" />
-                            {sibling.elementName}
-                          </DropdownMenuItem>
-                        );
-                      })}
+                    <DropdownMenuContent align="start" className="min-w-56">
+                      {Object.entries(
+                        segment.siblings
+                          .filter((s) => s.deeperDiagramId)
+                          .reduce<
+                            Record<
+                              string,
+                              (typeof segment.siblings)[number][]
+                            >
+                          >((groups, sibling) => {
+                            const key = sibling.deeperDiagramName ?? "";
+                            ;(groups[key] ??= []).push(sibling);
+                            return groups;
+                          }, {}),
+                      ).map(([diagramName, items]) => (
+                        <DropdownMenuGroup key={diagramName}>
+                          <DropdownMenuLabel>
+                            {diagramName}
+                          </DropdownMenuLabel>
+                          {items.map((sibling) => {
+                            const SibIcon =
+                              ELEMENT_TYPE_ICONS[sibling.elementType] ?? Box;
+                            const isCurrent =
+                              sibling.deeperDiagramId === currentDiagramId;
+                            return (
+                              <DropdownMenuItem
+                                key={sibling.elementId}
+                                className={isCurrent ? "bg-accent" : ""}
+                                render={
+                                  <Link
+                                    to="/workspace/$workspaceSlug/diagram/$diagramId"
+                                    params={{
+                                      workspaceSlug,
+                                      diagramId: sibling.deeperDiagramId!,
+                                    }}
+                                  />
+                                }
+                              >
+                                <SibIcon className="mr-2 size-4 shrink-0" />
+                                <span className="truncate">
+                                  {sibling.elementName}
+                                </span>
+                              </DropdownMenuItem>
+                            );
+                          })}
+                        </DropdownMenuGroup>
+                      ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </BreadcrumbItem>

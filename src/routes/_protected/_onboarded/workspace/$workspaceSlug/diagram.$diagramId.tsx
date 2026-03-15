@@ -97,6 +97,7 @@ function DiagramEditorPage() {
                 navBar={{
                   workspaceSlug: workspace.slug,
                   workspaceName: workspace.name,
+                  currentDiagramId: diagramData.diagram.id,
                   currentDiagramName: diagramData.diagram.name,
                   currentDiagramType: diagramData.diagram.diagramType as DiagramType,
                   ancestry,
