@@ -68,8 +68,8 @@ export function EditorToolbar() {
   const createElementAtPosition = useCreateElementAtPosition();
 
   return (
-    <Panel position="top-center">
-      <div className="flex items-center gap-1 rounded-lg border bg-card p-1 shadow-sm">
+    <Panel position="center-left">
+      <div className="flex flex-col items-center gap-1 rounded-lg border bg-card p-1 shadow-sm">
         <ToolbarTooltip label={m.editor_toolbar_select()}>
           <Toggle
             size="sm"
@@ -106,7 +106,7 @@ export function EditorToolbar() {
               }
             />
           </ToolbarTooltip>
-          <PopoverContent align="center" className="w-auto min-w-40 p-1">
+          <PopoverContent side="right" className="w-auto min-w-40 p-1">
             {ADD_ELEMENT_OPTIONS.map(({ type, label, icon }) => {
               const valid = diagramType
                 ? validateElementForDiagram(diagramType, type).valid
@@ -143,7 +143,7 @@ export function EditorToolbar() {
           </Toggle>
         </ToolbarTooltip>
 
-        <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-5" />
+        <Separator orientation="horizontal" className="data-[orientation=horizontal]:w-full" />
 
         <ToolbarTooltip label={m.editor_toolbar_zoom_in()}>
           <Button
@@ -178,7 +178,7 @@ export function EditorToolbar() {
           </Button>
         </ToolbarTooltip>
 
-        <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-5" />
+        <Separator orientation="horizontal" className="data-[orientation=horizontal]:w-full" />
 
         <ToolbarTooltip label={m.editor_toolbar_toggle_grid()}>
           <Toggle
@@ -202,7 +202,7 @@ export function EditorToolbar() {
           </Toggle>
         </ToolbarTooltip>
 
-        <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-5" />
+        <Separator orientation="horizontal" className="data-[orientation=horizontal]:w-full" />
 
         <ToolbarTooltip label={m.editor_picker_toggle()}>
           <Toggle
@@ -234,7 +234,7 @@ function ToolbarTooltip({ label, children }: { label: string; children: React.Re
   return (
     <Tooltip>
       <TooltipTrigger render={children} />
-      <TooltipContent side="bottom" className="text-xs">
+      <TooltipContent side="right" className="text-xs">
         {label}
       </TooltipContent>
     </Tooltip>

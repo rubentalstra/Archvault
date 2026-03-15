@@ -749,6 +749,7 @@
   "editor_picker_toggle": "Element Picker",
   "editor_hover_level_2": "Level 2 — Container diagrams",
   "editor_hover_level_3": "Level 3 — Component diagrams",
+  "editor_nav_toggle_sidebar": "Toggle sidebar",
   "editor_ctx_add_inside": "Add inside",
   "editor_validation_requires_sub_flow": "Must be placed inside a sub-flow container"
 }

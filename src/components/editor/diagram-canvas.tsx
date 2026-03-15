@@ -30,6 +30,8 @@ import {
 import { createConnection, deleteConnection } from "#/lib/connection.functions";
 import { flowNodeToUpdate } from "#/lib/converters/flow-to-diagram";
 import { EditorToolbar } from "#/components/editor/editor-toolbar";
+import { DiagramNavBar } from "#/components/editor/diagram-nav-bar";
+import type { DiagramNavBarProps } from "#/components/editor/diagram-nav-bar";
 import { EditorContextMenu } from "#/components/editor/context-menu";
 import { m } from "#/paraglide/messages";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
@@ -39,6 +41,7 @@ type CreatedDiagramConnection = { id: string };
 
 interface DiagramCanvasProps {
   readOnly?: boolean;
+  navBar: DiagramNavBarProps;
 }
 
 const NODE_COLOR_MAP: Record<string, string> = {
@@ -54,7 +57,7 @@ function getNodeColor(node: { type?: string }) {
   return NODE_COLOR_MAP[node.type ?? ""] ?? "#94a3b8";
 }
 
-export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
+export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) {
   const nodes = useEditorStore((s) => s.nodes);
   const edges = useEditorStore((s) => s.edges);
   const onNodesChange = useEditorStore((s) => s.onNodesChange);
@@ -322,6 +325,7 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
       {showGrid && (
         <Background variant={BackgroundVariant.Dots} gap={gridSize} />
       )}
+      <DiagramNavBar {...navBar} />
       {!readOnly && <EditorToolbar />}
       <Controls showInteractive={false} />
       {showMinimap && (

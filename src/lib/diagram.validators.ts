@@ -16,6 +16,29 @@ export type AnchorPoint = (typeof anchorPoints)[number];
 export const displayModes = ["normal", "sub_flow"] as const;
 export type DisplayMode = (typeof displayModes)[number];
 
+// ── Ancestry ────────────────────────────────────────────────────────
+
+export const getDiagramAncestrySchema = z.object({
+  diagramId: z.string(),
+  workspaceId: z.string(),
+});
+
+export type AncestrySegment = {
+  diagramId: string;
+  diagramName: string;
+  diagramType: string;
+  linkElementId: string;
+  linkElementName: string;
+  linkElementType: string;
+  siblings: {
+    elementId: string;
+    elementName: string;
+    elementType: string;
+    deeperDiagramId: string | null;
+    deeperDiagramName: string | null;
+  }[];
+};
+
 // ── Diagram CRUD schemas ────────────────────────────────────────────
 
 export const createDiagramSchema = z.object({

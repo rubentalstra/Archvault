@@ -18,6 +18,7 @@ import {
     getDiagramsSchema,
     getDiagramSchema,
     getDiagramDataSchema,
+    getDiagramAncestrySchema,
     addDiagramElementSchema,
     updateDiagramElementSchema,
     removeDiagramElementSchema,
@@ -28,7 +29,7 @@ import {
     validateDisplayMode,
     validateChildPlacement,
 } from "./diagram.validators";
-import type {DisplayMode} from "./diagram.validators";
+import type {AncestrySegment} from "./diagram.validators";
 import type {ElementType} from "./element.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
 
@@ -292,6 +293,176 @@ export const getDiagramData = createServerFn({method: "GET"})
             connections: connectionsWithTech,
             subFlowDiagrams: Object.fromEntries(elementToSubFlowDiagrams),
         };
+    });
+
+export const getDiagramAncestry = createServerFn({method: "GET"})
+    .inputValidator((input: unknown) => getDiagramAncestrySchema.parse(input))
+    .handler(async ({data}): Promise<AncestrySegment[]> => {
+        const {memberRole} = await getSessionAndOrg();
+        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+
+        const {inArray} = await import("drizzle-orm");
+
+        // Pre-fetch all diagrams and sub-flow elements for this workspace
+        const allDiagrams = await db
+            .select({
+                id: diagram.id,
+                name: diagram.name,
+                diagramType: diagram.diagramType,
+            })
+            .from(diagram)
+            .where(and(eq(diagram.workspaceId, data.workspaceId), isNull(diagram.deletedAt)));
+
+        const diagramLookup = new Map(allDiagrams.map((d) => [d.id, d]));
+
+        const allDiagramElements = await db
+            .select({
+                diagramId: diagramElement.diagramId,
+                elementId: diagramElement.elementId,
+                displayMode: diagramElement.displayMode,
+            })
+            .from(diagramElement)
+            .where(
+                inArray(
+                    diagramElement.diagramId,
+                    allDiagrams.map((d) => d.id),
+                ),
+            );
+
+        // Build maps: diagram → elements, element(sub_flow) → diagrams containing it
+        const diagramToElements = new Map<string, { elementId: string; displayMode: string }[]>();
+        const subFlowElementToDiagrams = new Map<string, string[]>();
+        for (const de of allDiagramElements) {
+            const existing = diagramToElements.get(de.diagramId) ?? [];
+            existing.push({elementId: de.elementId, displayMode: de.displayMode});
+            diagramToElements.set(de.diagramId, existing);
+
+            if (de.displayMode === "sub_flow") {
+                const diagrams = subFlowElementToDiagrams.get(de.elementId) ?? [];
+                diagrams.push(de.diagramId);
+                subFlowElementToDiagrams.set(de.elementId, diagrams);
+            }
+        }
+
+        // Pre-fetch all elements in workspace for lookups
+        const allElements = await db
+            .select({
+                id: element.id,
+                name: element.name,
+                elementType: element.elementType,
+                parentElementId: element.parentElementId,
+            })
+            .from(element)
+            .where(and(eq(element.workspaceId, data.workspaceId), isNull(element.deletedAt)));
+
+        const elementLookup = new Map(allElements.map((e) => [e.id, e]));
+
+        // Walk upward from current diagram
+        const ancestry: AncestrySegment[] = [];
+        let currentDiagramId = data.diagramId;
+
+        for (let depth = 0; depth < 5; depth++) {
+            const currentElements = diagramToElements.get(currentDiagramId) ?? [];
+            // Find elements on this diagram that have parentElementId pointing to a sub-flow element on another diagram
+            let parentDiagramId: string | null = null;
+            let linkElementId: string | null = null;
+
+            for (const de of currentElements) {
+                const el = elementLookup.get(de.elementId);
+                if (!el?.parentElementId) continue;
+                // Check if the parent element is a sub-flow on some other diagram
+                const parentSubFlowDiagrams = subFlowElementToDiagrams.get(el.parentElementId);
+                if (parentSubFlowDiagrams) {
+                    // The parent diagram is where this parent element is displayed as sub-flow
+                    parentDiagramId = parentSubFlowDiagrams[0];
+                    linkElementId = el.parentElementId;
+                    break;
+                }
+            }
+
+            // Alternative: check if the current diagram's elements are children of a sub-flow
+            // by looking at elements placed as sub_flow that point to diagrams
+            if (!parentDiagramId) {
+                // Find sub-flow elements that lead to the current diagram
+                // A sub-flow element leads to a deeper diagram if:
+                // that deeper diagram contains children of this sub-flow element
+                for (const [sfElementId, sfDiagramIds] of subFlowElementToDiagrams.entries()) {
+                    if (sfDiagramIds.includes(currentDiagramId)) {
+                        // This sub-flow element is on currentDiagram itself, not a parent
+                        continue;
+                    }
+                    // Check if elements on currentDiagram have this sfElementId as parent
+                    const hasChild = currentElements.some((de) => {
+                        const el = elementLookup.get(de.elementId);
+                        return el?.parentElementId === sfElementId;
+                    });
+                    if (hasChild) {
+                        parentDiagramId = sfDiagramIds[0];
+                        linkElementId = sfElementId;
+                        break;
+                    }
+                }
+            }
+
+            if (!parentDiagramId || !linkElementId) break;
+
+            const parentDiagram = diagramLookup.get(parentDiagramId);
+            const linkElement = elementLookup.get(linkElementId);
+            if (!parentDiagram || !linkElement) break;
+
+            // Get siblings: other sub-flow elements on the parent diagram
+            const parentDiagramElems = diagramToElements.get(parentDiagramId) ?? [];
+            const subFlowSiblings = parentDiagramElems
+                .filter((de) => de.displayMode === "sub_flow")
+                .map((de) => {
+                    const el = elementLookup.get(de.elementId);
+                    if (!el) return null;
+
+                    // Find deeper diagram for this sibling
+                    let deeperDiagramId: string | null = null;
+                    let deeperDiagramName: string | null = null;
+
+                    // A sub-flow element's deeper diagram is the one whose elements are children of this element
+                    for (const [dId, dElems] of diagramToElements.entries()) {
+                        if (dId === parentDiagramId) continue;
+                        const hasChild = dElems.some((childDe) => {
+                            const childEl = elementLookup.get(childDe.elementId);
+                            return childEl?.parentElementId === el.id;
+                        });
+                        if (hasChild) {
+                            const dInfo = diagramLookup.get(dId);
+                            if (dInfo) {
+                                deeperDiagramId = dInfo.id;
+                                deeperDiagramName = dInfo.name;
+                            }
+                            break;
+                        }
+                    }
+
+                    return {
+                        elementId: el.id,
+                        elementName: el.name,
+                        elementType: el.elementType,
+                        deeperDiagramId,
+                        deeperDiagramName,
+                    };
+                })
+                .filter((s): s is NonNullable<typeof s> => s !== null);
+
+            ancestry.unshift({
+                diagramId: parentDiagramId,
+                diagramName: parentDiagram.name,
+                diagramType: parentDiagram.diagramType,
+                linkElementId,
+                linkElementName: linkElement.name,
+                linkElementType: linkElement.elementType,
+                siblings: subFlowSiblings,
+            });
+
+            currentDiagramId = parentDiagramId;
+        }
+
+        return ancestry;
     });
 
 export const createDiagram = createServerFn({method: "POST"})

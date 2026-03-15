@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ReactFlowProvider } from "@xyflow/react";
 import { DnDProvider, DragGhost } from "#/components/editor/dnd-context";
 import { authClient } from "#/lib/auth-client";
-import { getDiagramData } from "#/lib/diagram.functions";
+import { getDiagramData, getDiagramAncestry } from "#/lib/diagram.functions";
 import { useEditorStore } from "#/stores/editor-store";
 import {
   toFlowNodes,
@@ -14,18 +14,6 @@ import type { DeeperDiagramInfo } from "#/lib/converters/diagram-to-flow";
 import { DiagramCanvas } from "#/components/editor/diagram-canvas";
 import { PropertiesPanel } from "#/components/editor/properties-panel";
 import { ElementPickerSidebar } from "#/components/editor/element-picker-sidebar";
-import { Badge } from "#/components/ui/badge";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "#/components/ui/breadcrumb";
-import { Separator } from "#/components/ui/separator";
-import { SidebarTrigger } from "#/components/ui/sidebar";
-import { m } from "#/paraglide/messages";
 import type { DiagramType } from "#/lib/diagram.validators";
 
 export const Route = createFileRoute(
@@ -35,13 +23,21 @@ export const Route = createFileRoute(
     const diagramData = await getDiagramData({
       data: { id: params.diagramId },
     });
-    return { diagramData };
+
+    const ancestry = await getDiagramAncestry({
+      data: {
+        diagramId: params.diagramId,
+        workspaceId: diagramData.diagram.workspaceId,
+      },
+    }).catch(() => [] as Awaited<ReturnType<typeof getDiagramAncestry>>);
+
+    return { diagramData, ancestry };
   },
   component: DiagramEditorPage,
 });
 
 function DiagramEditorPage() {
-  const { workspace, diagramData } = Route.useRouteContext();
+  const { workspace, diagramData, ancestry } = Route.useRouteContext();
   const { data: activeMember } = authClient.useActiveMember();
   const initDiagram = useEditorStore((s) => s.initDiagram);
   const reset = useEditorStore((s) => s.reset);
@@ -87,55 +83,6 @@ function DiagramEditorPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-        <div className="flex flex-1 items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink
-                  render={
-                    <Link
-                      to="/workspace/$workspaceSlug"
-                      params={{ workspaceSlug: workspace.slug }}
-                    />
-                  }
-                >
-                  {workspace.name}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink
-                  render={
-                    <Link
-                      to="/workspace/$workspaceSlug/diagrams"
-                      params={{ workspaceSlug: workspace.slug }}
-                    />
-                  }
-                >
-                  {m.diagram_nav_title()}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{diagramData.diagram.name}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-
-          <div className="ml-auto flex items-center gap-2">
-            {readOnly && (
-              <Badge variant="secondary">{m.canvas_readonly()}</Badge>
-            )}
-          </div>
-        </div>
-      </header>
-
       <ReactFlowProvider>
         <DnDProvider>
           <div className="flex flex-1 overflow-hidden">
@@ -145,7 +92,17 @@ function DiagramEditorPage() {
               </div>
             )}
             <div className="flex-1">
-              <DiagramCanvas readOnly={readOnly} />
+              <DiagramCanvas
+                readOnly={readOnly}
+                navBar={{
+                  workspaceSlug: workspace.slug,
+                  workspaceName: workspace.name,
+                  currentDiagramName: diagramData.diagram.name,
+                  currentDiagramType: diagramData.diagram.diagramType as DiagramType,
+                  ancestry,
+                  readOnly,
+                }}
+              />
             </div>
             {propertiesPanelOpen && (
               <div className="nowheel nopan w-80 shrink-0 border-l overflow-y-auto">
