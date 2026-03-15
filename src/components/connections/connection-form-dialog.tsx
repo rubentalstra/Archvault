@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,15 @@ import {
 } from "#/components/ui/dialog";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { Label } from "#/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
 import {
@@ -92,12 +101,23 @@ export function ConnectionFormDialog({
     editConnection?.technologies?.map((t) => t.technologyId) ?? [],
   );
 
+  const connectionSchema = z.object({
+    sourceElementId: z.string().min(1, m.validation_source_required()),
+    targetElementId: z.string().min(1, m.validation_target_required()),
+    direction: z.enum(["outgoing", "incoming", "bidirectional", "none"] as const),
+    description: z.string(),
+  });
+
   const form = useForm({
     defaultValues: {
       sourceElementId: editConnection?.sourceElementId ?? "",
       targetElementId: editConnection?.targetElementId ?? "",
       direction: editConnection?.direction ?? ("outgoing" as ConnectionDirection),
       description: editConnection?.description ?? "",
+    },
+    validators: {
+      onSubmit: connectionSchema,
+      onBlur: connectionSchema,
     },
     onSubmit: async ({ value }) => {
       try {
@@ -122,7 +142,6 @@ export function ConnectionFormDialog({
             },
           });
 
-          // Sync tags
           const existingTagIds = new Set(editConnection.tags.map((t) => t.id));
           const currentTagIds = new Set(localTagIds);
 
@@ -137,7 +156,6 @@ export function ConnectionFormDialog({
             }
           }
 
-          // Sync technologies
           const existingTechIds = new Set(editConnection.technologies.map((t) => t.technologyId));
           const currentTechIds = new Set(localTechnologyIds);
 
@@ -163,7 +181,6 @@ export function ConnectionFormDialog({
               description: value.description || undefined,
             },
           });
-          // Add tags and technologies to newly created connection
           for (const tagId of localTagIds) {
             await addConnectionTag({ data: { connectionId: created.id, tagId } });
           }
@@ -211,97 +228,116 @@ export function ConnectionFormDialog({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
-          {/* Source Element */}
           <form.Field name="sourceElementId">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.connection_label_source()}</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                    handleEndpointChange(e.target.value, form.getFieldValue("targetElementId"));
-                  }}
-                >
-                  <option value="">{m.connection_placeholder_select_source()}</option>
-                  {elementOptions.map((el) => (
-                    <option key={el.id} value={el.id}>
-                      {el.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel>{m.connection_label_source()}</FieldLabel>
+                  <Select
+                    value={field.state.value}
+                    onValueChange={(val: string | null) => {
+                      if (val) {
+                        field.handleChange(val);
+                        handleEndpointChange(val, form.getFieldValue("targetElementId"));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full" aria-invalid={isInvalid}>
+                      <SelectValue placeholder={m.connection_placeholder_select_source()} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {elementOptions.map((el) => (
+                        <SelectItem key={el.id} value={el.id}>
+                          {el.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
-          {/* Target Element */}
           <form.Field name="targetElementId">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.connection_label_target()}</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                    handleEndpointChange(form.getFieldValue("sourceElementId"), e.target.value);
-                  }}
-                >
-                  <option value="">{m.connection_placeholder_select_target()}</option>
-                  {elementOptions.map((el) => (
-                    <option key={el.id} value={el.id}>
-                      {el.name}
-                    </option>
-                  ))}
-                </select>
-                {endpointError && (
-                  <p className="text-xs text-destructive">{endpointError}</p>
-                )}
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid || !!endpointError}>
+                  <FieldLabel>{m.connection_label_target()}</FieldLabel>
+                  <Select
+                    value={field.state.value}
+                    onValueChange={(val: string | null) => {
+                      if (val) {
+                        field.handleChange(val);
+                        handleEndpointChange(form.getFieldValue("sourceElementId"), val);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full" aria-invalid={isInvalid || !!endpointError}>
+                      <SelectValue placeholder={m.connection_placeholder_select_target()} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {elementOptions.map((el) => (
+                        <SelectItem key={el.id} value={el.id}>
+                          {el.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  {endpointError && (
+                    <p className="text-xs text-destructive">{endpointError}</p>
+                  )}
+                </Field>
+              );
+            }}
           </form.Field>
 
-          {/* Direction */}
           <form.Field name="direction">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.connection_label_direction()}</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              <Field>
+                <FieldLabel>{m.connection_label_direction()}</FieldLabel>
+                <Select
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value as ConnectionDirection)}
+                  onValueChange={(val: string | null) => {
+                    if (val) field.handleChange(val as ConnectionDirection);
+                  }}
                 >
-                  {connectionDirections.map((dir) => (
-                    <option key={dir} value={dir}>
-                      {DIRECTION_LABELS[dir]()}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {connectionDirections.map((dir) => (
+                      <SelectItem key={dir} value={dir}>
+                        {DIRECTION_LABELS[dir]()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
             )}
           </form.Field>
 
-          {/* Description */}
           <form.Field name="description">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.connection_label_description()}</Label>
+              <Field>
+                <FieldLabel>{m.connection_label_description()}</FieldLabel>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
                   placeholder={m.connection_placeholder_description()}
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
-          {/* Technologies */}
           {workspaceTechnologies.length > 0 && (
             <div className="flex flex-col gap-2">
               <Label>{m.technology_picker_title()}</Label>
@@ -313,7 +349,6 @@ export function ConnectionFormDialog({
             </div>
           )}
 
-          {/* Tags */}
           {workspaceTags.length > 0 && (
             <div className="flex flex-col gap-2">
               <Label>{m.tag_picker_title()}</Label>

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,18 +34,28 @@ function SecurityPage() {
   const { user } = Route.useRouteContext();
   const [totpUri, setTotpUri] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const is2FAEnabled = user.twoFactorEnabled ?? false;
 
+  const passwordSchema = z.object({
+    password: z.string().min(1, m.validation_field_required()),
+  });
+
+  const codeSchema = z.object({
+    code: z.string().length(6, m.validation_totp_length()),
+  });
+
   const enableForm = useForm({
     defaultValues: { password: "" },
+    validators: {
+      onSubmit: passwordSchema,
+      onBlur: passwordSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       const { data, error: enableError } =
         await authClient.twoFactor.enable({ password: value.password });
       if (enableError) {
-        setError(
+        toast.error(
           enableError.message ?? m.settings_two_factor_enable_failed(),
         );
         return;
@@ -58,13 +69,16 @@ function SecurityPage() {
 
   const verifyForm = useForm({
     defaultValues: { code: "" },
+    validators: {
+      onSubmit: codeSchema,
+      onBlur: codeSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       const { error: verifyError } = await authClient.twoFactor.verifyTotp({
         code: value.code,
       });
       if (verifyError) {
-        setError(
+        toast.error(
           verifyError.message ?? m.settings_two_factor_invalid_code(),
         );
         return;
@@ -128,8 +142,6 @@ function SecurityPage() {
           </Badge>
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
-
         {is2FAEnabled && !totpUri && (
           <AlertDialog>
             <AlertDialogTrigger render={<Button variant="destructive" />}>
@@ -158,26 +170,31 @@ function SecurityPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              enableForm.handleSubmit();
+              void enableForm.handleSubmit();
             }}
             className="space-y-4"
           >
             <enableForm.Field name="password">
-              {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="2fa-password">
-                    {m.settings_two_factor_enable_password()}
-                  </Label>
-                  <Input
-                    id="2fa-password"
-                    type="password"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    className="max-w-sm"
-                  />
-                </div>
-              )}
+              {(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor="2fa-password">
+                      {m.settings_two_factor_enable_password()}
+                    </FieldLabel>
+                    <Input
+                      id="2fa-password"
+                      type="password"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      className="max-w-sm"
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                );
+              }}
             </enableForm.Field>
             <enableForm.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
@@ -218,27 +235,32 @@ function SecurityPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                verifyForm.handleSubmit();
+                void verifyForm.handleSubmit();
               }}
               className="space-y-4"
             >
               <verifyForm.Field name="code">
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="verify-totp">
-                      {m.settings_two_factor_verify_label()}
-                    </Label>
-                    <Input
-                      id="verify-totp"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder="000000"
-                      maxLength={6}
-                      className="max-w-[200px]"
-                    />
-                  </div>
-                )}
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="verify-totp">
+                        {m.settings_two_factor_verify_label()}
+                      </FieldLabel>
+                      <Input
+                        id="verify-totp"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder="000000"
+                        maxLength={6}
+                        className="max-w-[200px]"
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
               </verifyForm.Field>
               <verifyForm.Subscribe selector={(s) => s.isSubmitting}>
                 {(isSubmitting) => (

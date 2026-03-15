@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { authClient } from "#/lib/auth-client";
 import { getUserOrganizations } from "#/lib/org.functions";
 import { Button } from "#/components/ui/button";
@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
 
@@ -35,12 +35,19 @@ function slugify(name: string): string {
 
 function OnboardingPage() {
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
+
+  const onboardingSchema = z.object({
+    name: z.string().min(1, m.validation_name_required()),
+    slug: z.string(),
+  });
 
   const form = useForm({
     defaultValues: { name: "", slug: "" },
+    validators: {
+      onSubmit: onboardingSchema,
+      onBlur: onboardingSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       const slug = value.slug || slugify(value.name);
 
       const { data, error: createError } =
@@ -50,7 +57,7 @@ function OnboardingPage() {
         });
 
       if (createError) {
-        setError(createError.message ?? m.onboarding_create_failed());
+        toast.error(createError.message ?? m.onboarding_create_failed());
         return;
       }
 
@@ -61,7 +68,7 @@ function OnboardingPage() {
       }
 
       toast.success(m.onboarding_create_success());
-      navigate({ to: "/dashboard" });
+      void navigate({ to: "/dashboard" });
     },
   });
 
@@ -77,61 +84,66 @@ function OnboardingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <p className="mb-4 text-sm text-destructive text-center">
-              {error}
-            </p>
-          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              form.handleSubmit();
+              void form.handleSubmit();
             }}
             className="flex flex-col gap-4"
           >
             <form.Field name="name">
-              {(field) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="org-name">{m.onboarding_label_name()}</Label>
-                  <Input
-                    id="org-name"
-                    value={field.state.value}
-                    onChange={(e) => {
-                      field.handleChange(e.target.value);
-                      const slugField = form.getFieldValue("slug");
-                      if (!slugField || slugField === slugify(field.state.value)) {
-                        form.setFieldValue("slug", slugify(e.target.value));
-                      }
-                    }}
-                    onBlur={field.handleBlur}
-                    placeholder={m.onboarding_placeholder_name()}
-                  />
-                </div>
-              )}
+              {(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor="org-name">{m.onboarding_label_name()}</FieldLabel>
+                    <Input
+                      id="org-name"
+                      value={field.state.value}
+                      onChange={(e) => {
+                        field.handleChange(e.target.value);
+                        const slugField = form.getFieldValue("slug");
+                        if (!slugField || slugField === slugify(field.state.value)) {
+                          form.setFieldValue("slug", slugify(e.target.value));
+                        }
+                      }}
+                      onBlur={field.handleBlur}
+                      placeholder={m.onboarding_placeholder_name()}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                );
+              }}
             </form.Field>
 
             <form.Field name="slug">
-              {(field) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="org-slug">{m.common_label_slug()}</Label>
-                  <Input
-                    id="org-slug"
-                    value={field.state.value}
-                    onChange={(e) =>
-                      field.handleChange(
-                        e.target.value
-                          .toLowerCase()
-                          .replace(/[^a-z0-9-]/g, ""),
-                      )
-                    }
-                    onBlur={field.handleBlur}
-                    placeholder={m.onboarding_placeholder_slug()}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {m.onboarding_slug_hint()}
-                  </p>
-                </div>
-              )}
+              {(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor="org-slug">{m.common_label_slug()}</FieldLabel>
+                    <Input
+                      id="org-slug"
+                      value={field.state.value}
+                      onChange={(e) =>
+                        field.handleChange(
+                          e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, ""),
+                        )
+                      }
+                      onBlur={field.handleBlur}
+                      placeholder={m.onboarding_placeholder_slug()}
+                      aria-invalid={isInvalid}
+                    />
+                    <FieldDescription>
+                      {m.onboarding_slug_hint()}
+                    </FieldDescription>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                );
+              }}
             </form.Field>
 
             <form.Subscribe selector={(s) => s.isSubmitting}>

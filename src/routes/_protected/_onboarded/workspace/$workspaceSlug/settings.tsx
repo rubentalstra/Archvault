@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -20,8 +21,8 @@ import {
   AlertDialogTitle,
 } from "#/components/ui/alert-dialog";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -49,13 +50,19 @@ function WorkspaceSettingsPage() {
   const { workspace } = Route.useRouteContext();
   const { data: activeMember } = authClient.useActiveMember();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const memberRole = activeMember?.role;
   const canEdit = ["owner", "admin", "editor"].includes(memberRole ?? "");
   const canDelete = ["owner", "admin"].includes(memberRole ?? "");
+
+  const settingsSchema = z.object({
+    name: z.string().min(1, m.validation_name_required()),
+    slug: z.string().min(1, m.validation_field_required()),
+    description: z.string(),
+    iconEmoji: z.string(),
+  });
 
   const form = useForm({
     defaultValues: {
@@ -64,8 +71,11 @@ function WorkspaceSettingsPage() {
       description: workspace.description ?? "",
       iconEmoji: workspace.iconEmoji ?? "",
     },
+    validators: {
+      onSubmit: settingsSchema,
+      onBlur: settingsSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       try {
         await updateWorkspace({
           data: {
@@ -85,7 +95,7 @@ function WorkspaceSettingsPage() {
           });
         }
       } catch (err) {
-        setError(
+        toast.error(
           err instanceof Error
             ? err.message
             : m.workspace_settings_update_failed(),
@@ -162,62 +172,69 @@ function WorkspaceSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {error && (
-                <p className="mb-4 text-sm text-destructive">{error}</p>
-              )}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  form.handleSubmit();
+                  void form.handleSubmit();
                 }}
                 className="flex flex-col gap-4"
               >
                 <form.Field name="name">
-                  {(field) => (
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="ws-settings-name">
-                        {m.common_label_name()}
-                      </Label>
-                      <Input
-                        id="ws-settings-name"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        onBlur={field.handleBlur}
-                        disabled={!canEdit}
-                      />
-                    </div>
-                  )}
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="ws-settings-name">
+                          {m.common_label_name()}
+                        </FieldLabel>
+                        <Input
+                          id="ws-settings-name"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          disabled={!canEdit}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
 
                 <form.Field name="slug">
-                  {(field) => (
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="ws-settings-slug">
-                        {m.common_label_slug()}
-                      </Label>
-                      <Input
-                        id="ws-settings-slug"
-                        value={field.state.value}
-                        onChange={(e) =>
-                          field.handleChange(
-                            e.target.value
-                              .toLowerCase()
-                              .replace(/[^a-z0-9-]/g, ""),
-                          )
-                        }
-                        onBlur={field.handleBlur}
-                        disabled={!canEdit}
-                      />
-                    </div>
-                  )}
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="ws-settings-slug">
+                          {m.common_label_slug()}
+                        </FieldLabel>
+                        <Input
+                          id="ws-settings-slug"
+                          value={field.state.value}
+                          onChange={(e) =>
+                            field.handleChange(
+                              e.target.value
+                                .toLowerCase()
+                                .replace(/[^a-z0-9-]/g, ""),
+                            )
+                          }
+                          onBlur={field.handleBlur}
+                          disabled={!canEdit}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
 
                 <form.Field name="description">
                   {(field) => (
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="ws-settings-desc">
+                    <Field>
+                      <FieldLabel htmlFor="ws-settings-desc">
                         {m.common_label_description()}
-                      </Label>
+                      </FieldLabel>
                       <Textarea
                         id="ws-settings-desc"
                         value={field.state.value}
@@ -226,16 +243,16 @@ function WorkspaceSettingsPage() {
                         disabled={!canEdit}
                         rows={3}
                       />
-                    </div>
+                    </Field>
                   )}
                 </form.Field>
 
                 <form.Field name="iconEmoji">
                   {(field) => (
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="ws-settings-emoji">
+                    <Field>
+                      <FieldLabel htmlFor="ws-settings-emoji">
                         {m.workspace_label_icon_emoji()}
-                      </Label>
+                      </FieldLabel>
                       <Input
                         id="ws-settings-emoji"
                         value={field.state.value}
@@ -245,7 +262,7 @@ function WorkspaceSettingsPage() {
                         placeholder="📁"
                         className="w-20"
                       />
-                    </div>
+                    </Field>
                   )}
                 </form.Field>
 

@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
 
@@ -28,20 +28,24 @@ export function CreateTeamDialog({
   onOpenChange,
   onSuccess,
 }: CreateTeamDialogProps) {
-  const [error, setError] = useState<string | null>(null);
+  const teamSchema = z.object({
+    name: z.string().min(1, m.validation_name_required()),
+  });
 
   const form = useForm({
     defaultValues: { name: "" },
+    validators: {
+      onSubmit: teamSchema,
+      onBlur: teamSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
-
       const { error: createError } = await authClient.organization.createTeam({
         name: value.name,
         organizationId,
       });
 
       if (createError) {
-        setError(createError.message ?? m.org_create_team_failed());
+        toast.error(createError.message ?? m.org_create_team_failed());
         return;
       }
 
@@ -58,7 +62,6 @@ export function CreateTeamDialog({
         onOpenChange(val);
         if (val) {
           form.reset();
-          setError(null);
         }
       }}
     >
@@ -70,28 +73,31 @@ export function CreateTeamDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
-
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
           <form.Field name="name">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="team-name">{m.org_label_team_name()}</Label>
-                <Input
-                  id="team-name"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.org_placeholder_team_name()}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="team-name">{m.org_label_team_name()}</FieldLabel>
+                  <Input
+                    id="team-name"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder={m.org_placeholder_team_name()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <DialogFooter>

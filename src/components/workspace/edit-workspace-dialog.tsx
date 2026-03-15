@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { Button } from "#/components/ui/button";
 import {
   Dialog,
@@ -10,8 +11,8 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
 import { updateWorkspace } from "#/lib/workspace.functions";
 import { m } from "#/paraglide/messages";
@@ -37,7 +38,12 @@ export function EditWorkspaceDialog({
   onOpenChange,
   onSuccess,
 }: EditWorkspaceDialogProps) {
-  const [error, setError] = useState<string | null>(null);
+  const editSchema = z.object({
+    name: z.string().min(1, m.validation_name_required()),
+    slug: z.string().min(1, m.validation_field_required()),
+    description: z.string(),
+    iconEmoji: z.string(),
+  });
 
   const form = useForm({
     defaultValues: {
@@ -46,9 +52,12 @@ export function EditWorkspaceDialog({
       description: workspace?.description ?? "",
       iconEmoji: workspace?.iconEmoji ?? "",
     },
+    validators: {
+      onSubmit: editSchema,
+      onBlur: editSchema,
+    },
     onSubmit: async ({ value }) => {
       if (!workspace) return;
-      setError(null);
 
       try {
         await updateWorkspace({
@@ -65,7 +74,7 @@ export function EditWorkspaceDialog({
         onOpenChange(false);
         onSuccess();
       } catch (err) {
-        setError(
+        toast.error(
           err instanceof Error ? err.message : m.workspace_edit_failed(),
         );
       }
@@ -79,7 +88,6 @@ export function EditWorkspaceDialog({
       form.setFieldValue("slug", workspace.slug);
       form.setFieldValue("description", workspace.description ?? "");
       form.setFieldValue("iconEmoji", workspace.iconEmoji ?? "");
-      setError(null);
     }
   }, [workspace, open]);
 
@@ -93,64 +101,72 @@ export function EditWorkspaceDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
-
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
           <form.Field name="name">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="edit-ws-name">{m.common_label_name()}</Label>
-                <Input
-                  id="edit-ws-name"
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                    const slugField = form.getFieldValue("slug");
-                    if (
-                      !slugField ||
-                      slugField === slugify(field.state.value)
-                    ) {
-                      form.setFieldValue("slug", slugify(e.target.value));
-                    }
-                  }}
-                  onBlur={field.handleBlur}
-                  placeholder={m.workspace_placeholder_name()}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="edit-ws-name">{m.common_label_name()}</FieldLabel>
+                  <Input
+                    id="edit-ws-name"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                      const slugField = form.getFieldValue("slug");
+                      if (
+                        !slugField ||
+                        slugField === slugify(field.state.value)
+                      ) {
+                        form.setFieldValue("slug", slugify(e.target.value));
+                      }
+                    }}
+                    onBlur={field.handleBlur}
+                    placeholder={m.workspace_placeholder_name()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="slug">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="edit-ws-slug">{m.common_label_slug()}</Label>
-                <Input
-                  id="edit-ws-slug"
-                  value={field.state.value}
-                  onChange={(e) =>
-                    field.handleChange(
-                      e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-                    )
-                  }
-                  onBlur={field.handleBlur}
-                  placeholder={m.workspace_placeholder_slug()}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="edit-ws-slug">{m.common_label_slug()}</FieldLabel>
+                  <Input
+                    id="edit-ws-slug"
+                    value={field.state.value}
+                    onChange={(e) =>
+                      field.handleChange(
+                        e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                      )
+                    }
+                    onBlur={field.handleBlur}
+                    placeholder={m.workspace_placeholder_slug()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="description">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="edit-ws-desc">
+              <Field>
+                <FieldLabel htmlFor="edit-ws-desc">
                   {m.common_label_description()}
-                </Label>
+                </FieldLabel>
                 <Textarea
                   id="edit-ws-desc"
                   value={field.state.value}
@@ -159,16 +175,16 @@ export function EditWorkspaceDialog({
                   placeholder={m.workspace_placeholder_description()}
                   rows={3}
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
           <form.Field name="iconEmoji">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="edit-ws-emoji">
+              <Field>
+                <FieldLabel htmlFor="edit-ws-emoji">
                   {m.workspace_label_icon_emoji()}
-                </Label>
+                </FieldLabel>
                 <Input
                   id="edit-ws-emoji"
                   value={field.state.value}
@@ -177,7 +193,7 @@ export function EditWorkspaceDialog({
                   placeholder="📁"
                   className="w-20"
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 

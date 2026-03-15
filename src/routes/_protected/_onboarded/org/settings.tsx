@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -20,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "#/components/ui/alert-dialog";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -42,11 +43,16 @@ function OrgSettingsPage() {
   const { activeOrg } = Route.useRouteContext();
   const { data: activeMember } = authClient.useActiveMember();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const isOwner = activeMember?.role === "owner";
+
+  const settingsSchema = z.object({
+    name: z.string().min(1, m.validation_name_required()),
+    slug: z.string().min(1, m.validation_field_required()),
+    logo: z.string(),
+  });
 
   const form = useForm({
     defaultValues: {
@@ -54,8 +60,11 @@ function OrgSettingsPage() {
       slug: activeOrg?.slug ?? "",
       logo: activeOrg?.logo ?? "",
     },
+    validators: {
+      onSubmit: settingsSchema,
+      onBlur: settingsSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       const { error: updateError } = await authClient.organization.update({
         data: {
           name: value.name,
@@ -65,7 +74,7 @@ function OrgSettingsPage() {
       });
 
       if (updateError) {
-        setError(updateError.message ?? m.org_settings_update_failed());
+        toast.error(updateError.message ?? m.org_settings_update_failed());
         return;
       }
 
@@ -134,60 +143,67 @@ function OrgSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {error && (
-                <p className="mb-4 text-sm text-destructive">{error}</p>
-              )}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  form.handleSubmit();
+                  void form.handleSubmit();
                 }}
                 className="flex flex-col gap-4"
               >
                 <form.Field name="name">
-                  {(field) => (
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="settings-name">
-                        {m.common_label_name()}
-                      </Label>
-                      <Input
-                        id="settings-name"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                    </div>
-                  )}
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="settings-name">
+                          {m.common_label_name()}
+                        </FieldLabel>
+                        <Input
+                          id="settings-name"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
 
                 <form.Field name="slug">
-                  {(field) => (
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="settings-slug">
-                        {m.common_label_slug()}
-                      </Label>
-                      <Input
-                        id="settings-slug"
-                        value={field.state.value}
-                        onChange={(e) =>
-                          field.handleChange(
-                            e.target.value
-                              .toLowerCase()
-                              .replace(/[^a-z0-9-]/g, ""),
-                          )
-                        }
-                        onBlur={field.handleBlur}
-                      />
-                    </div>
-                  )}
+                  {(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="settings-slug">
+                          {m.common_label_slug()}
+                        </FieldLabel>
+                        <Input
+                          id="settings-slug"
+                          value={field.state.value}
+                          onChange={(e) =>
+                            field.handleChange(
+                              e.target.value
+                                .toLowerCase()
+                                .replace(/[^a-z0-9-]/g, ""),
+                            )
+                          }
+                          onBlur={field.handleBlur}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    );
+                  }}
                 </form.Field>
 
                 <form.Field name="logo">
                   {(field) => (
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="settings-logo">
+                    <Field>
+                      <FieldLabel htmlFor="settings-logo">
                         {m.org_label_logo_url()}
-                      </Label>
+                      </FieldLabel>
                       <Input
                         id="settings-logo"
                         value={field.state.value}
@@ -195,7 +211,7 @@ function OrgSettingsPage() {
                         onBlur={field.handleBlur}
                         placeholder={m.org_placeholder_logo_url()}
                       />
-                    </div>
+                    </Field>
                   )}
                 </form.Field>
 

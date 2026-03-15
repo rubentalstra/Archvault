@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
@@ -29,27 +29,37 @@ function TwoFactorPage() {
   const navigate = useNavigate();
   const { redirect: redirectTo } = Route.useSearch();
   const [useBackup, setUseBackup] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const onSuccess = () => {
     toast.success(m.auth_two_factor_verified());
     if (redirectTo) {
       window.location.href = redirectTo;
     } else {
-      navigate({ to: "/dashboard" });
+      void navigate({ to: "/dashboard" });
     }
   };
 
+  const totpSchema = z.object({
+    code: z.string().length(6, m.validation_totp_length()),
+  });
+
+  const backupSchema = z.object({
+    code: z.string().min(1, m.validation_code_required()),
+  });
+
   const totpForm = useForm({
     defaultValues: { code: "" },
+    validators: {
+      onSubmit: totpSchema,
+      onBlur: totpSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       const { error: verifyError } = await authClient.twoFactor.verifyTotp({
         code: value.code,
       });
 
       if (verifyError) {
-        setError(verifyError.message ?? m.auth_two_factor_invalid_code());
+        toast.error(verifyError.message ?? m.auth_two_factor_invalid_code());
         return;
       }
 
@@ -59,15 +69,18 @@ function TwoFactorPage() {
 
   const backupForm = useForm({
     defaultValues: { code: "" },
+    validators: {
+      onSubmit: backupSchema,
+      onBlur: backupSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       const { error: verifyError } =
         await authClient.twoFactor.verifyBackupCode({
           code: value.code,
         });
 
       if (verifyError) {
-        setError(verifyError.message ?? m.auth_two_factor_invalid_backup());
+        toast.error(verifyError.message ?? m.auth_two_factor_invalid_backup());
         return;
       }
 
@@ -89,33 +102,34 @@ function TwoFactorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {error && (
-            <p className="text-sm text-destructive text-center">{error}</p>
-          )}
-
           {!useBackup ? (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                totpForm.handleSubmit();
+                void totpForm.handleSubmit();
               }}
               className="flex flex-col gap-3"
             >
               <totpForm.Field name="code">
-                {(field) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="totp-code">{m.auth_two_factor_code_label()}</Label>
-                    <Input
-                      id="totp-code"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder={m.auth_two_factor_code_placeholder()}
-                      maxLength={6}
-                      autoFocus
-                    />
-                  </div>
-                )}
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="totp-code">{m.auth_two_factor_code_label()}</FieldLabel>
+                      <Input
+                        id="totp-code"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder={m.auth_two_factor_code_placeholder()}
+                        maxLength={6}
+                        autoFocus
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
               </totpForm.Field>
 
               <totpForm.Subscribe selector={(s) => s.isSubmitting}>
@@ -130,24 +144,29 @@ function TwoFactorPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                backupForm.handleSubmit();
+                void backupForm.handleSubmit();
               }}
               className="flex flex-col gap-3"
             >
               <backupForm.Field name="code">
-                {(field) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="backup-code">{m.auth_two_factor_backup_label()}</Label>
-                    <Input
-                      id="backup-code"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder={m.auth_two_factor_backup_placeholder()}
-                      autoFocus
-                    />
-                  </div>
-                )}
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="backup-code">{m.auth_two_factor_backup_label()}</FieldLabel>
+                      <Input
+                        id="backup-code"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder={m.auth_two_factor_backup_placeholder()}
+                        autoFocus
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
               </backupForm.Field>
 
               <backupForm.Subscribe selector={(s) => s.isSubmitting}>
@@ -162,10 +181,7 @@ function TwoFactorPage() {
 
           <Button
             variant="ghost"
-            onClick={() => {
-              setUseBackup(!useBackup);
-              setError(null);
-            }}
+            onClick={() => setUseBackup(!useBackup)}
           >
             {useBackup
               ? m.auth_two_factor_use_authenticator()

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +11,18 @@ import {
 } from "#/components/ui/dialog";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
 import { Switch } from "#/components/ui/switch";
+import { Checkbox } from "#/components/ui/checkbox";
+import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
+import { Label } from "#/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
 import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
@@ -127,6 +137,16 @@ export function ElementFormDialog({
   );
   const groupOptions = parentOptions.filter((p) => p.elementType === "group");
 
+  const elementSchema = z.object({
+    elementType: z.enum(["actor", "group", "system", "app", "store", "component"] as const),
+    name: z.string().min(1, m.validation_name_required()),
+    displayDescription: z.string(),
+    description: z.string(),
+    status: z.enum(["planned", "live", "deprecated"] as const),
+    external: z.boolean(),
+    parentElementId: z.string(),
+  });
+
   const form = useForm({
     defaultValues: {
       elementType: editElement?.elementType ?? defaultType ?? ("system" as ElementType),
@@ -136,6 +156,10 @@ export function ElementFormDialog({
       status: editElement?.status ?? ("live" as ElementStatus),
       external: editElement?.external ?? false,
       parentElementId: editElement?.parentElementId ?? defaultParentId ?? "",
+    },
+    validators: {
+      onSubmit: elementSchema,
+      onBlur: elementSchema,
     },
     onSubmit: async ({ value }) => {
       try {
@@ -161,7 +185,6 @@ export function ElementFormDialog({
             },
           });
 
-          // Sync technologies via catalog
           const existingTechIds = new Set(editElement.technologies.map((t) => t.technologyId));
           const currentTechIds = new Set(localTechnologyIds);
 
@@ -176,7 +199,6 @@ export function ElementFormDialog({
             }
           }
 
-          // Sync links
           const existingLinkIds = new Set(editElement.links.map((l) => l.id));
           const currentLinkIds = new Set(localLinks.filter((l) => l.id).map((l) => l.id));
 
@@ -193,7 +215,6 @@ export function ElementFormDialog({
             }
           }
 
-          // Sync tags
           const existingTagIds = new Set(editElement.tags.map((t) => t.id));
           const currentTagIds = new Set(localTagIds);
 
@@ -208,7 +229,6 @@ export function ElementFormDialog({
             }
           }
 
-          // Sync group assignments (element-type groups)
           const existingGroupIds = new Set(editElement.groups.map((g) => g.id));
           const currentGroupIds = new Set(localGroupIds);
           for (const groupId of existingGroupIds) {
@@ -241,7 +261,6 @@ export function ElementFormDialog({
             },
           })) as CreatedElement;
 
-          // Add technologies from catalog
           for (const techId of localTechnologyIds) {
             await addElementTechnology({ data: { elementId: created.id, technologyId: techId } });
           }
@@ -323,58 +342,66 @@ export function ElementFormDialog({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
-          {/* Element Type (create only) */}
           {!isEdit && (
             <form.Field name="elementType">
               {(field) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label>{m.element_label_type()}</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                <Field>
+                  <FieldLabel>{m.element_label_type()}</FieldLabel>
+                  <Select
                     value={field.state.value}
-                    onChange={(e) => {
-                      const newType = e.target.value as ElementType;
-                      field.handleChange(newType);
-                      const parentId = form.getFieldValue("parentElementId");
-                      handleTypeOrParentChange(newType, parentId);
+                    onValueChange={(val: string | null) => {
+                      if (val) {
+                        const newType = val as ElementType;
+                        field.handleChange(newType);
+                        const parentId = form.getFieldValue("parentElementId");
+                        handleTypeOrParentChange(newType, parentId);
+                      }
                     }}
                   >
-                    {elementTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {TYPE_LABELS[type]()}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {elementTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {TYPE_LABELS[type]()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
               )}
             </form.Field>
           )}
 
-          {/* Name */}
           <form.Field name="name">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.element_label_name()}</Label>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.element_placeholder_name()}
-                  maxLength={100}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel>{m.element_label_name()}</FieldLabel>
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder={m.element_placeholder_name()}
+                    maxLength={100}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
-          {/* Display Description */}
           <form.Field name="displayDescription">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.element_label_display_description()}</Label>
+              <Field>
+                <FieldLabel>{m.element_label_display_description()}</FieldLabel>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -382,20 +409,19 @@ export function ElementFormDialog({
                   placeholder={m.element_placeholder_display_description()}
                   maxLength={120}
                 />
-                <span className="text-xs text-muted-foreground text-right">
+                <FieldDescription className="text-right">
                   {m.element_hint_display_description_count({
                     count: field.state.value.length,
                   })}
-                </span>
-              </div>
+                </FieldDescription>
+              </Field>
             )}
           </form.Field>
 
-          {/* Description */}
           <form.Field name="description">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.element_label_description()}</Label>
+              <Field>
+                <FieldLabel>{m.element_label_description()}</FieldLabel>
                 <Textarea
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -403,31 +429,35 @@ export function ElementFormDialog({
                   placeholder={m.element_placeholder_description()}
                   rows={3}
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
-          {/* Status */}
           <form.Field name="status">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.element_label_status()}</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              <Field>
+                <FieldLabel>{m.element_label_status()}</FieldLabel>
+                <Select
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value as ElementStatus)}
+                  onValueChange={(val: string | null) => {
+                    if (val) field.handleChange(val as ElementStatus);
+                  }}
                 >
-                  {elementStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {STATUS_LABELS[status]()}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {elementStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {STATUS_LABELS[status]()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
             )}
           </form.Field>
 
-          {/* Parent Element */}
           <form.Field name="elementType">
             {(typeField) => (
               <form.Field name="parentElementId">
@@ -435,48 +465,51 @@ export function ElementFormDialog({
                   const validParents = getValidParentOptions(typeField.state.value);
                   const allowsNoParent = ["actor", "group", "system"].includes(typeField.state.value);
                   return (
-                    <div className="flex flex-col gap-1.5">
-                      <Label>{m.element_label_parent()}</Label>
-                      <select
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        value={field.state.value}
-                        onChange={(e) => {
-                          field.handleChange(e.target.value);
-                          handleTypeOrParentChange(typeField.state.value, e.target.value);
+                    <Field data-invalid={!!hierarchyError}>
+                      <FieldLabel>{m.element_label_parent()}</FieldLabel>
+                      <Select
+                        value={field.state.value || "__none__"}
+                        onValueChange={(val: string | null) => {
+                          const newVal = val === "__none__" ? "" : (val ?? "");
+                          field.handleChange(newVal);
+                          handleTypeOrParentChange(typeField.state.value, newVal);
                         }}
                         disabled={!allowsNoParent && validParents.length === 0}
                       >
-                        <option value="">{m.element_no_parent()}</option>
-                        {validParents.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} ({TYPE_LABELS[p.elementType]()})
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger className="w-full" aria-invalid={!!hierarchyError}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">{m.element_no_parent()}</SelectItem>
+                          {validParents.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name} ({TYPE_LABELS[p.elementType]()})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       {hierarchyError && (
                         <p className="text-xs text-destructive">{hierarchyError}</p>
                       )}
-                    </div>
+                    </Field>
                   );
                 }}
               </form.Field>
             )}
           </form.Field>
 
-          {/* External */}
           <form.Field name="external">
             {(field) => (
-              <div className="flex items-center gap-3">
+              <Field orientation="horizontal">
                 <Switch
                   checked={field.state.value}
                   onCheckedChange={field.handleChange}
                 />
-                <Label>{m.element_hint_external()}</Label>
-              </div>
+                <FieldLabel>{m.element_hint_external()}</FieldLabel>
+              </Field>
             )}
           </form.Field>
 
-          {/* Technologies (from catalog) */}
           {workspaceTechnologies.length > 0 && (
             <div className="flex flex-col gap-2">
               <Label>{m.element_label_technologies()}</Label>
@@ -488,7 +521,6 @@ export function ElementFormDialog({
             </div>
           )}
 
-          {/* Links */}
           <div className="flex flex-col gap-2">
             <Label>{m.element_label_links()}</Label>
             {localLinks.map((l) => (
@@ -535,7 +567,6 @@ export function ElementFormDialog({
             </div>
           </div>
 
-          {/* Tags */}
           {workspaceTags.length > 0 && (
             <div className="flex flex-col gap-2">
               <Label>{m.tag_picker_title()}</Label>
@@ -547,7 +578,6 @@ export function ElementFormDialog({
             </div>
           )}
 
-          {/* Element-type group assignments */}
           {groupOptions.length > 0 && form.getFieldValue("elementType") !== "group" && (
             <div className="flex flex-col gap-2">
               <Label>{m.element_label_parent()}</Label>
@@ -556,12 +586,11 @@ export function ElementFormDialog({
                   const checked = localGroupIds.includes(group.id);
                   return (
                     <label key={group.id} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={checked}
-                        onChange={(e) => {
+                        onCheckedChange={(c) => {
                           setLocalGroupIds((prev) =>
-                            e.target.checked
+                            c === true
                               ? [...prev, group.id]
                               : prev.filter((id) => id !== group.id),
                           );

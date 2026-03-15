@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
@@ -10,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Label } from "#/components/ui/label";
+import { Field, FieldLabel } from "#/components/ui/field";
 import { Textarea } from "#/components/ui/textarea";
 import {
   Select,
@@ -37,16 +36,13 @@ export function BanUserDialog({
   onOpenChange,
   onSuccess,
 }: BanUserDialogProps) {
-  const [error, setError] = useState<string | null>(null);
-
   const form = useForm({
     defaultValues: {
       banReason: "",
-      durationIndex: "4", // default to "Permanent"
+      durationIndex: "4",
     },
     onSubmit: async ({ value }) => {
       if (!user) return;
-      setError(null);
 
       const duration = BAN_DURATIONS[Number(value.durationIndex)];
 
@@ -57,7 +53,7 @@ export function BanUserDialog({
       });
 
       if (banError) {
-        setError(banError.message ?? m.admin_ban_user_failed());
+        toast.error(banError.message ?? m.admin_ban_user_failed());
         return;
       }
 
@@ -82,16 +78,14 @@ export function BanUserDialog({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
           <form.Field name="banReason">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="ban-reason">{m.admin_label_reason()}</Label>
+              <Field>
+                <FieldLabel htmlFor="ban-reason">{m.admin_label_reason()}</FieldLabel>
                 <Textarea
                   id="ban-reason"
                   value={field.state.value}
@@ -100,14 +94,14 @@ export function BanUserDialog({
                   placeholder={m.admin_placeholder_reason()}
                   rows={3}
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
           <form.Field name="durationIndex">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.admin_label_duration()}</Label>
+              <Field>
+                <FieldLabel>{m.admin_label_duration()}</FieldLabel>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: string | null) => {
@@ -125,7 +119,7 @@ export function BanUserDialog({
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </Field>
             )}
           </form.Field>
 

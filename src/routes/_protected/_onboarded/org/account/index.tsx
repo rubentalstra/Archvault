@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { Label } from "#/components/ui/label";
 import { Separator } from "#/components/ui/separator";
 import { toast } from "sonner";
@@ -17,21 +18,28 @@ export const Route = createFileRoute(
 
 function ProfilePage() {
   const { user } = Route.useRouteContext();
-  const [error, setError] = useState<string | null>(null);
+
+  const profileSchema = z.object({
+    name: z.string().min(1, m.validation_name_required()),
+    image: z.string(),
+  });
 
   const form = useForm({
     defaultValues: {
       name: user.name ?? "",
       image: user.image ?? "",
     },
+    validators: {
+      onSubmit: profileSchema,
+      onBlur: profileSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       const { error: updateError } = await authClient.updateUser({
         name: value.name,
         image: value.image || undefined,
       });
       if (updateError) {
-        setError(
+        toast.error(
           updateError.message ?? m.settings_profile_update_failed(),
         );
         return;
@@ -52,12 +60,10 @@ function ProfilePage() {
       </div>
       <Separator />
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
-
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          form.handleSubmit();
+          void form.handleSubmit();
         }}
         className="space-y-8"
       >
@@ -67,27 +73,32 @@ function ProfilePage() {
         </div>
 
         <form.Field name="name">
-          {(field) => (
-            <div className="space-y-2">
-              <Label htmlFor="profile-name">
-                {m.common_label_name()}
-              </Label>
-              <Input
-                id="profile-name"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-              />
-            </div>
-          )}
+          {(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor="profile-name">
+                  {m.common_label_name()}
+                </FieldLabel>
+                <Input
+                  id="profile-name"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  aria-invalid={isInvalid}
+                />
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            );
+          }}
         </form.Field>
 
         <form.Field name="image">
           {(field) => (
-            <div className="space-y-2">
-              <Label htmlFor="profile-image">
+            <Field>
+              <FieldLabel htmlFor="profile-image">
                 {m.settings_label_avatar()}
-              </Label>
+              </FieldLabel>
               <Input
                 id="profile-image"
                 value={field.state.value}
@@ -95,7 +106,7 @@ function ProfilePage() {
                 onBlur={field.handleBlur}
                 placeholder={m.settings_placeholder_avatar()}
               />
-            </div>
+            </Field>
           )}
         </form.Field>
 

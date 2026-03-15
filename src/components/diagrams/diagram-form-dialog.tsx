@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,15 @@ import {
 } from "#/components/ui/dialog";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Checkbox } from "#/components/ui/checkbox";
+import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
 import { diagramTypes } from "#/lib/diagram.validators";
@@ -61,6 +70,14 @@ export function DiagramFormDialog({
     editDiagram?.diagramType ?? "system_context",
   );
 
+  const diagramSchema = z.object({
+    diagramType: z.enum(["system_context", "container", "component"] as const),
+    name: z.string().min(1, m.validation_name_required()),
+    description: z.string(),
+    gridSize: z.number().min(5).max(100),
+    snapToGrid: z.boolean(),
+  });
+
   const form = useForm({
     defaultValues: {
       diagramType: editDiagram?.diagramType ?? ("system_context" as DiagramType),
@@ -68,6 +85,10 @@ export function DiagramFormDialog({
       description: editDiagram?.description ?? "",
       gridSize: editDiagram?.gridSize ?? 20,
       snapToGrid: editDiagram?.snapToGrid ?? true,
+    },
+    validators: {
+      onSubmit: diagramSchema,
+      onBlur: diagramSchema,
     },
     onSubmit: async ({ value }) => {
       try {
@@ -129,70 +150,77 @@ export function DiagramFormDialog({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
-          {/* Diagram Type (create only) */}
           {!isEdit && (
             <form.Field name="diagramType">
               {(field) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label>{m.diagram_label_level()}</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                <Field>
+                  <FieldLabel>{m.diagram_label_level()}</FieldLabel>
+                  <Select
                     value={field.state.value}
-                    onChange={(e) => handleTypeChange(e.target.value as DiagramType)}
+                    onValueChange={(val: string | null) => {
+                      if (val) handleTypeChange(val as DiagramType);
+                    }}
                   >
-                    {diagramTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {TYPE_LABELS[type]()}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-muted-foreground">
-                    {TYPE_DESCRIPTIONS[field.state.value]()}
-                  </p>
-                </div>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {diagramTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {TYPE_LABELS[type]()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>
+                    {TYPE_DESCRIPTIONS[selectedType]()}
+                  </FieldDescription>
+                </Field>
               )}
             </form.Field>
           )}
 
-          {/* Name */}
           <form.Field name="name">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.diagram_label_name()}</Label>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.diagram_placeholder_name()}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel>{m.diagram_label_name()}</FieldLabel>
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder={m.diagram_placeholder_name()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
-          {/* Description */}
           <form.Field name="description">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.diagram_label_description()}</Label>
+              <Field>
+                <FieldLabel>{m.diagram_label_description()}</FieldLabel>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
                   placeholder={m.diagram_placeholder_description()}
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
-          {/* Grid Size */}
           <form.Field name="gridSize">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.diagram_label_grid_size()}</Label>
+              <Field>
+                <FieldLabel>{m.diagram_label_grid_size()}</FieldLabel>
                 <Input
                   type="number"
                   min={5}
@@ -201,23 +229,20 @@ export function DiagramFormDialog({
                   onChange={(e) => field.handleChange(Number(e.target.value))}
                   onBlur={field.handleBlur}
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
-          {/* Snap to Grid */}
           <form.Field name="snapToGrid">
             {(field) => (
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+              <Field orientation="horizontal">
+                <Checkbox
                   id="snapToGrid"
                   checked={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.checked)}
-                  className="size-4 rounded border-input"
+                  onCheckedChange={(checked) => field.handleChange(checked === true)}
                 />
-                <Label htmlFor="snapToGrid">{m.diagram_label_snap_to_grid()}</Label>
-              </div>
+                <FieldLabel htmlFor="snapToGrid">{m.diagram_label_snap_to_grid()}</FieldLabel>
+              </Field>
             )}
           </form.Field>
 

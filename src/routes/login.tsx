@@ -17,12 +17,12 @@ import {
     CardTitle,
 } from "#/components/ui/card";
 import {Input} from "#/components/ui/input";
-import {Label} from "#/components/ui/label";
+import {Field, FieldError, FieldLabel} from "#/components/ui/field";
 import {Separator} from "#/components/ui/separator";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "#/components/ui/tabs";
 import {Badge} from "#/components/ui/badge";
 import {toast} from "sonner";
-import {SiGithub, SiGoogle, SiOpenid} from '@icons-pack/react-simple-icons';
+import {SiGithub, SiGoogle, SiOpenid} from "@icons-pack/react-simple-icons";
 
 const searchSchema = z.object({
     redirect: z.string().optional(),
@@ -36,7 +36,6 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
     const navigate = useNavigate();
     const {redirect: redirectTo} = Route.useSearch();
-    const [error, setError] = useState<string | null>(null);
     const [otpSent, setOtpSent] = useState(false);
     const [otpEmail, setOtpEmail] = useState("");
     const getEnabledSocialProvidersFn = useServerFn(getEnabledSocialProviders);
@@ -45,7 +44,7 @@ function LoginPage() {
         queryFn: () => getEnabledSocialProvidersFn(),
     });
 
-    const {data: lastMethod} = authClient.useLastLoginMethod();
+    const {data: lastMethod} = authClient.isLastUsedLoginMethod();
 
     const onSuccess = () => {
         if (redirectTo) {
@@ -55,17 +54,30 @@ function LoginPage() {
         }
     };
 
+    const passwordSchema = z.object({
+        email: z.email(m.validation_email_invalid()),
+        password: z.string().min(1, m.validation_field_required()),
+    });
+
+    const otpSchema = z.object({
+        email: z.email(m.validation_email_invalid()),
+        otp: z.string().min(1, m.validation_otp_required()),
+    });
+
     const passwordForm = useForm({
         defaultValues: {email: "", password: ""},
+        validators: {
+            onSubmit: passwordSchema,
+            onBlur: passwordSchema,
+        },
         onSubmit: async ({value}) => {
-            setError(null);
             const {data, error: signInError} = await authClient.signIn.email({
                 email: value.email,
                 password: value.password,
             });
 
             if (signInError) {
-                setError(signInError.message ?? m.auth_sign_in_failed());
+                toast.error(signInError.message ?? m.auth_sign_in_failed());
                 return;
             }
 
@@ -81,9 +93,11 @@ function LoginPage() {
 
     const otpForm = useForm({
         defaultValues: {email: "", otp: ""},
+        validators: {
+            onSubmit: otpSchema,
+            onBlur: otpSchema,
+        },
         onSubmit: async ({value}) => {
-            setError(null);
-
             if (!otpSent) {
                 const {error: otpError} =
                     await authClient.emailOtp.sendVerificationOtp({
@@ -91,7 +105,7 @@ function LoginPage() {
                         type: "sign-in",
                     });
                 if (otpError) {
-                    setError(otpError.message ?? m.auth_otp_failed());
+                    toast.error(otpError.message ?? m.auth_otp_failed());
                     return;
                 }
                 setOtpEmail(value.email);
@@ -105,7 +119,7 @@ function LoginPage() {
                 otp: value.otp,
             });
             if (verifyError) {
-                setError(verifyError.message ?? m.auth_otp_invalid());
+                toast.error(verifyError.message ?? m.auth_otp_invalid());
                 return;
             }
 
@@ -173,10 +187,6 @@ function LoginPage() {
                         </>
                     )}
 
-                    {error && (
-                        <p className="text-sm text-destructive text-center">{error}</p>
-                    )}
-
                     <Tabs defaultValue="password">
                         <TabsList className="w-full">
                             <TabsTrigger value="password">{m.auth_tab_password()}</TabsTrigger>
@@ -192,42 +202,53 @@ function LoginPage() {
                                 className="flex flex-col gap-3 pt-3"
                             >
                                 <passwordForm.Field name="email">
-                                    {(field) => (
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label htmlFor="pw-email">{m.common_label_email()}</Label>
-                                            <Input
-                                                id="pw-email"
-                                                type="email"
-                                                value={field.state.value}
-                                                onChange={(e) => field.handleChange(e.target.value)}
-                                                onBlur={field.handleBlur}
-                                                placeholder={m.common_placeholder_email()}
-                                            />
-                                        </div>
-                                    )}
+                                    {(field) => {
+                                        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                                        return (
+                                            <Field data-invalid={isInvalid}>
+                                                <FieldLabel htmlFor="pw-email">{m.common_label_email()}</FieldLabel>
+                                                <Input
+                                                    id="pw-email"
+                                                    type="email"
+                                                    value={field.state.value}
+                                                    onChange={(e) => field.handleChange(e.target.value)}
+                                                    onBlur={field.handleBlur}
+                                                    placeholder={m.common_placeholder_email()}
+                                                    aria-invalid={isInvalid}
+                                                />
+                                                {isInvalid && <FieldError errors={field.state.meta.errors}/>}
+                                            </Field>
+                                        );
+                                    }}
                                 </passwordForm.Field>
 
                                 <passwordForm.Field name="password">
-                                    {(field) => (
-                                        <div className="flex flex-col gap-1.5">
-                                            <div className="flex items-center justify-between">
-                                                <Label htmlFor="pw-password">{m.common_label_password()}</Label>
-                                                <Link
-                                                    to="/reset-password"
-                                                    className="text-xs text-muted-foreground hover:text-primary"
-                                                >
-                                                    {m.auth_forgot_password()}
-                                                </Link>
-                                            </div>
-                                            <Input
-                                                id="pw-password"
-                                                type="password"
-                                                value={field.state.value}
-                                                onChange={(e) => field.handleChange(e.target.value)}
-                                                onBlur={field.handleBlur}
-                                            />
-                                        </div>
-                                    )}
+                                    {(field) => {
+                                        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                                        return (
+                                            <Field data-invalid={isInvalid}>
+                                                <div className="flex items-center justify-between">
+                                                    <FieldLabel
+                                                        htmlFor="pw-password">{m.common_label_password()}</FieldLabel>
+                                                    <Link
+                                                        to="/reset-password"
+                                                        className="text-xs text-muted-foreground hover:text-primary"
+                                                    >
+                                                        {m.auth_forgot_password()}
+                                                    </Link>
+                                                </div>
+                                                <Input
+                                                    id="pw-password"
+                                                    type="password"
+                                                    value={field.state.value}
+                                                    onChange={(e) => field.handleChange(e.target.value)}
+                                                    onBlur={field.handleBlur}
+                                                    aria-invalid={isInvalid}
+                                                />
+                                                {isInvalid && <FieldError errors={field.state.meta.errors}/>}
+                                            </Field>
+                                        );
+                                    }}
                                 </passwordForm.Field>
 
                                 <passwordForm.Subscribe selector={(s) => s.isSubmitting}>
@@ -254,37 +275,48 @@ function LoginPage() {
                             >
                                 {!otpSent ? (
                                     <otpForm.Field name="email">
-                                        {(field) => (
-                                            <div className="flex flex-col gap-1.5">
-                                                <Label htmlFor="otp-email">{m.common_label_email()}</Label>
-                                                <Input
-                                                    id="otp-email"
-                                                    type="email"
-                                                    value={field.state.value}
-                                                    onChange={(e) => field.handleChange(e.target.value)}
-                                                    onBlur={field.handleBlur}
-                                                    placeholder={m.common_placeholder_email()}
-                                                />
-                                            </div>
-                                        )}
+                                        {(field) => {
+                                            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                                            return (
+                                                <Field data-invalid={isInvalid}>
+                                                    <FieldLabel
+                                                        htmlFor="otp-email">{m.common_label_email()}</FieldLabel>
+                                                    <Input
+                                                        id="otp-email"
+                                                        type="email"
+                                                        value={field.state.value}
+                                                        onChange={(e) => field.handleChange(e.target.value)}
+                                                        onBlur={field.handleBlur}
+                                                        placeholder={m.common_placeholder_email()}
+                                                        aria-invalid={isInvalid}
+                                                    />
+                                                    {isInvalid && <FieldError errors={field.state.meta.errors}/>}
+                                                </Field>
+                                            );
+                                        }}
                                     </otpForm.Field>
                                 ) : (
                                     <otpForm.Field name="otp">
-                                        {(field) => (
-                                            <div className="flex flex-col gap-1.5">
-                                                <Label htmlFor="otp-code">
-                                                    {m.auth_otp_code_label({email: otpEmail})}
-                                                </Label>
-                                                <Input
-                                                    id="otp-code"
-                                                    value={field.state.value}
-                                                    onChange={(e) => field.handleChange(e.target.value)}
-                                                    onBlur={field.handleBlur}
-                                                    placeholder={m.auth_otp_enter()}
-                                                    autoFocus
-                                                />
-                                            </div>
-                                        )}
+                                        {(field) => {
+                                            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                                            return (
+                                                <Field data-invalid={isInvalid}>
+                                                    <FieldLabel htmlFor="otp-code">
+                                                        {m.auth_otp_code_label({email: otpEmail})}
+                                                    </FieldLabel>
+                                                    <Input
+                                                        id="otp-code"
+                                                        value={field.state.value}
+                                                        onChange={(e) => field.handleChange(e.target.value)}
+                                                        onBlur={field.handleBlur}
+                                                        placeholder={m.auth_otp_enter()}
+                                                        autoFocus
+                                                        aria-invalid={isInvalid}
+                                                    />
+                                                    {isInvalid && <FieldError errors={field.state.meta.errors}/>}
+                                                </Field>
+                                            );
+                                        }}
                                     </otpForm.Field>
                                 )}
 

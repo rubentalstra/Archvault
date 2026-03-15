@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -23,13 +23,6 @@ import {
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { m } from "#/paraglide/messages";
-
-const createUserSchema = z.object({
-  name: z.string().min(2, m.validation_name_min_length()),
-  email: z.email(m.validation_email_invalid()),
-  password: z.string().min(8, m.validation_password_min_length()),
-  role: z.enum(["user", "admin"]),
-});
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -43,27 +36,30 @@ export function CreateUserDialog({
   onSuccess,
 }: CreateUserDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const createUserSchema = z.object({
+    name: z.string().min(2, m.validation_name_min_length()),
+    email: z.email(m.validation_email_invalid()),
+    password: z.string().min(8, m.validation_password_min_length()),
+    role: z.enum(["user", "admin"]),
+  });
 
   const form = useForm({
     defaultValues: { name: "", email: "", password: "", role: "user" as "user" | "admin" },
+    validators: {
+      onSubmit: createUserSchema,
+      onBlur: createUserSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
-      const parsed = createUserSchema.safeParse(value);
-      if (!parsed.success) {
-        setError(parsed.error.issues[0].message);
-        return;
-      }
-
       const { error: createError } = await authClient.admin.createUser({
-        name: parsed.data.name,
-        email: parsed.data.email,
-        password: parsed.data.password,
-        role: parsed.data.role,
+        name: value.name,
+        email: value.email,
+        password: value.password,
+        role: value.role,
       });
 
       if (createError) {
-        setError(createError.message ?? m.admin_create_user_failed());
+        toast.error(createError.message ?? m.admin_create_user_failed());
         return;
       }
 
@@ -86,78 +82,91 @@ export function CreateUserDialog({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
           <form.Field name="name">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-name">{m.common_label_name()}</Label>
-                <Input
-                  id="create-name"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.admin_placeholder_name()}
-                />
-              </div>
-            )}
-          </form.Field>
-
-          <form.Field name="email">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-email">{m.common_label_email()}</Label>
-                <Input
-                  id="create-email"
-                  type="email"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.admin_placeholder_email()}
-                />
-              </div>
-            )}
-          </form.Field>
-
-          <form.Field name="password">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-password">{m.common_label_password()}</Label>
-                <div className="relative">
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="create-name">{m.common_label_name()}</FieldLabel>
                   <Input
-                    id="create-password"
-                    type={showPassword ? "text" : "password"}
+                    id="create-name"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder={m.admin_placeholder_password()}
+                    placeholder={m.admin_placeholder_name()}
+                    aria-invalid={isInvalid}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="absolute right-1 top-1/2 -translate-y-1/2"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="size-4" />
-                    ) : (
-                      <Eye className="size-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="email">
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="create-email">{m.common_label_email()}</FieldLabel>
+                  <Input
+                    id="create-email"
+                    type="email"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder={m.admin_placeholder_email()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="password">
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="create-password">{m.common_label_password()}</FieldLabel>
+                  <div className="relative">
+                    <Input
+                      id="create-password"
+                      type={showPassword ? "text" : "password"}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      placeholder={m.admin_placeholder_password()}
+                      aria-invalid={isInvalid}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="absolute right-1 top-1/2 -translate-y-1/2"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="role">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.common_label_role()}</Label>
+              <Field>
+                <FieldLabel>{m.common_label_role()}</FieldLabel>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: string | null) => {
@@ -172,7 +181,7 @@ export function CreateUserDialog({
                     <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </Field>
             )}
           </form.Field>
 

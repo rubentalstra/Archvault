@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
 import { z } from "zod/v4";
 
@@ -28,15 +28,21 @@ export const Route = createFileRoute("/verify-email")({
 function VerifyEmailPage() {
   const navigate = useNavigate();
   const { email } = Route.useSearch();
-  const [error, setError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(false);
+
+  const otpSchema = z.object({
+    otp: z.string().min(1, m.validation_otp_required()),
+  });
 
   const form = useForm({
     defaultValues: { otp: "" },
+    validators: {
+      onSubmit: otpSchema,
+      onBlur: otpSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       if (!email) {
-        setError(m.auth_verify_email_required());
+        toast.error(m.auth_verify_email_required());
         return;
       }
 
@@ -47,12 +53,12 @@ function VerifyEmailPage() {
         });
 
       if (verifyError) {
-        setError(verifyError.message ?? m.auth_verify_email_failed());
+        toast.error(verifyError.message ?? m.auth_verify_email_failed());
         return;
       }
 
       toast.success(m.auth_verify_email_success());
-      navigate({ to: "/login" });
+      void navigate({ to: "/login" });
     },
   });
 
@@ -89,31 +95,32 @@ function VerifyEmailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {error && (
-            <p className="text-sm text-destructive text-center">{error}</p>
-          )}
-
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              form.handleSubmit();
+              void form.handleSubmit();
             }}
             className="flex flex-col gap-3"
           >
             <form.Field name="otp">
-              {(field) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="otp">{m.auth_verify_email_label()}</Label>
-                  <Input
-                    id="otp"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    placeholder={m.auth_reset_code_placeholder()}
-                    autoFocus
-                  />
-                </div>
-              )}
+              {(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor="otp">{m.auth_verify_email_label()}</FieldLabel>
+                    <Input
+                      id="otp"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      placeholder={m.auth_reset_code_placeholder()}
+                      autoFocus
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                );
+              }}
             </form.Field>
 
             <form.Subscribe selector={(s) => s.isSubmitting}>

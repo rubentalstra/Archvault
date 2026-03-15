@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -24,25 +24,6 @@ import { Textarea } from "#/components/ui/textarea";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { m } from "#/paraglide/messages";
-
-const registerSSOSchema = z.object({
-  providerId: z
-    .string()
-    .min(2, m.validation_provider_id_min())
-    .regex(/^[a-z0-9-]+$/, m.validation_provider_id_format()),
-  issuer: z.url(m.validation_url_invalid()),
-  domain: z.string().min(3, m.validation_domain_required()),
-  type: z.enum(["oidc", "saml"]),
-  // OIDC fields
-  clientId: z.string().optional(),
-  clientSecret: z.string().optional(),
-  // SAML fields
-  entryPoint: z.string().optional(),
-  certificate: z.string().optional(),
-  callbackUrl: z.string().optional(),
-  // Optional
-  organizationId: z.string().optional(),
-});
 
 interface RegisterSSODialogProps {
   open: boolean;
@@ -56,7 +37,22 @@ export function RegisterSSODialog({
   onSuccess,
 }: RegisterSSODialogProps) {
   const [showSecret, setShowSecret] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const ssoSchema = z.object({
+    providerId: z
+      .string()
+      .min(2, m.validation_provider_id_min())
+      .regex(/^[a-z0-9-]+$/, m.validation_provider_id_format()),
+    issuer: z.url(m.validation_url_invalid()),
+    domain: z.string().min(3, m.validation_domain_required()),
+    type: z.enum(["oidc", "saml"]),
+    clientId: z.string().optional(),
+    clientSecret: z.string().optional(),
+    entryPoint: z.string().optional(),
+    certificate: z.string().optional(),
+    callbackUrl: z.string().optional(),
+    organizationId: z.string().optional(),
+  });
 
   const form = useForm({
     defaultValues: {
@@ -71,44 +67,39 @@ export function RegisterSSODialog({
       callbackUrl: "",
       organizationId: "",
     },
+    validators: {
+      onSubmit: ssoSchema,
+      onBlur: ssoSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
-      const parsed = registerSSOSchema.safeParse(value);
-      if (!parsed.success) {
-        setError(parsed.error.issues[0].message);
-        return;
-      }
-
-      const { providerId, issuer, domain, type, organizationId } = parsed.data;
-
       const body: Record<string, unknown> = {
-        providerId,
-        issuer,
-        domain,
+        providerId: value.providerId,
+        issuer: value.issuer,
+        domain: value.domain,
       };
 
-      if (organizationId) {
-        body.organizationId = organizationId;
+      if (value.organizationId) {
+        body.organizationId = value.organizationId;
       }
 
-      if (type === "oidc") {
-        if (!parsed.data.clientId || !parsed.data.clientSecret) {
-          setError(m.validation_oidc_credentials_required());
+      if (value.type === "oidc") {
+        if (!value.clientId || !value.clientSecret) {
+          toast.error(m.validation_oidc_credentials_required());
           return;
         }
         body.oidcConfig = {
-          clientId: parsed.data.clientId,
-          clientSecret: parsed.data.clientSecret,
+          clientId: value.clientId,
+          clientSecret: value.clientSecret,
         };
       } else {
-        if (!parsed.data.entryPoint || !parsed.data.certificate) {
-          setError(m.validation_saml_credentials_required());
+        if (!value.entryPoint || !value.certificate) {
+          toast.error(m.validation_saml_credentials_required());
           return;
         }
         body.samlConfig = {
-          entryPoint: parsed.data.entryPoint,
-          cert: parsed.data.certificate,
-          callbackUrl: parsed.data.callbackUrl || undefined,
+          entryPoint: value.entryPoint,
+          cert: value.certificate,
+          callbackUrl: value.callbackUrl || undefined,
         };
       }
 
@@ -117,7 +108,7 @@ export function RegisterSSODialog({
       );
 
       if (registerError) {
-        setError((registerError as { message?: string }).message ?? m.admin_sso_register_failed());
+        toast.error((registerError as { message?: string }).message ?? m.admin_sso_register_failed());
         return;
       }
 
@@ -140,61 +131,74 @@ export function RegisterSSODialog({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
           <form.Field name="providerId">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sso-provider-id">{m.admin_sso_label_provider_id()}</Label>
-                <Input
-                  id="sso-provider-id"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.admin_sso_placeholder_provider_id()}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="sso-provider-id">{m.admin_sso_label_provider_id()}</FieldLabel>
+                  <Input
+                    id="sso-provider-id"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder={m.admin_sso_placeholder_provider_id()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="issuer">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sso-issuer">{m.admin_sso_label_issuer_url()}</Label>
-                <Input
-                  id="sso-issuer"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.admin_sso_placeholder_issuer_url()}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="sso-issuer">{m.admin_sso_label_issuer_url()}</FieldLabel>
+                  <Input
+                    id="sso-issuer"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder={m.admin_sso_placeholder_issuer_url()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="domain">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sso-domain">{m.admin_sso_label_domain()}</Label>
-                <Input
-                  id="sso-domain"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.admin_sso_placeholder_domain()}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="sso-domain">{m.admin_sso_label_domain()}</FieldLabel>
+                  <Input
+                    id="sso-domain"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder={m.admin_sso_placeholder_domain()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="type">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.admin_sso_label_type()}</Label>
+              <Field>
+                <FieldLabel>{m.admin_sso_label_type()}</FieldLabel>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: string | null) => {
@@ -209,7 +213,7 @@ export function RegisterSSODialog({
                     <SelectItem value="saml">SAML</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </Field>
             )}
           </form.Field>
 
@@ -219,8 +223,8 @@ export function RegisterSSODialog({
                 <>
                   <form.Field name="clientId">
                     {(field) => (
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-client-id">{m.admin_sso_label_client_id()}</Label>
+                      <Field>
+                        <FieldLabel htmlFor="sso-client-id">{m.admin_sso_label_client_id()}</FieldLabel>
                         <Input
                           id="sso-client-id"
                           value={field.state.value}
@@ -228,14 +232,14 @@ export function RegisterSSODialog({
                           onBlur={field.handleBlur}
                           placeholder={m.admin_sso_placeholder_client_id()}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
 
                   <form.Field name="clientSecret">
                     {(field) => (
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-client-secret">{m.admin_sso_label_client_secret()}</Label>
+                      <Field>
+                        <FieldLabel htmlFor="sso-client-secret">{m.admin_sso_label_client_secret()}</FieldLabel>
                         <div className="relative">
                           <Input
                             id="sso-client-secret"
@@ -259,10 +263,10 @@ export function RegisterSSODialog({
                             )}
                           </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <FieldDescription>
                           {m.admin_sso_oidc_auto_discover()}
-                        </p>
-                      </div>
+                        </FieldDescription>
+                      </Field>
                     )}
                   </form.Field>
                 </>
@@ -270,8 +274,8 @@ export function RegisterSSODialog({
                 <>
                   <form.Field name="entryPoint">
                     {(field) => (
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-entry-point">{m.admin_sso_label_entry_point()}</Label>
+                      <Field>
+                        <FieldLabel htmlFor="sso-entry-point">{m.admin_sso_label_entry_point()}</FieldLabel>
                         <Input
                           id="sso-entry-point"
                           value={field.state.value}
@@ -279,14 +283,14 @@ export function RegisterSSODialog({
                           onBlur={field.handleBlur}
                           placeholder={m.admin_sso_placeholder_entry_point()}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
 
                   <form.Field name="certificate">
                     {(field) => (
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-certificate">{m.admin_sso_label_certificate()}</Label>
+                      <Field>
+                        <FieldLabel htmlFor="sso-certificate">{m.admin_sso_label_certificate()}</FieldLabel>
                         <Textarea
                           id="sso-certificate"
                           value={field.state.value}
@@ -295,14 +299,14 @@ export function RegisterSSODialog({
                           placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
                           rows={4}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
 
                   <form.Field name="callbackUrl">
                     {(field) => (
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-callback-url">{m.admin_sso_label_callback_url()}</Label>
+                      <Field>
+                        <FieldLabel htmlFor="sso-callback-url">{m.admin_sso_label_callback_url()}</FieldLabel>
                         <Input
                           id="sso-callback-url"
                           value={field.state.value}
@@ -310,7 +314,7 @@ export function RegisterSSODialog({
                           onBlur={field.handleBlur}
                           placeholder={m.admin_sso_placeholder_callback_url()}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
                 </>
@@ -320,8 +324,8 @@ export function RegisterSSODialog({
 
           <form.Field name="organizationId">
             {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sso-org-id">{m.admin_sso_label_org_id()}</Label>
+              <Field>
+                <FieldLabel htmlFor="sso-org-id">{m.admin_sso_label_org_id()}</FieldLabel>
                 <Input
                   id="sso-org-id"
                   value={field.state.value}
@@ -329,7 +333,7 @@ export function RegisterSSODialog({
                   onBlur={field.handleBlur}
                   placeholder={m.admin_sso_placeholder_org_link()}
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 

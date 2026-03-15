@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { m } from "#/paraglide/messages";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
@@ -12,7 +13,7 @@ import {
   CardTitle,
 } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/reset-password")({
@@ -23,12 +24,29 @@ function ResetPasswordPage() {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<"request" | "reset">("request");
   const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
+
+  const requestSchema = z.object({
+    email: z.email(m.validation_email_invalid()),
+  });
+
+  const resetSchema = z
+    .object({
+      otp: z.string().min(1, m.validation_otp_required()),
+      newPassword: z.string().min(8, m.validation_password_min_length()),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: m.validation_passwords_dont_match(),
+      path: ["confirmPassword"],
+    });
 
   const requestForm = useForm({
     defaultValues: { email: "" },
+    validators: {
+      onSubmit: requestSchema,
+      onBlur: requestSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       const { error: otpError } =
         await authClient.emailOtp.sendVerificationOtp({
           email: value.email,
@@ -36,7 +54,7 @@ function ResetPasswordPage() {
         });
 
       if (otpError) {
-        setError(otpError.message ?? m.auth_reset_code_failed());
+        toast.error(otpError.message ?? m.auth_reset_code_failed());
         return;
       }
 
@@ -48,19 +66,11 @@ function ResetPasswordPage() {
 
   const resetForm = useForm({
     defaultValues: { otp: "", newPassword: "", confirmPassword: "" },
+    validators: {
+      onSubmit: resetSchema,
+      onBlur: resetSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
-
-      if (value.newPassword !== value.confirmPassword) {
-        setError(m.auth_passwords_dont_match());
-        return;
-      }
-
-      if (value.newPassword.length < 8) {
-        setError(m.auth_password_min_length());
-        return;
-      }
-
       const { error: resetError } = await authClient.emailOtp.resetPassword({
         email,
         otp: value.otp,
@@ -68,12 +78,12 @@ function ResetPasswordPage() {
       });
 
       if (resetError) {
-        setError(resetError.message ?? m.auth_reset_failed());
+        toast.error(resetError.message ?? m.auth_reset_failed());
         return;
       }
 
       toast.success(m.auth_reset_success());
-      navigate({ to: "/login" });
+      void navigate({ to: "/login" });
     },
   });
 
@@ -89,33 +99,34 @@ function ResetPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {error && (
-            <p className="text-sm text-destructive text-center">{error}</p>
-          )}
-
           {phase === "request" ? (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                requestForm.handleSubmit();
+                void requestForm.handleSubmit();
               }}
               className="flex flex-col gap-3"
             >
               <requestForm.Field name="email">
-                {(field) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="reset-email">{m.common_label_email()}</Label>
-                    <Input
-                      id="reset-email"
-                      type="email"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder={m.common_placeholder_email()}
-                      autoFocus
-                    />
-                  </div>
-                )}
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="reset-email">{m.common_label_email()}</FieldLabel>
+                      <Input
+                        id="reset-email"
+                        type="email"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder={m.common_placeholder_email()}
+                        autoFocus
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
               </requestForm.Field>
 
               <requestForm.Subscribe selector={(s) => s.isSubmitting}>
@@ -130,57 +141,72 @@ function ResetPasswordPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                resetForm.handleSubmit();
+                void resetForm.handleSubmit();
               }}
               className="flex flex-col gap-3"
             >
               <resetForm.Field name="otp">
-                {(field) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="reset-otp">{m.auth_reset_code_label()}</Label>
-                    <Input
-                      id="reset-otp"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder={m.auth_reset_code_placeholder()}
-                      autoFocus
-                    />
-                  </div>
-                )}
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="reset-otp">{m.auth_reset_code_label()}</FieldLabel>
+                      <Input
+                        id="reset-otp"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder={m.auth_reset_code_placeholder()}
+                        autoFocus
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
               </resetForm.Field>
 
               <resetForm.Field name="newPassword">
-                {(field) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="new-password">{m.auth_label_new_password()}</Label>
-                    <Input
-                      id="new-password"
-                      type="password"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder={m.auth_placeholder_password_min()}
-                    />
-                  </div>
-                )}
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="new-password">{m.auth_label_new_password()}</FieldLabel>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder={m.auth_placeholder_password_min()}
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
               </resetForm.Field>
 
               <resetForm.Field name="confirmPassword">
-                {(field) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="confirm-new-password">
-                      {m.auth_label_confirm_new_password()}
-                    </Label>
-                    <Input
-                      id="confirm-new-password"
-                      type="password"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                  </div>
-                )}
+                {(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="confirm-new-password">
+                        {m.auth_label_confirm_new_password()}
+                      </FieldLabel>
+                      <Input
+                        id="confirm-new-password"
+                        type="password"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  );
+                }}
               </resetForm.Field>
 
               <resetForm.Subscribe selector={(s) => s.isSubmitting}>

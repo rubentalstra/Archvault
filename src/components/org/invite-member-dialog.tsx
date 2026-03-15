@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod/v4";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -35,22 +35,27 @@ export function InviteMemberDialog({
   onOpenChange,
   onSuccess,
 }: InviteMemberDialogProps) {
-  const [error, setError] = useState<string | null>(null);
+  const inviteSchema = z.object({
+    email: z.email(m.validation_email_invalid()),
+    role: z.enum(["admin", "editor", "viewer"]),
+  });
 
   const form = useForm({
-    defaultValues: { email: "", role: "viewer" as string },
+    defaultValues: { email: "", role: "viewer" as "admin" | "editor" | "viewer" },
+    validators: {
+      onSubmit: inviteSchema,
+      onBlur: inviteSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
-
       const { error: inviteError } =
         await authClient.organization.inviteMember({
           email: value.email,
-          role: value.role as "admin" | "editor" | "viewer",
+          role: value.role,
           organizationId,
         });
 
       if (inviteError) {
-        setError(inviteError.message ?? m.org_invite_failed());
+        toast.error(inviteError.message ?? m.org_invite_failed());
         return;
       }
 
@@ -67,7 +72,6 @@ export function InviteMemberDialog({
         onOpenChange(val);
         if (val) {
           form.reset();
-          setError(null);
         }
       }}
     >
@@ -79,52 +83,59 @@ export function InviteMemberDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
-
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-4"
         >
           <form.Field name="email">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="invite-email">{m.common_label_email()}</Label>
-                <Input
-                  id="invite-email"
-                  type="email"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.org_invite_placeholder_email()}
-                />
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor="invite-email">{m.common_label_email()}</FieldLabel>
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder={m.org_invite_placeholder_email()}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="role">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.common_label_role()}</Label>
-                <Select
-                  value={field.state.value}
-                  onValueChange={(val: string | null) => {
-                    if (val) field.handleChange(val);
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
-                    <SelectItem value="editor">{m.common_role_editor()}</SelectItem>
-                    <SelectItem value="viewer">{m.common_role_viewer()}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel>{m.common_label_role()}</FieldLabel>
+                  <Select
+                    value={field.state.value}
+                    onValueChange={(val: string | null) => {
+                      if (val) field.handleChange(val as "admin" | "editor" | "viewer");
+                    }}
+                  >
+                    <SelectTrigger className="w-full" aria-invalid={isInvalid}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
+                      <SelectItem value="editor">{m.common_role_editor()}</SelectItem>
+                      <SelectItem value="viewer">{m.common_role_viewer()}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <DialogFooter>

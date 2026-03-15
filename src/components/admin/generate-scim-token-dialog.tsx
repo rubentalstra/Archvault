@@ -12,15 +12,10 @@ import {
   DialogTitle,
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
+import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
 import { Copy, AlertTriangle } from "lucide-react";
 import { m } from "#/paraglide/messages";
-
-const generateTokenSchema = z.object({
-  providerId: z.string().min(1, m.validation_provider_id_required()),
-  organizationId: z.string().optional(),
-});
 
 interface GenerateScimTokenDialogProps {
   open: boolean;
@@ -33,34 +28,36 @@ export function GenerateScimTokenDialog({
   onOpenChange,
   onSuccess,
 }: GenerateScimTokenDialogProps) {
-  const [error, setError] = useState<string | null>(null);
   const [generatedToken, setGeneratedToken] = useState<string | null>(null);
+
+  const tokenSchema = z.object({
+    providerId: z.string().min(1, m.validation_provider_id_required()),
+    organizationId: z.string().optional(),
+  });
 
   const form = useForm({
     defaultValues: {
       providerId: "",
       organizationId: "",
     },
+    validators: {
+      onSubmit: tokenSchema,
+      onBlur: tokenSchema,
+    },
     onSubmit: async ({ value }) => {
-      setError(null);
       setGeneratedToken(null);
-      const parsed = generateTokenSchema.safeParse(value);
-      if (!parsed.success) {
-        setError(parsed.error.issues[0].message);
-        return;
-      }
 
       const body: { providerId: string; organizationId?: string } = {
-        providerId: parsed.data.providerId,
+        providerId: value.providerId,
       };
-      if (parsed.data.organizationId) {
-        body.organizationId = parsed.data.organizationId;
+      if (value.organizationId) {
+        body.organizationId = value.organizationId;
       }
 
       const { data, error: genError } = await authClient.scim.generateToken(body);
 
       if (genError) {
-        setError((genError as { message?: string }).message ?? m.admin_scim_generate_failed());
+        toast.error((genError as { message?: string }).message ?? m.admin_scim_generate_failed());
         return;
       }
 
@@ -80,7 +77,6 @@ export function GenerateScimTokenDialog({
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen) {
       setGeneratedToken(null);
-      setError(null);
     }
     onOpenChange(nextOpen);
   };
@@ -130,34 +126,37 @@ export function GenerateScimTokenDialog({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              form.handleSubmit();
+              void form.handleSubmit();
             }}
             className="flex flex-col gap-4"
           >
-            {error && <p className="text-sm text-destructive">{error}</p>}
-
             <form.Field name="providerId">
-              {(field) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="scim-provider-id">{m.admin_scim_label_provider_id()}</Label>
-                  <Input
-                    id="scim-provider-id"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    placeholder={m.admin_scim_placeholder_provider_id()}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {m.admin_scim_provider_id_hint()}
-                  </p>
-                </div>
-              )}
+              {(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor="scim-provider-id">{m.admin_scim_label_provider_id()}</FieldLabel>
+                    <Input
+                      id="scim-provider-id"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      placeholder={m.admin_scim_placeholder_provider_id()}
+                      aria-invalid={isInvalid}
+                    />
+                    <FieldDescription>
+                      {m.admin_scim_provider_id_hint()}
+                    </FieldDescription>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                );
+              }}
             </form.Field>
 
             <form.Field name="organizationId">
               {(field) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="scim-org-id">{m.admin_scim_label_org_id()}</Label>
+                <Field>
+                  <FieldLabel htmlFor="scim-org-id">{m.admin_scim_label_org_id()}</FieldLabel>
                   <Input
                     id="scim-org-id"
                     value={field.state.value}
@@ -165,7 +164,7 @@ export function GenerateScimTokenDialog({
                     onBlur={field.handleBlur}
                     placeholder={m.admin_scim_placeholder_org_id()}
                   />
-                </div>
+                </Field>
               )}
             </form.Field>
 
