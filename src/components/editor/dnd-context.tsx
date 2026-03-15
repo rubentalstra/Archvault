@@ -1,10 +1,9 @@
 import {
   createContext,
   useContext,
-  useState,
   useCallback,
-  useEffect,
   useRef,
+  useSyncExternalStore,
 } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useServerFn } from "@tanstack/react-start";
@@ -94,22 +93,54 @@ export function useDnD() {
 }
 
 // ---------------------------------------------------------------------------
-// Provider
+// Provider — imperative store so listeners are attached synchronously
 // ---------------------------------------------------------------------------
 
+/** Mutable snapshot that drives both the ghost and the drop logic. */
+interface DragSnapshot {
+  isDragging: boolean;
+  dragLabel: string | null;
+  pointerPos: { x: number; y: number } | null;
+}
+
+function createDragStore() {
+  let snap: DragSnapshot = { isDragging: false, dragLabel: null, pointerPos: null };
+  const listeners = new Set<() => void>();
+
+  function emit() {
+    // Create a new object reference so useSyncExternalStore re-renders
+    snap = { ...snap };
+    for (const l of listeners) l();
+  }
+
+  return {
+    getSnapshot: () => snap,
+    subscribe: (l: () => void) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    set: (partial: Partial<DragSnapshot>) => {
+      Object.assign(snap, partial);
+      emit();
+    },
+  };
+}
+
 export function DnDProvider({ children }: { children: React.ReactNode }) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragLabel, setDragLabel] = useState<string | null>(null);
-  const [pointerPos, setPointerPos] = useState<{ x: number; y: number } | null>(
-    null,
-  );
+  // One store per provider instance (stable across renders)
+  const storeRef = useRef<ReturnType<typeof createDragStore>>(null);
+  if (!storeRef.current) storeRef.current = createDragStore();
+  const store = storeRef.current;
+
+  const snap = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 
   const dropActionRef = useRef<
     ((flowPos: { x: number; y: number }) => Promise<void>) | null
   >(null);
-  const capturedElementRef = useRef<HTMLElement | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
-  const reactFlow = useReactFlow();
+  const reactFlowRef = useRef<ReturnType<typeof useReactFlow>>(null);
+  reactFlowRef.current = useReactFlow();
 
   const startDrag = useCallback(
     (
@@ -117,67 +148,66 @@ export function DnDProvider({ children }: { children: React.ReactNode }) {
       label: string,
       onDrop: (flowPos: { x: number; y: number }) => Promise<void>,
     ) => {
-      // Capture pointer on the target so we keep receiving events even when
-      // the pointer leaves the element
-      const el = event.currentTarget as HTMLElement;
-      el.setPointerCapture(event.pointerId);
-      capturedElementRef.current = el;
+      // Clean up any previous drag (safety net)
+      cleanupRef.current?.();
 
       dropActionRef.current = onDrop;
-      setDragLabel(label);
-      setPointerPos({ x: event.clientX, y: event.clientY });
-      setIsDragging(true);
+
+      // Update store synchronously — the ghost renders on the next frame,
+      // but the listeners below are active *immediately*.
+      store.set({
+        isDragging: true,
+        dragLabel: label,
+        pointerPos: { x: event.clientX, y: event.clientY },
+      });
+
+      // Attach window listeners synchronously so we never miss pointerup
+      const onMove = (e: PointerEvent) => {
+        store.set({ pointerPos: { x: e.clientX, y: e.clientY } });
+      };
+
+      const onUp = (e: PointerEvent) => {
+        cleanup();
+
+        // Check if the pointer is over the react-flow canvas
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        const flowEl = target?.closest(".react-flow");
+
+        if (flowEl && dropActionRef.current && reactFlowRef.current) {
+          const flowPos = reactFlowRef.current.screenToFlowPosition({
+            x: e.clientX,
+            y: e.clientY,
+          });
+          dropActionRef.current(flowPos);
+        }
+
+        dropActionRef.current = null;
+      };
+
+      const cleanup = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        cleanupRef.current = null;
+        store.set({ isDragging: false, dragLabel: null, pointerPos: null });
+      };
+
+      cleanupRef.current = cleanup;
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
     },
-    [],
+    [store],
   );
 
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const onMove = (e: PointerEvent) => {
-      setPointerPos({ x: e.clientX, y: e.clientY });
-    };
-
-    const onUp = (e: PointerEvent) => {
-      // Release pointer capture
-      if (capturedElementRef.current) {
-        try {
-          capturedElementRef.current.releasePointerCapture(e.pointerId);
-        } catch {
-          // already released
-        }
-        capturedElementRef.current = null;
-      }
-
-      // Check if we're over the react-flow canvas
-      const target = document.elementFromPoint(e.clientX, e.clientY);
-      const flowEl = target?.closest(".react-flow");
-
-      if (flowEl && dropActionRef.current) {
-        const flowPos = reactFlow.screenToFlowPosition({
-          x: e.clientX,
-          y: e.clientY,
-        });
-        dropActionRef.current(flowPos);
-      }
-
-      // Reset state
-      dropActionRef.current = null;
-      setIsDragging(false);
-      setDragLabel(null);
-      setPointerPos(null);
-    };
-
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-    };
-  }, [isDragging, reactFlow]);
-
   return (
-    <DnDContext.Provider value={{ isDragging, dragLabel, pointerPos, startDrag }}>
+    <DnDContext.Provider
+      value={{
+        isDragging: snap.isDragging,
+        dragLabel: snap.dragLabel,
+        pointerPos: snap.pointerPos,
+        startDrag,
+      }}
+    >
       {children}
     </DnDContext.Provider>
   );

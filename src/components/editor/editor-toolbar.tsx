@@ -119,13 +119,14 @@ export function EditorToolbar() {
                   className={valid ? "cursor-grab active:cursor-grabbing" : ""}
                   onPointerDown={(e) => {
                     if (!valid) return;
-                    // Prevent default to avoid the dropdown from focusing
-                    e.preventDefault();
                     const elementLabel = label();
                     startDrag(e, elementLabel, async (flowPos) => {
                       await createElementAtPosition(type, flowPos);
                     });
                   }}
+                  // Block the dropdown's built-in click/select so it doesn't
+                  // interfere with the pointer-event drag gesture
+                  onClick={(e) => e.preventDefault()}
                 >
                   {icon}
                   {label()}
