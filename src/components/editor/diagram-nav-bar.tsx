@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Panel } from "@xyflow/react";
 import {
   FolderOpen,
@@ -26,13 +27,18 @@ import {
   BreadcrumbSeparator,
 } from "#/components/ui/breadcrumb";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "#/components/ui/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "#/components/ui/command";
 import { m } from "#/paraglide/messages";
 import type { AncestrySegment } from "#/lib/diagram.validators";
 import type { DiagramType } from "#/lib/diagram.validators";
@@ -104,74 +110,15 @@ export function DiagramNavBar({
               </BreadcrumbLink>
             </BreadcrumbItem>
 
-            {/* Ancestor segments with dropdown */}
-            {ancestry.map((segment) => {
-              const DiagramIcon =
-                DIAGRAM_TYPE_ICONS[segment.diagramType as DiagramType] ?? Box;
-              return (
-                <BreadcrumbItem
-                  key={segment.diagramId}
-                  className="hidden md:flex"
-                >
-                  <BreadcrumbSeparator />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-                      <DiagramIcon className="size-3.5" />
-                      {segment.diagramName}
-                      <ChevronDown className="size-3" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-56">
-                      {Object.entries(
-                        segment.siblings
-                          .filter((s) => s.deeperDiagramId)
-                          .reduce<
-                            Record<
-                              string,
-                              (typeof segment.siblings)[number][]
-                            >
-                          >((groups, sibling) => {
-                            const key = sibling.deeperDiagramName ?? "";
-                            ;(groups[key] ??= []).push(sibling);
-                            return groups;
-                          }, {}),
-                      ).map(([diagramName, items]) => (
-                        <DropdownMenuGroup key={diagramName}>
-                          <DropdownMenuLabel>
-                            {diagramName}
-                          </DropdownMenuLabel>
-                          {items.map((sibling) => {
-                            const SibIcon =
-                              ELEMENT_TYPE_ICONS[sibling.elementType] ?? Box;
-                            const isCurrent =
-                              sibling.deeperDiagramId === currentDiagramId;
-                            return (
-                              <DropdownMenuItem
-                                key={sibling.elementId}
-                                className={isCurrent ? "bg-accent" : ""}
-                                render={
-                                  <Link
-                                    to="/workspace/$workspaceSlug/diagram/$diagramId"
-                                    params={{
-                                      workspaceSlug,
-                                      diagramId: sibling.deeperDiagramId!,
-                                    }}
-                                  />
-                                }
-                              >
-                                <SibIcon className="mr-2 size-4 shrink-0" />
-                                <span className="truncate">
-                                  {sibling.elementName}
-                                </span>
-                              </DropdownMenuItem>
-                            );
-                          })}
-                        </DropdownMenuGroup>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </BreadcrumbItem>
-              );
-            })}
+            {/* Ancestor segments with searchable popover */}
+            {ancestry.map((segment) => (
+              <AncestorSegment
+                key={segment.diagramId}
+                segment={segment}
+                workspaceSlug={workspaceSlug}
+                currentDiagramId={currentDiagramId}
+              />
+            ))}
 
             {/* Current diagram */}
             <BreadcrumbSeparator className="hidden md:block" />
@@ -197,5 +144,80 @@ export function DiagramNavBar({
         )}
       </div>
     </Panel>
+  );
+}
+
+function AncestorSegment({
+  segment,
+  workspaceSlug,
+  currentDiagramId,
+}: {
+  segment: AncestrySegment;
+  workspaceSlug: string;
+  currentDiagramId: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const DiagramIcon =
+    DIAGRAM_TYPE_ICONS[segment.diagramType as DiagramType] ?? Box;
+
+  const drillableSiblings = segment.siblings.filter((s) => s.deeperDiagramId);
+  const grouped = drillableSiblings.reduce<
+    Record<string, (typeof segment.siblings)[number][]>
+  >((groups, sibling) => {
+    const key = sibling.deeperDiagramName ?? "";
+    (groups[key] ??= []).push(sibling);
+    return groups;
+  }, {});
+
+  return (
+    <BreadcrumbItem className="hidden md:flex">
+      <BreadcrumbSeparator />
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <DiagramIcon className="size-3.5" />
+          {segment.diagramName}
+          <ChevronDown className="size-3" />
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-0" align="start" sideOffset={8}>
+          <Command>
+            <CommandInput placeholder={m.diagram_search_placeholder()} />
+            <CommandList>
+              <CommandEmpty>{m.diagram_empty()}</CommandEmpty>
+              {Object.entries(grouped).map(([diagramName, items]) => (
+                <CommandGroup key={diagramName} heading={diagramName}>
+                  {items.map((sibling) => {
+                    const SibIcon =
+                      ELEMENT_TYPE_ICONS[sibling.elementType] ?? Box;
+                    const isCurrent =
+                      sibling.deeperDiagramId === currentDiagramId;
+                    return (
+                      <CommandItem
+                        key={sibling.elementId}
+                        value={`${sibling.elementName} ${sibling.deeperDiagramName}`}
+                        data-checked={isCurrent || undefined}
+                        onSelect={() => {
+                          setOpen(false);
+                          void navigate({
+                            to: "/workspace/$workspaceSlug/diagram/$diagramId",
+                            params: {
+                              workspaceSlug,
+                              diagramId: sibling.deeperDiagramId!,
+                            },
+                          });
+                        }}
+                      >
+                        <SibIcon className="size-4 shrink-0" />
+                        <span className="truncate">{sibling.elementName}</span>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              ))}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </BreadcrumbItem>
   );
 }
