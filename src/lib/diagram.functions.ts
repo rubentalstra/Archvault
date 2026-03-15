@@ -22,6 +22,7 @@ import {
     addDiagramElementSchema,
     updateDiagramElementSchema,
     removeDiagramElementSchema,
+    batchUpdateDiagramElementsSchema,
     addDiagramConnectionSchema,
     updateDiagramConnectionSchema,
     removeDiagramConnectionSchema,
@@ -654,6 +655,23 @@ export const removeDiagramElement = createServerFn({method: "POST"})
             .returning();
 
         if (!deleted) throw new Error("Diagram element not found");
+        return {success: true};
+    });
+
+export const batchUpdateDiagramElements = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => batchUpdateDiagramElementsSchema.parse(input))
+    .handler(async ({data}) => {
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
+
+        await db.transaction(async (tx) => {
+            for (const {id, ...fields} of data.updates) {
+                if (Object.keys(fields).length > 0) {
+                    await tx.update(diagramElement).set(fields).where(eq(diagramElement.id, id));
+                }
+            }
+        });
+
         return {success: true};
     });
 

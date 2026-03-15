@@ -3,11 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useReactFlow } from "@xyflow/react";
 import { useEditorStore } from "#/stores/editor-store";
-import {
-  updateDiagramElement,
-  removeDiagramElement,
-} from "#/lib/diagram.functions";
-import { removeDiagramConnection } from "#/lib/diagram.functions";
+import { updateDiagramElement } from "#/lib/diagram.functions";
+import { useEditorActions } from "#/hooks/use-editor-actions";
 import { deleteElement } from "#/lib/element.functions";
 import { deleteConnection } from "#/lib/connection.functions";
 import {
@@ -177,11 +174,10 @@ function NodeContextMenuItems({
   const nodes = useEditorStore((s) => s.nodes);
   const diagramType = useEditorStore((s) => s.diagramType);
   const updateNodeZIndex = useEditorStore((s) => s.updateNodeZIndex);
-  const removeNodeById = useEditorStore((s) => s.removeNodeById);
 
   const updateDiagramElementFn = useServerFn(updateDiagramElement);
-  const removeDiagramElementFn = useServerFn(removeDiagramElement);
   const createElementAtPosition = useCreateElementAtPosition();
+  const { removeNodesWithHistory } = useEditorActions();
 
   const node = nodes.find((n) => n.id === nodeId);
 
@@ -216,9 +212,8 @@ function NodeContextMenuItems({
 
   const handleRemoveFromDiagram = useCallback(() => {
     if (!node) return;
-    void removeDiagramElementFn({ data: { id: node.data.diagramElementId } });
-    removeNodeById(nodeId);
-  }, [removeDiagramElementFn, node, removeNodeById, nodeId]);
+    removeNodesWithHistory([nodeId]);
+  }, [removeNodesWithHistory, node, nodeId]);
 
   const handleAddInside = useCallback(
     async (type: ElementType) => {
@@ -292,9 +287,8 @@ function EdgeContextMenuItems({
   onDelete: (connectionId: string, edgeId: string) => void;
 }) {
   const edges = useEditorStore((s) => s.edges);
-  const removeEdgeById = useEditorStore((s) => s.removeEdgeById);
   const setSelection = useEditorStore((s) => s.setSelection);
-  const removeDiagramConnectionFn = useServerFn(removeDiagramConnection);
+  const { removeEdgesWithHistory } = useEditorActions();
 
   const edge = edges.find((e) => e.id === edgeId);
 
@@ -304,11 +298,8 @@ function EdgeContextMenuItems({
 
   const handleRemoveFromDiagram = useCallback(() => {
     if (!edge?.data) return;
-    void removeDiagramConnectionFn({
-      data: { id: edge.data.diagramConnectionId },
-    });
-    removeEdgeById(edgeId);
-  }, [removeDiagramConnectionFn, edge, removeEdgeById, edgeId]);
+    removeEdgesWithHistory([edgeId]);
+  }, [removeEdgesWithHistory, edge, edgeId]);
 
   if (!edge?.data) return null;
 

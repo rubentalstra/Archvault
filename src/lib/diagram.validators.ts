@@ -103,6 +103,17 @@ export const removeDiagramElementSchema = z.object({
   id: z.string(),
 });
 
+export const batchUpdateDiagramElementsSchema = z.object({
+  updates: z.array(z.object({
+    id: z.string(),
+    x: z.number().optional(),
+    y: z.number().optional(),
+    width: z.number().optional(),
+    height: z.number().optional(),
+    zIndex: z.number().int().optional(),
+  })).min(1).max(100),
+});
+
 // ── Diagram Connection schemas ─────────────────────────────────────
 
 export const addDiagramConnectionSchema = z.object({

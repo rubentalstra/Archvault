@@ -58,6 +58,7 @@ interface EditorState {
   propertiesPanelOpen: boolean;
   elementPickerOpen: boolean;
   contextMenu: ContextMenuState | null;
+  shortcutsDialogOpen: boolean;
   setNodes: (nodes: AppNode[]) => void;
   setEdges: (edges: AppEdge[]) => void;
   setMode: (mode: EditorMode) => void;
@@ -67,6 +68,7 @@ interface EditorState {
   setPropertiesPanelOpen: (open: boolean) => void;
   toggleElementPicker: () => void;
   setContextMenu: (menu: ContextMenuState | null) => void;
+  setShortcutsDialogOpen: (open: boolean) => void;
   addNode: (node: AppNode) => void;
   addEdge: (edge: AppEdge) => void;
   removeNodeById: (id: string) => void;
@@ -102,6 +104,7 @@ const initialState = {
   propertiesPanelOpen: true,
   elementPickerOpen: false,
   contextMenu: null as ContextMenuState | null,
+  shortcutsDialogOpen: false,
 };
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -122,6 +125,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setPropertiesPanelOpen: (open) => set({ propertiesPanelOpen: open }),
   toggleElementPicker: () => set((s) => ({ elementPickerOpen: !s.elementPickerOpen })),
   setContextMenu: (menu) => set({ contextMenu: menu }),
+  setShortcutsDialogOpen: (open) => set({ shortcutsDialogOpen: open }),
   addNode: (node) => set({ nodes: sortNodesTopologically([...get().nodes, node]) }),
   addEdge: (edge) => set({ edges: [...get().edges, edge] }),
   removeNodeById: (id) => {

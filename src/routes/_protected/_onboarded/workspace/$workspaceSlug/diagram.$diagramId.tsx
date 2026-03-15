@@ -5,6 +5,7 @@ import { DnDProvider, DragGhost } from "#/components/editor/dnd-context";
 import { authClient } from "#/lib/auth-client";
 import { getDiagramData, getDiagramAncestry } from "#/lib/diagram.functions";
 import { useEditorStore } from "#/stores/editor-store";
+import { useHistoryStore } from "#/stores/history-store";
 import {
   toFlowNodes,
   toFlowEdges,
@@ -66,6 +67,8 @@ function DiagramEditorPage() {
     const elementIdToNodeId = buildElementIdToNodeIdMap(diagramData.elements);
     const edges = toFlowEdges(diagramData.connections, elementIdToNodeId);
 
+    useHistoryStore.getState().clear();
+
     initDiagram({
       diagramId: diagramData.diagram.id,
       diagramType: diagramData.diagram.diagramType as DiagramType,
@@ -78,6 +81,7 @@ function DiagramEditorPage() {
 
     return () => {
       reset();
+      useHistoryStore.getState().clear();
     };
   }, [diagramData, initDiagram, reset]);
 

@@ -17,27 +17,29 @@ import type {
   NodeDimensionChange,
 } from "@xyflow/react";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
+import { useHistoryStore } from "#/stores/history-store";
 import { nodeTypes } from "#/components/editor/nodes";
 import { edgeTypes } from "#/components/editor/edges";
 import {
-  updateDiagramElement,
   removeDiagramElement,
   removeDiagramConnection,
   addDiagramConnection,
 } from "#/lib/diagram.functions";
 import { createConnection, deleteConnection } from "#/lib/connection.functions";
-import { flowNodeToUpdate } from "#/lib/converters/flow-to-diagram";
 import { EditorToolbar } from "#/components/editor/editor-toolbar";
 import { DiagramNavBar } from "#/components/editor/diagram-nav-bar";
 import type { DiagramNavBarProps } from "#/components/editor/diagram-nav-bar";
 import { EditorContextMenu } from "#/components/editor/context-menu";
+import { ShortcutsDialog } from "#/components/editor/shortcuts-dialog";
 import { Toggle } from "#/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
 import { PanelRight } from "lucide-react";
 import { m } from "#/paraglide/messages";
+import { useAutosave } from "#/hooks/use-autosave";
+import { useEditorHotkeys } from "#/hooks/use-editor-hotkeys";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
 type CreatedConnection = { id: string };
@@ -50,7 +52,6 @@ interface DiagramCanvasProps {
 
 const NODE_COLOR_MAP: Record<string, string> = {
   actor: "#60a5fa",
-  group: "#94a3b8",
   system: "#34d399",
   app: "#a78bfa",
   store: "#22c55e",
@@ -79,23 +80,56 @@ export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) 
 
   const reactFlow = useReactFlow();
 
-  const updateDiagramElementFn = useServerFn(updateDiagramElement);
   const removeDiagramElementFn = useServerFn(removeDiagramElement);
   const removeDiagramConnectionFn = useServerFn(removeDiagramConnection);
   const createConnectionFn = useServerFn(createConnection);
   const deleteConnectionFn = useServerFn(deleteConnection);
   const addDiagramConnectionFn = useServerFn(addDiagramConnection);
 
+  // ── Autosave & Hotkeys ──
+  const autosave = useAutosave();
+  useEditorHotkeys({ readOnly });
+
+  // ── Drag start: capture pre-drag positions for undo ──
+  const dragStartPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+
+  const onNodeDragStart = useCallback(
+    (_event: React.MouseEvent, _node: AppNode, draggedNodes: AppNode[]) => {
+      dragStartPositionsRef.current = new Map(
+        draggedNodes.map((n) => [n.id, { ...n.position }]),
+      );
+    },
+    [],
+  );
+
   const onNodeDragStop = useCallback(
     (_event: React.MouseEvent, _node: AppNode, draggedNodes: AppNode[]) => {
-      for (const n of draggedNodes) {
-        const internal = reactFlow.getInternalNode(n.id);
-        const absPos = internal?.internals.positionAbsolute ?? n.position;
-        updateDiagramElementFn({ data: flowNodeToUpdate(n, absPos) });
-      }
+      const beforePositions = dragStartPositionsRef.current;
+      if (beforePositions.size === 0) return;
+
+      // Push move action to history
+      const beforeNodes = draggedNodes
+        .filter((n) => beforePositions.has(n.id))
+        .map((n) => ({
+          ...n,
+          position: beforePositions.get(n.id)!,
+        })) as AppNode[];
+
+      const afterNodes = draggedNodes.map((n) => ({ ...n })) as AppNode[];
+
+      useHistoryStore.getState().pushAction({
+        type: "move_nodes",
+        before: { nodes: beforeNodes },
+        after: { nodes: afterNodes },
+      });
+
+      dragStartPositionsRef.current = new Map();
     },
-    [updateDiagramElementFn, reactFlow],
+    [],
   );
+
+  // ── Resize tracking for undo ──
+  const resizeStartRef = useRef<Map<string, { width: number; height: number; x: number; y: number }>>(new Map());
 
   const onNodesDelete = useCallback(
     (deletedNodes: AppNode[]) => {
@@ -159,13 +193,13 @@ export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) 
     (connection: Connection | { source: string; target: string }) => {
       if (connection.source === connection.target) return false;
 
-      const { nodes, edges } = useEditorStore.getState();
+      const { nodes: storeNodes, edges: storeEdges } = useEditorStore.getState();
 
-      const sourceNode = nodes.find((n) => n.id === connection.source);
-      const targetNode = nodes.find((n) => n.id === connection.target);
+      const sourceNode = storeNodes.find((n) => n.id === connection.source);
+      const targetNode = storeNodes.find((n) => n.id === connection.target);
       if (sourceNode?.data.isSubFlow || targetNode?.data.isSubFlow) return false;
 
-      return !edges.some(
+      return !storeEdges.some(
         (e) =>
           (e.source === connection.source && e.target === connection.target) ||
           (e.source === connection.target && e.target === connection.source),
@@ -227,6 +261,13 @@ export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) 
         } as AppEdge;
 
         addEdge(newEdge);
+
+        // Track in history
+        useHistoryStore.getState().pushAction({
+          type: "add_edge",
+          before: { nodes: [], edges: [] },
+          after: { nodes: [], edges: [newEdge] },
+        });
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
@@ -275,89 +316,125 @@ export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) 
 
   const handleNodesChange = useCallback(
     (changes: import("@xyflow/react").NodeChange<AppNode>[]) => {
-      onNodesChange(changes);
-
+      // Track resize start for undo
       for (const change of changes) {
-        if (change.type === "dimensions" && (change as NodeDimensionChange).resizing === false) {
+        if (change.type === "dimensions" && (change as NodeDimensionChange).resizing === true) {
           const dimChange = change as NodeDimensionChange & { id: string };
-          const node = useEditorStore.getState().nodes.find((n) => n.id === dimChange.id);
-          if (node) {
-            const internal = reactFlow.getInternalNode(node.id);
-            const absPos = internal?.internals.positionAbsolute ?? node.position;
-            updateDiagramElementFn({ data: flowNodeToUpdate(node, absPos) });
+          if (!resizeStartRef.current.has(dimChange.id)) {
+            const node = useEditorStore.getState().nodes.find((n) => n.id === dimChange.id);
+            if (node) {
+              resizeStartRef.current.set(dimChange.id, {
+                width: node.style?.width ? Number(node.style.width) : 200,
+                height: node.style?.height ? Number(node.style.height) : 120,
+                x: node.position.x,
+                y: node.position.y,
+              });
+            }
           }
         }
       }
+
+      onNodesChange(changes);
+
+      // Track resize end for undo
+      for (const change of changes) {
+        if (change.type === "dimensions" && (change as NodeDimensionChange).resizing === false) {
+          const dimChange = change as NodeDimensionChange & { id: string };
+          const startData = resizeStartRef.current.get(dimChange.id);
+          const node = useEditorStore.getState().nodes.find((n) => n.id === dimChange.id);
+          if (startData && node) {
+            useHistoryStore.getState().pushAction({
+              type: "resize_node",
+              before: {
+                nodes: [{
+                  ...node,
+                  position: { x: startData.x, y: startData.y },
+                  style: { ...node.style, width: startData.width, height: startData.height },
+                } as AppNode],
+              },
+              after: { nodes: [{ ...node } as AppNode] },
+            });
+          }
+          resizeStartRef.current.delete(dimChange.id);
+        }
+      }
     },
-    [onNodesChange, updateDiagramElementFn, reactFlow],
+    [onNodesChange],
   );
 
+  // Suppress unused variable warnings — autosave status is passed to toolbar
+  void autosave;
+
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={nodeTypes}
-      edgeTypes={edgeTypes}
-      onNodesChange={readOnly ? undefined : handleNodesChange}
-      onEdgesChange={readOnly ? undefined : onEdgesChange}
-      onNodeDragStop={readOnly ? undefined : onNodeDragStop}
-      onNodesDelete={readOnly ? undefined : onNodesDelete}
-      onEdgesDelete={readOnly ? undefined : onEdgesDelete}
-      onConnect={readOnly ? undefined : onConnect}
-      onSelectionChange={onSelectionChange}
-      onNodeContextMenu={readOnly ? undefined : onNodeContextMenu}
-      onEdgeContextMenu={readOnly ? undefined : onEdgeContextMenu}
-      onPaneContextMenu={readOnly ? undefined : onPaneContextMenu}
-      onPaneClick={handlePaneClick}
-      isValidConnection={isValidConnection}
-      connectionMode={ConnectionMode.Loose}
-      connectionRadius={40}
-      colorMode="system"
-      snapToGrid={snapToGrid}
-      snapGrid={[gridSize, gridSize]}
-      fitView
-      selectNodesOnDrag={false}
-      selectionMode={SelectionMode.Partial}
-      panOnDrag={mode === "pan" ? true : [1]}
-      selectionOnDrag={mode === "select"}
-      deleteKeyCode={readOnly ? null : "Backspace"}
-      selectionKeyCode="Shift"
-      panActivationKeyCode="Space"
-      nodesDraggable={mode === "select" && !readOnly}
-      nodesConnectable={(mode === "select" || mode === "add_connection") && !readOnly}
-      elementsSelectable={!readOnly}
-      elevateEdgesOnSelect
-    >
-      {showGrid && (
-        <Background variant={BackgroundVariant.Dots} gap={gridSize} />
-      )}
-      <DiagramNavBar {...navBar} />
-      {!readOnly && <EditorToolbar />}
-      <Panel position="top-right">
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Toggle
-                size="sm"
-                pressed={propertiesPanelOpen}
-                onPressedChange={setPropertiesPanelOpen}
-                aria-label={propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}
-                className="rounded-lg border bg-card shadow-sm"
-              >
-                <PanelRight className="size-4" />
-              </Toggle>
-            }
-          />
-          <TooltipContent side="bottom" className="text-xs">
-            {propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}
-          </TooltipContent>
-        </Tooltip>
-      </Panel>
-      <Controls showInteractive={false} />
-      {showMinimap && (
-        <MiniMap nodeColor={getNodeColor} zoomable pannable />
-      )}
-      <EditorContextMenu />
-    </ReactFlow>
+    <>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodesChange={readOnly ? undefined : handleNodesChange}
+        onEdgesChange={readOnly ? undefined : onEdgesChange}
+        onNodeDragStart={readOnly ? undefined : onNodeDragStart}
+        onNodeDragStop={readOnly ? undefined : onNodeDragStop}
+        onNodesDelete={readOnly ? undefined : onNodesDelete}
+        onEdgesDelete={readOnly ? undefined : onEdgesDelete}
+        onConnect={readOnly ? undefined : onConnect}
+        onSelectionChange={onSelectionChange}
+        onNodeContextMenu={readOnly ? undefined : onNodeContextMenu}
+        onEdgeContextMenu={readOnly ? undefined : onEdgeContextMenu}
+        onPaneContextMenu={readOnly ? undefined : onPaneContextMenu}
+        onPaneClick={handlePaneClick}
+        isValidConnection={isValidConnection}
+        connectionMode={ConnectionMode.Loose}
+        connectionRadius={40}
+        colorMode="system"
+        snapToGrid={snapToGrid}
+        snapGrid={[gridSize, gridSize]}
+        fitView
+        selectNodesOnDrag={false}
+        selectionMode={SelectionMode.Partial}
+        panOnDrag={mode === "pan" ? true : [1]}
+        selectionOnDrag={mode === "select"}
+        deleteKeyCode={null}
+        selectionKeyCode="Shift"
+        panActivationKeyCode="Space"
+        nodesDraggable={mode === "select" && !readOnly}
+        nodesConnectable={(mode === "select" || mode === "add_connection") && !readOnly}
+        elementsSelectable={!readOnly}
+        elevateEdgesOnSelect
+      >
+        {showGrid && (
+          <Background variant={BackgroundVariant.Dots} gap={gridSize} />
+        )}
+        <DiagramNavBar {...navBar} />
+        {!readOnly && <EditorToolbar autosaveStatus={autosave.status} />}
+        <Panel position="top-right">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Toggle
+                  size="sm"
+                  pressed={propertiesPanelOpen}
+                  onPressedChange={setPropertiesPanelOpen}
+                  aria-label={propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}
+                  className="rounded-lg border bg-card shadow-sm"
+                >
+                  <PanelRight className="size-4" />
+                </Toggle>
+              }
+            />
+            <TooltipContent side="bottom" className="text-xs">
+              {propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}
+            </TooltipContent>
+          </Tooltip>
+        </Panel>
+        <Controls showInteractive={false} />
+        {showMinimap && (
+          <MiniMap nodeColor={getNodeColor} zoomable pannable />
+        )}
+        <EditorContextMenu />
+      </ReactFlow>
+      <ShortcutsDialog />
+    </>
   );
 }
