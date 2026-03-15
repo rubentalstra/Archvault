@@ -34,11 +34,11 @@ export function InvitationEmail({
     <Html>
       <Head />
       <Preview>
-        {inviterName} invited you to join {organizationName} on Archvault
+        {inviterName} invited you to join {organizationName} on ArchVault
       </Preview>
       <Body style={body}>
         <Container style={container}>
-          <Heading style={heading}>Archvault</Heading>
+          <Heading style={heading}>ArchVault</Heading>
           <Section style={section}>
             <Text style={text}>
               <strong>{inviterName}</strong> has invited you to join{" "}

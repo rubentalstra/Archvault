@@ -1,4 +1,4 @@
-# Contributing to Archvault
+# Contributing to ArchVault
 
 Thank you for your interest in contributing! This guide will help you get started.
 
@@ -17,8 +17,8 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ```bash
 # Fork and clone
-git clone https://github.com/<your-username>/Archvault.git
-cd Archvault
+git clone https://github.com/<your-username>/ArchVault.git
+cd ArchVault
 
 # Install dependencies
 pnpm install

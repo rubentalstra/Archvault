@@ -22,7 +22,7 @@ import {socialProvidersConfig} from "./auth.providers";
 const hasSocialProviders = Object.keys(socialProvidersConfig).length > 0;
 
 export const auth = betterAuth({
-    appName: "Archvault",
+    appName: "ArchVault",
     baseURL: process.env.BETTER_AUTH_URL,
     database: drizzleAdapter(db, {provider: "pg", schema}),
     // Drizzle v1 relational filters currently conflict with Better Auth join mode.
@@ -42,7 +42,7 @@ export const auth = betterAuth({
                 const inviteUrl = `${process.env.BETTER_AUTH_URL}/accept-invitation/${data.id}`;
                 await sendEmail({
                     to: data.email,
-                    subject: `Archvault — You've been invited to ${data.organization.name}`,
+                    subject: `ArchVault — You've been invited to ${data.organization.name}`,
                     react: createElement(InvitationEmail, {
                         organizationName: data.organization.name,
                         inviterName: data.inviter.user.name,
@@ -57,7 +57,7 @@ export const auth = betterAuth({
             async sendVerificationOTP({email, otp, type}) {
                 await sendEmail({
                     to: email,
-                    subject: `Archvault — Your ${type === "sign-in" ? "sign-in" : type === "email-verification" ? "verification" : "password reset"} code`,
+                    subject: `ArchVault — Your ${type === "sign-in" ? "sign-in" : type === "email-verification" ? "verification" : "password reset"} code`,
                     react: createElement(OtpEmail, {otp, type}),
                 });
             },

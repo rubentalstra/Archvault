@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-export function ArchvaultLogo(props: ComponentProps<"svg">) {
+export function ArchVaultLogo(props: ComponentProps<"svg">) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

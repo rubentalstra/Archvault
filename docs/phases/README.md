@@ -1,6 +1,6 @@
-# Archvault — Phase Tracker
+# ArchVault — Phase Tracker
 
-Archvault is an open-source visual C4 architecture platform inspired by [IcePanel](https://icepanel.io).
+ArchVault is an open-source visual C4 architecture platform inspired by [IcePanel](https://icepanel.io).
 It supports C4 Levels 1-3 (Context, Container/App, Component). Level 4 (Code) is out of scope —
 instead, model objects link to source code directly.
 

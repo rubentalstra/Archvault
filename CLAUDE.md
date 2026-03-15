@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Archvault is a **greenfield** visual C4 architecture platform (Levels 1-3; Level 4 is out of scope). Users model software systems, create diagrams, build reusable architecture blocks, and share them via a community registry. Everything is UI-driven — users never write code.
+ArchVault is a **greenfield** visual C4 architecture platform (Levels 1-3; Level 4 is out of scope). Users model software systems, create diagrams, build reusable architecture blocks, and share them via a community registry. Everything is UI-driven — users never write code.
 
 Phase tracking and specs live in `docs/phases/`. The phase README (`docs/phases/README.md`) has the full dependency graph and current status of each sub-phase.
 

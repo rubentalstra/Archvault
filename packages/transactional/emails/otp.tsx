@@ -32,11 +32,11 @@ export function OtpEmail({ otp, type }: OtpEmailProps) {
     <Html>
       <Head />
       <Preview>
-        Your Archvault {label} code: {otp}
+        Your ArchVault {label} code: {otp}
       </Preview>
       <Body style={body}>
         <Container style={container}>
-          <Heading style={heading}>Archvault</Heading>
+          <Heading style={heading}>ArchVault</Heading>
           <Section style={section}>
             <Text style={text}>
               Use the code below to complete your {label.toLowerCase()}.

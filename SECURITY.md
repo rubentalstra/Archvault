@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Archvault is pre-1.0 software. Security fixes are applied to the **latest release only**.
+ArchVault is pre-1.0 software. Security fixes are applied to the **latest release only**.
 
 | Version        | Supported |
 |----------------|-----------|
@@ -14,7 +14,7 @@ Archvault is pre-1.0 software. Security fixes are applied to the **latest releas
 **Do not open a public issue for security vulnerabilities.**
 
 Please report vulnerabilities
-through [GitHub Security Advisories](https://github.com/rubentalstra/Archvault/security/advisories/new). This keeps the
+through [GitHub Security Advisories](https://github.com/rubentalstra/ArchVault/security/advisories/new). This keeps the
 report private until a fix is available.
 
 ### Response Timeline
@@ -37,11 +37,11 @@ We follow coordinated disclosure. Once a fix is released, we will:
 
 ## Self-Hosting Hardening
 
-If you are running Archvault in production, we recommend:
+If you are running ArchVault in production, we recommend:
 
 - **`BETTER_AUTH_SECRET`** — Use a strong, randomly generated secret (minimum 32 characters). Never reuse secrets across
   environments.
-- **TLS** — Run Archvault behind a reverse proxy (nginx, Caddy, Traefik) with HTTPS enabled.
+- **TLS** — Run ArchVault behind a reverse proxy (nginx, Caddy, Traefik) with HTTPS enabled.
 - **PostgreSQL credentials** — Use dedicated database credentials with least-privilege access. Do not expose the
   database port publicly.
 - **Docker** — Keep your Docker images and base OS up to date. Run containers as a non-root user where possible.

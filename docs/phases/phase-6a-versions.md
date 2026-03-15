@@ -33,7 +33,7 @@ Five approaches were evaluated for workspace versioning:
 | Event sourcing                      | Very high | Complete architecture rewrite                                          | Incompatible with TanStack Query patterns |
 | Git-like blobs                      | High      | All queries rewritten through blob indirection                         | Unproven (Specfy tried and shut down)     |
 
-**Why JSONB snapshots are the correct choice for Archvault:**
+**Why JSONB snapshots are the correct choice for ArchVault:**
 
 1. **Data volumes are small.** A typical workspace (200 elements, 500 connections, 20 diagrams with
    placements) serializes to ~100-500KB of JSON. Even with 100 versions, that's 50MB — trivial.

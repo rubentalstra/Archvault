@@ -21,7 +21,7 @@ import {Field, FieldError, FieldLabel} from "#/components/ui/field";
 import {Separator} from "#/components/ui/separator";
 import {toast} from "sonner";
 import {SiGithub, SiGoogle, SiOpenid} from "@icons-pack/react-simple-icons";
-import {ArchvaultLogo} from "#/components/archvault-logo";
+import {ArchVaultLogo} from "#/components/archvault-logo";
 
 
 export const Route = createFileRoute("/signup")({
@@ -105,7 +105,7 @@ function SignUpPage() {
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <div className="flex justify-center">
-                        <ArchvaultLogo className="size-10" />
+                        <ArchVaultLogo className="size-10" />
                     </div>
                     <CardTitle className="text-2xl font-bold">{m.auth_sign_up_title()}</CardTitle>
                     <CardDescription>

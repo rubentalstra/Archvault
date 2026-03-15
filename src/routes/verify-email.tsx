@@ -15,7 +15,7 @@ import { Input } from "#/components/ui/input";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { toast } from "sonner";
 import { z } from "zod/v4";
-import { ArchvaultLogo } from "#/components/archvault-logo";
+import { ArchVaultLogo } from "#/components/archvault-logo";
 
 const searchSchema = z.object({
   email: z.string().optional(),
@@ -87,7 +87,7 @@ function VerifyEmailPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center">
-            <ArchvaultLogo className="size-10" />
+            <ArchVaultLogo className="size-10" />
           </div>
           <CardTitle className="text-2xl font-bold">
             {m.auth_verify_email_title()}

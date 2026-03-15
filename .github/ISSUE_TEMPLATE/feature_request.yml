@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest a new feature or improvement for Archvault
+description: Suggest a new feature or improvement for ArchVault
 title: "feat: "
 labels:
   - enhancement
@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing an idea to improve Archvault.
+        Thanks for sharing an idea to improve ArchVault.
 
   - type: textarea
     id: problem

@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
-import { ArchvaultLogo } from "#/components/archvault-logo";
+import { ArchVaultLogo } from "#/components/archvault-logo";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -20,7 +20,7 @@ function LandingPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center">
-            <ArchvaultLogo className="size-10" />
+            <ArchVaultLogo className="size-10" />
           </div>
           <CardTitle className="text-3xl font-bold">{m.common_app_name()}</CardTitle>
           <CardDescription>
