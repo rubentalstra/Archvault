@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Project scaffold with TanStack Start, React 19, Vite 8, and TypeScript strict mode
-- PostgreSQL 16 database with Drizzle ORM schema and migrations
+- PostgreSQL 18 database with Drizzle ORM schema and migrations
 - Authentication via Better Auth (email/password, SSO, SCIM, two-factor, email OTP)
 - Organization and workspace management with role-based access control
 - C4 model objects: Actor, System, App, Store, Component

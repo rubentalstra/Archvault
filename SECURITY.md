@@ -39,7 +39,7 @@ We follow coordinated disclosure. Once a fix is released, we will:
 
 If you are running Archvault in production, we recommend:
 
-- **`AUTH_SECRET`** — Use a strong, randomly generated secret (minimum 32 characters). Never reuse secrets across
+- **`BETTER_AUTH_SECRET`** — Use a strong, randomly generated secret (minimum 32 characters). Never reuse secrets across
   environments.
 - **TLS** — Run Archvault behind a reverse proxy (nginx, Caddy, Traefik) with HTTPS enabled.
 - **PostgreSQL credentials** — Use dedicated database credentials with least-privilege access. Do not expose the

@@ -18,9 +18,10 @@ pnpm test           # Run all tests (vitest)
 pnpm vitest <file>  # Run a single test file
 
 # Database (available after Phase 1b)
-pnpm drizzle-kit generate   # Generate migration from schema changes
-pnpm drizzle-kit migrate    # Apply migrations
-docker compose up -d db     # Start PostgreSQL
+pnpm db:generate            # Generate migration from schema changes
+pnpm db:migrate             # Apply migrations
+pnpm db:studio              # Open Drizzle Studio
+pnpm docker:compose:up      # Start PostgreSQL container
 
 # Linting
 pnpm lint            # Run ESLint on entire project
@@ -37,8 +38,12 @@ pnpm lint:fix        # Run ESLint with auto-fix
 - **Components:** shadcn/ui (base-nova style, Lucide icons) — components in `src/components/ui/`
 - **Validation:** Zod v4
 - **Auth:** Better Auth (with admin, organization, twoFactor, emailOTP plugins)
-- **Database:** PostgreSQL 16 + Drizzle ORM (after Phase 1b)
+- **Database:** PostgreSQL 18 + Drizzle ORM (after Phase 1b)
 - **Build:** Vite 8, TypeScript strict mode
+
+## Environment Variables
+
+- Use `BETTER_AUTH_SECRET` for Better Auth secret configuration (see `.env.example`).
 
 ## Architecture
 

@@ -28,10 +28,10 @@ docker compose up -d db
 
 # Configure environment
 cp .env.example .env
-# Edit .env with your DATABASE_URL, AUTH_SECRET, etc.
+# Edit .env with your DATABASE_URL, BETTER_AUTH_SECRET, etc.
 
 # Run migrations
-pnpm drizzle-kit migrate
+pnpm db:migrate
 
 # Start dev server
 pnpm dev
@@ -46,9 +46,9 @@ pnpm dev
 | `pnpm test`                 | Run all tests (Vitest)                    |
 | `pnpm lint`                 | Run ESLint                                |
 | `pnpm lint:fix`             | Run ESLint with auto-fix                  |
-| `pnpm drizzle-kit generate` | Generate migration from schema changes    |
-| `pnpm drizzle-kit migrate`  | Apply migrations                          |
-| `pnpm drizzle-kit studio`   | Open Drizzle Studio (DB GUI)              |
+| `pnpm db:generate`          | Generate migration from schema changes    |
+| `pnpm db:migrate`           | Apply migrations                          |
+| `pnpm db:studio`            | Open Drizzle Studio (DB GUI)              |
 
 ## Code Style
 
@@ -64,7 +64,7 @@ pnpm dev
 **Never write SQL migrations manually.** Always modify the Drizzle schema files and then run:
 
 ```bash
-pnpm drizzle-kit generate
+pnpm db:generate
 ```
 
 This generates the migration automatically. Commit both the schema change and the generated migration.

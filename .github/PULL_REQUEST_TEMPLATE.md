@@ -17,7 +17,7 @@ Brief description of the changes in this PR.
 - [ ] `pnpm test` passes
 - [ ] `pnpm lint` passes
 - [ ] All user-facing strings use Paraglide (`m.key()`) — no hardcoded text
-- [ ] Schema changes include `pnpm drizzle-kit generate` migration
+- [ ] Schema changes include `pnpm db:generate` migration
 - [ ] Self-reviewed my code
 
 ## Related Issues

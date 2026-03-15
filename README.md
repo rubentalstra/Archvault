@@ -15,6 +15,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/github/license/rubentalstra/Archvault?style=flat-square" alt="License" /></a>
   <img src="https://img.shields.io/badge/TanStack_Start-React_19-blue?style=flat-square" alt="TanStack Start" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/PostgreSQL-18-336791?style=flat-square" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/pnpm-10-F69220?style=flat-square" alt="pnpm" />
@@ -55,14 +56,14 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Manual Setup
 
-**Prerequisites:** Node.js 24+, pnpm 10+, PostgreSQL 16+
+**Prerequisites:** Node.js 24+, pnpm 10+, PostgreSQL 18+
 
 ```bash
 git clone https://github.com/rubentalstra/Archvault.git
 cd Archvault
 pnpm install
-cp .env.example .env    # Configure DATABASE_URL, AUTH_SECRET, etc.
-pnpm drizzle-kit migrate
+cp .env.example .env    # Configure DATABASE_URL, BETTER_AUTH_SECRET, etc.
+pnpm db:migrate
 pnpm dev
 ```
 
