@@ -48,7 +48,7 @@ Archvault uses the same terminology as IcePanel:
 | 3b    | Canvas Rendering (React Flow)  | Complete    | 3a           |
 | 3c    | Editor Interactions & Panel    | Complete    | 3b           |
 | 3d    | Canvas Edges & Connections     | Complete    | 3c, 2d       |
-| 3e    | Groups on Canvas               | Not Started | 3d, 2e       |
+| 3e    | ~~Groups on Canvas~~           | Dropped     | ~~3d, 2e~~   |
 | 3f    | Autosave, Hotkeys & Undo/Redo  | Not Started | 3d           |
 | 4a    | Flow Schema & CRUD             | Not Started | 3d           |
 | 4b    | Flow Steps & Playback          | Not Started | 4a           |
@@ -101,7 +101,7 @@ graph TD
     3b --> 3c["3c: Editor & Panel"]
     3c --> 3d["3d: Canvas Edges"]
     2d --> 3d
-    3d --> 3e["3e: Groups on Canvas"]
+    3d --> 3e["3e: Groups on Canvas (Dropped)"]
     2e --> 3e
     2f["2f: Tech Rewrite"] --> 7b
     3d --> 3f["3f: Autosave & Hotkeys"]
@@ -148,7 +148,7 @@ graph TD
     style 3b fill: #dcfce7, stroke: #16a34a
     style 3c fill: #dcfce7, stroke: #16a34a
     style 3d fill: #dcfce7, stroke: #16a34a
-    style 3e fill: #fef9c3, stroke: #ca8a04
+    style 3e fill: #f5f5f5, stroke: #9ca3af
     style 3f fill: #fef9c3, stroke: #ca8a04
     style 4a fill: #ffe4e6, stroke: #e11d48
     style 4b fill: #ffe4e6, stroke: #e11d48
@@ -173,7 +173,7 @@ graph TD
     style 8e fill: #ccfbf1, stroke: #0d9488
 ```
 
-**Legend:** Phase 1 (indigo, complete) | Phase 2 (green, complete) | Phase 3e-3f (yellow, next) |
+**Legend:** Phase 1 (indigo, complete) | Phase 2 (green, complete) | Phase 3e (gray, dropped) | Phase 3f (yellow, next) |
 Phase 4 (rose, flows) | Phase 5 (purple, perspectives & navigation) | Phase 6 (sky, versioning & sharing) | Phase 7 (
 amber, platform polish)
 

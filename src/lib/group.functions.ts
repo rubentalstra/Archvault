@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "./database";
-import { group, groupMembership, diagramGroup } from "./schema";
+import { group, groupMembership } from "./schema";
 import {
   createGroupSchema,
   updateGroupSchema,
@@ -9,9 +9,6 @@ import {
   getGroupsSchema,
   addGroupMembershipSchema,
   removeGroupMembershipSchema,
-  addDiagramGroupSchema,
-  updateDiagramGroupSchema,
-  removeDiagramGroupSchema,
   validateGroupParent,
 } from "./group.validators";
 import { assertRole, getSessionAndOrg } from "./auth.helpers";
@@ -164,62 +161,3 @@ export const removeGroupMembership = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-// ── Diagram group placement ─────────────────────────────────────────
-
-export const addDiagramGroup = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => addDiagramGroupSchema.parse(input))
-  .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
-
-    const id = crypto.randomUUID();
-    const [created] = await db
-      .insert(diagramGroup)
-      .values({
-        id,
-        diagramId: data.diagramId,
-        groupId: data.groupId,
-        x: data.x,
-        y: data.y,
-        width: data.width,
-        height: data.height,
-        zIndex: data.zIndex ?? -1,
-        styleJson: data.styleJson ?? null,
-      })
-      .onConflictDoNothing()
-      .returning();
-
-    return created ?? null;
-  });
-
-export const updateDiagramGroup = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => updateDiagramGroupSchema.parse(input))
-  .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
-
-    const { id, ...updates } = data;
-    const [updated] = await db
-      .update(diagramGroup)
-      .set(updates)
-      .where(eq(diagramGroup.id, id))
-      .returning();
-
-    if (!updated) throw new Error("Diagram group not found");
-    return updated;
-  });
-
-export const removeDiagramGroup = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => removeDiagramGroupSchema.parse(input))
-  .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
-
-    const [deleted] = await db
-      .delete(diagramGroup)
-      .where(eq(diagramGroup.id, data.id))
-      .returning();
-
-    if (!deleted) throw new Error("Diagram group not found");
-    return { success: true };
-  });

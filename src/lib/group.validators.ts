@@ -39,33 +39,6 @@ export const removeGroupMembershipSchema = z.object({
   groupId: z.string(),
 });
 
-// ── Diagram group schemas ───────────────────────────────────────────
-
-export const addDiagramGroupSchema = z.object({
-  diagramId: z.string(),
-  groupId: z.string(),
-  x: z.number(),
-  y: z.number(),
-  width: z.number(),
-  height: z.number(),
-  zIndex: z.number().optional(),
-  styleJson: z.unknown().optional(),
-});
-
-export const updateDiagramGroupSchema = z.object({
-  id: z.string(),
-  x: z.number().optional(),
-  y: z.number().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-  zIndex: z.number().optional(),
-  styleJson: z.unknown().optional(),
-});
-
-export const removeDiagramGroupSchema = z.object({
-  id: z.string(),
-});
-
 // ── Constants ───────────────────────────────────────────────────────
 
 export const GROUP_COLOR_PRESETS = TAG_COLOR_PRESETS;

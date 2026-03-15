@@ -2,18 +2,13 @@ import {
   pgTable,
   text,
   varchar,
-  real,
-  integer,
-  jsonb,
   timestamp,
   index,
   primaryKey,
-  unique,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { workspace } from "./workspaces";
 import { element } from "./elements";
-import { diagram } from "./diagrams";
 import { user } from "./auth-schema";
 
 export const group = pgTable(
@@ -65,29 +60,3 @@ export const groupMembership = pgTable(
   ],
 );
 
-export const diagramGroup = pgTable(
-  "diagram_group",
-  {
-    id: text("id").primaryKey(),
-    diagramId: text("diagram_id")
-      .notNull()
-      .references(() => diagram.id, { onDelete: "cascade" }),
-    groupId: text("group_id")
-      .notNull()
-      .references(() => group.id, { onDelete: "cascade" }),
-    x: real("x").notNull(),
-    y: real("y").notNull(),
-    width: real("width").notNull(),
-    height: real("height").notNull(),
-    zIndex: integer("z_index").default(-1).notNull(),
-    styleJson: jsonb("style_json"),
-  },
-  (table) => [
-    unique("diagram_group_diagram_group_uidx").on(
-      table.diagramId,
-      table.groupId,
-    ),
-    index("diagram_group_diagram_id_idx").on(table.diagramId),
-    index("diagram_group_group_id_idx").on(table.groupId),
-  ],
-);

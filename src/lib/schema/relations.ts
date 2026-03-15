@@ -20,7 +20,7 @@ import {technology, elementTechnology, connectionTechnology} from "./technologie
 import {elementLink} from "./element-links";
 import {connection} from "./connections";
 import {tag, elementTag, connectionTag} from "./tags";
-import {group, groupMembership, diagramGroup} from "./groups";
+import {group, groupMembership} from "./groups";
 import {diagram} from "./diagrams";
 import {diagramElement} from "./diagram-elements";
 import {diagramConnection} from "./diagram-connections";
@@ -52,7 +52,6 @@ export const relations = defineRelations(
         connectionTag,
         group,
         groupMembership,
-        diagramGroup,
         diagram,
         diagramElement,
         diagramConnection,
@@ -511,7 +510,6 @@ export const relations = defineRelations(
             }),
             diagramElements: r.many.diagramElement(),
             diagramConnections: r.many.diagramConnection(),
-            diagramGroups: r.many.diagramGroup(),
             revisions: r.many.diagramRevision(),
         },
 
@@ -583,8 +581,6 @@ export const relations = defineRelations(
                 from: r.group.id.through(r.groupMembership.groupId),
                 to: r.element.id.through(r.groupMembership.elementId),
             }),
-            // diagram_group junction
-            diagramGroups: r.many.diagramGroup(),
         },
 
         // ─────────────────────────────────────────────────────────────────
@@ -598,22 +594,6 @@ export const relations = defineRelations(
             }),
             group: r.one.group({
                 from: r.groupMembership.groupId,
-                to: r.group.id,
-                optional: false,
-            }),
-        },
-
-        // ─────────────────────────────────────────────────────────────────
-        // diagramGroup
-        // ─────────────────────────────────────────────────────────────────
-        diagramGroup: {
-            diagram: r.one.diagram({
-                from: r.diagramGroup.diagramId,
-                to: r.diagram.id,
-                optional: false,
-            }),
-            group: r.one.group({
-                from: r.diagramGroup.groupId,
                 to: r.group.id,
                 optional: false,
             }),
