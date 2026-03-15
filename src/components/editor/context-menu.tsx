@@ -1,27 +1,35 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useReactFlow } from "@xyflow/react";
 import { useEditorStore } from "#/stores/editor-store";
 import {
   updateDiagramElement,
   removeDiagramElement,
-  addDiagramElement,
 } from "#/lib/diagram.functions";
-import {
-  removeDiagramConnection,
-} from "#/lib/diagram.functions";
-import {
-  createElement,
-  deleteElement,
-} from "#/lib/element.functions";
+import { removeDiagramConnection } from "#/lib/diagram.functions";
+import { deleteElement } from "#/lib/element.functions";
 import { deleteConnection } from "#/lib/connection.functions";
-import { validateElementForDiagram } from "#/lib/diagram.validators";
-import { useCreateElementAtPosition, DEFAULT_SIZES } from "#/components/editor/dnd-context";
+import {
+  validateElementForDiagram,
+  validateChildPlacement,
+  REQUIRES_PARENT_SUB_FLOW,
+} from "#/lib/diagram.validators";
+import {
+  useCreateElementAtPosition,
+  DEFAULT_SIZES,
+  findSubFlowParent,
+} from "#/components/editor/dnd-context";
 import { m } from "#/paraglide/messages";
 import { Separator } from "#/components/ui/separator";
-import { useReactFlow } from "@xyflow/react";
-import type { AppNode } from "#/lib/types/diagram-nodes";
-import type { ElementStatus, ElementType } from "#/lib/element.validators";
+import {
+  User,
+  Box,
+  Package,
+  Database,
+  Cpu,
+} from "lucide-react";
+import type { ElementType } from "#/lib/element.validators";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,21 +40,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "#/components/ui/alert-dialog";
-import { useState } from "react";
 
-type CreatedElement = { id: string; name: string; status: ElementStatus; external: boolean };
-type CreatedDiagramElement = { id: string };
-
-const ELEMENT_TYPES: ElementType[] = ["actor", "group", "system", "app", "store", "component"];
-
-const ELEMENT_LABELS: Record<ElementType, () => string> = {
-  actor: () => m.editor_toolbar_add_actor(),
-  group: () => m.element_type_system(),
-  system: () => m.editor_toolbar_add_system(),
-  app: () => m.editor_toolbar_add_app(),
-  store: () => m.editor_toolbar_add_store(),
-  component: () => m.editor_toolbar_add_component(),
-};
+const ADD_ELEMENT_OPTIONS: {
+  type: ElementType;
+  label: () => string;
+  icon: React.ReactNode;
+}[] = [
+  { type: "actor", label: () => m.editor_toolbar_add_actor(), icon: <User className="mr-2 size-4" /> },
+  { type: "system", label: () => m.editor_toolbar_add_system(), icon: <Box className="mr-2 size-4" /> },
+  { type: "app", label: () => m.editor_toolbar_add_app(), icon: <Package className="mr-2 size-4" /> },
+  { type: "store", label: () => m.editor_toolbar_add_store(), icon: <Database className="mr-2 size-4" /> },
+  { type: "component", label: () => m.editor_toolbar_add_component(), icon: <Cpu className="mr-2 size-4" /> },
+];
 
 export function EditorContextMenu() {
   const contextMenu = useEditorStore((s) => s.contextMenu);
@@ -77,9 +82,13 @@ export function EditorContextMenu() {
     };
   }, [contextMenu, setContextMenu]);
 
-  if (!contextMenu) return (
-    <DeleteConfirmDialog confirm={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
-  );
+  if (!contextMenu)
+    return (
+      <DeleteConfirmDialog
+        confirm={deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+      />
+    );
 
   return (
     <>
@@ -110,7 +119,10 @@ export function EditorContextMenu() {
           <PaneContextMenuItems position={contextMenu.position} />
         )}
       </div>
-      <DeleteConfirmDialog confirm={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      <DeleteConfirmDialog
+        confirm={deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </>
   );
 }
@@ -143,6 +155,18 @@ function MenuItem({
   );
 }
 
+function MenuLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+      {children}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Node context menu
+// ---------------------------------------------------------------------------
+
 function NodeContextMenuItems({
   nodeId,
   onDelete,
@@ -151,100 +175,114 @@ function NodeContextMenuItems({
   onDelete: (elementId: string, nodeId: string) => void;
 }) {
   const nodes = useEditorStore((s) => s.nodes);
+  const diagramType = useEditorStore((s) => s.diagramType);
   const updateNodeZIndex = useEditorStore((s) => s.updateNodeZIndex);
   const removeNodeById = useEditorStore((s) => s.removeNodeById);
-  const addNode = useEditorStore((s) => s.addNode);
 
   const updateDiagramElementFn = useServerFn(updateDiagramElement);
   const removeDiagramElementFn = useServerFn(removeDiagramElement);
-  const createElementFn = useServerFn(createElement);
-  const addDiagramElementFn = useServerFn(addDiagramElement);
+  const createElementAtPosition = useCreateElementAtPosition();
 
   const node = nodes.find((n) => n.id === nodeId);
-  if (!node) return null;
 
   const handleBringToFront = useCallback(() => {
+    if (!node) return;
     const maxZ = Math.max(...nodes.map((n) => n.zIndex ?? 0));
     const newZ = maxZ + 1;
     updateNodeZIndex(nodeId, newZ);
-    updateDiagramElementFn({ data: { id: node.data.diagramElementId, zIndex: newZ } });
-  }, [nodes, nodeId, updateNodeZIndex, updateDiagramElementFn, node.data.diagramElementId]);
+    void updateDiagramElementFn({
+      data: { id: node.data.diagramElementId, zIndex: newZ },
+    });
+  }, [nodes, nodeId, updateNodeZIndex, updateDiagramElementFn, node]);
 
   const handleSendToBack = useCallback(() => {
+    if (!node) return;
     const minZ = Math.min(...nodes.map((n) => n.zIndex ?? 0));
     const newZ = minZ - 1;
     updateNodeZIndex(nodeId, newZ);
-    updateDiagramElementFn({ data: { id: node.data.diagramElementId, zIndex: newZ } });
-  }, [nodes, nodeId, updateNodeZIndex, updateDiagramElementFn, node.data.diagramElementId]);
+    void updateDiagramElementFn({
+      data: { id: node.data.diagramElementId, zIndex: newZ },
+    });
+  }, [nodes, nodeId, updateNodeZIndex, updateDiagramElementFn, node]);
 
   const handleDuplicate = useCallback(async () => {
-    const store = useEditorStore.getState();
-    if (!store.workspaceId || !store.diagramId) return;
-    try {
-      const newElement = (await createElementFn({
-        data: {
-          workspaceId: store.workspaceId,
-          elementType: node.type as ElementType,
-          name: `Copy of ${node.data.name}`,
-        },
-      })) as CreatedElement;
-      const size = DEFAULT_SIZES[node.type as ElementType];
-      const diagramElement = (await addDiagramElementFn({
-        data: {
-          diagramId: store.diagramId,
-          elementId: newElement.id,
-          x: node.position.x + 30,
-          y: node.position.y + 30,
-          width: Number(node.style?.width ?? size.width),
-          height: Number(node.style?.height ?? size.height),
-        },
-      })) as CreatedDiagramElement;
-      const newNode: AppNode = {
-        id: diagramElement.id,
-        type: node.type,
-        position: { x: node.position.x + 30, y: node.position.y + 30 },
-        ...(node.type === "group" ? { style: { width: Number(node.style?.width ?? size.width), height: Number(node.style?.height ?? size.height) } } : {}),
-        zIndex: 0,
-        data: {
-          elementId: newElement.id,
-          diagramElementId: diagramElement.id,
-          name: newElement.name,
-          displayDescription: null,
-          status: newElement.status,
-          external: newElement.external,
-          technologies: [],
-          iconTechSlug: null,
-          isSubFlow: false,
-          deeperDiagrams: [],
-        },
-      } as AppNode;
-      addNode(newNode);
-    } catch {
-      toast.error(m.editor_panel_save_failed());
-    }
-  }, [node, createElementFn, addDiagramElementFn, addNode]);
+    if (!node) return;
+    const flowPos = {
+      x: node.position.x + 30,
+      y: node.position.y + 30,
+    };
+    await createElementAtPosition(node.type, flowPos);
+  }, [node, createElementAtPosition]);
 
   const handleRemoveFromDiagram = useCallback(() => {
-    removeDiagramElementFn({ data: { id: node.data.diagramElementId } });
+    if (!node) return;
+    void removeDiagramElementFn({ data: { id: node.data.diagramElementId } });
     removeNodeById(nodeId);
-  }, [removeDiagramElementFn, node.data.diagramElementId, removeNodeById, nodeId]);
+  }, [removeDiagramElementFn, node, removeNodeById, nodeId]);
+
+  const handleAddInside = useCallback(
+    async (type: ElementType) => {
+      if (!node) return;
+      const containerW = Number(node.style?.width ?? 320);
+      const containerH = Number(node.style?.height ?? 220);
+      const size = DEFAULT_SIZES[type];
+      const flowPos = {
+        x: node.position.x + containerW / 2 - size.width / 2,
+        y: node.position.y + containerH / 2 - size.height / 2,
+      };
+      await createElementAtPosition(type, flowPos);
+    },
+    [node, createElementAtPosition],
+  );
+
+  if (!node) return null;
+
+  // Determine which child types can be added inside this sub-flow container
+  // Only show types that REQUIRE a sub-flow parent (e.g. app/store in container, component in component diagram)
+  const childOptions = node.data.isSubFlow && diagramType
+    ? ADD_ELEMENT_OPTIONS.filter(({ type }) =>
+        REQUIRES_PARENT_SUB_FLOW[diagramType].includes(type),
+      )
+    : [];
 
   return (
     <>
-      <MenuItem onClick={handleBringToFront}>{m.editor_ctx_bring_to_front()}</MenuItem>
-      <MenuItem onClick={handleSendToBack}>{m.editor_ctx_send_to_back()}</MenuItem>
+      <MenuItem onClick={handleBringToFront}>
+        {m.editor_ctx_bring_to_front()}
+      </MenuItem>
+      <MenuItem onClick={handleSendToBack}>
+        {m.editor_ctx_send_to_back()}
+      </MenuItem>
       <Separator className="my-1" />
       <MenuItem onClick={handleDuplicate}>{m.editor_ctx_duplicate()}</MenuItem>
-      <MenuItem onClick={handleRemoveFromDiagram}>{m.editor_ctx_remove_from_diagram()}</MenuItem>
+      <MenuItem onClick={handleRemoveFromDiagram}>
+        {m.editor_ctx_remove_from_diagram()}
+      </MenuItem>
       <MenuItem
         destructive
         onClick={() => onDelete(node.data.elementId, nodeId)}
       >
         {m.editor_ctx_delete_element()}
       </MenuItem>
+      {childOptions.length > 0 && (
+        <>
+          <Separator className="my-1" />
+          <MenuLabel>{m.editor_ctx_add_inside()}</MenuLabel>
+          {childOptions.map(({ type, label, icon }) => (
+            <MenuItem key={type} onClick={() => void handleAddInside(type)}>
+              {icon}
+              {label()}
+            </MenuItem>
+          ))}
+        </>
+      )}
     </>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Edge context menu
+// ---------------------------------------------------------------------------
 
 function EdgeContextMenuItems({
   edgeId,
@@ -259,21 +297,29 @@ function EdgeContextMenuItems({
   const removeDiagramConnectionFn = useServerFn(removeDiagramConnection);
 
   const edge = edges.find((e) => e.id === edgeId);
-  if (!edge?.data) return null;
 
   const handleEditProperties = useCallback(() => {
     setSelection([], [edgeId]);
   }, [edgeId, setSelection]);
 
   const handleRemoveFromDiagram = useCallback(() => {
-    removeDiagramConnectionFn({ data: { id: edge.data!.diagramConnectionId } });
+    if (!edge?.data) return;
+    void removeDiagramConnectionFn({
+      data: { id: edge.data.diagramConnectionId },
+    });
     removeEdgeById(edgeId);
-  }, [removeDiagramConnectionFn, edge.data, removeEdgeById, edgeId]);
+  }, [removeDiagramConnectionFn, edge, removeEdgeById, edgeId]);
+
+  if (!edge?.data) return null;
 
   return (
     <>
-      <MenuItem onClick={handleEditProperties}>{m.editor_ctx_edit_properties()}</MenuItem>
-      <MenuItem onClick={handleRemoveFromDiagram}>{m.editor_ctx_remove_from_diagram()}</MenuItem>
+      <MenuItem onClick={handleEditProperties}>
+        {m.editor_ctx_edit_properties()}
+      </MenuItem>
+      <MenuItem onClick={handleRemoveFromDiagram}>
+        {m.editor_ctx_remove_from_diagram()}
+      </MenuItem>
       <MenuItem
         destructive
         onClick={() => onDelete(edge.data!.connectionId, edgeId)}
@@ -284,44 +330,93 @@ function EdgeContextMenuItems({
   );
 }
 
-function PaneContextMenuItems({ position }: { position: { x: number; y: number } }) {
+// ---------------------------------------------------------------------------
+// Pane context menu — position-aware element filtering
+// ---------------------------------------------------------------------------
+
+function PaneContextMenuItems({
+  position,
+}: {
+  position: { x: number; y: number };
+}) {
   const diagramType = useEditorStore((s) => s.diagramType);
+  const nodes = useEditorStore((s) => s.nodes);
   const showGrid = useEditorStore((s) => s.showGrid);
   const setShowGrid = useEditorStore((s) => s.setShowGrid);
   const reactFlow = useReactFlow();
 
   const createElementAtPosition = useCreateElementAtPosition();
 
-  const handleAddElement = useCallback(
-    async (type: ElementType) => {
-      const flowPos = reactFlow.screenToFlowPosition({ x: position.x, y: position.y });
-      await createElementAtPosition(type, flowPos);
-    },
-    [reactFlow, position, createElementAtPosition],
+  // Convert screen position to flow coordinates and detect sub-flow parent
+  const flowPos = reactFlow.screenToFlowPosition({
+    x: position.x,
+    y: position.y,
+  });
+  const parentNode = findSubFlowParent(flowPos, nodes);
+  const parentElementId = parentNode ? parentNode.data.elementId : null;
+  const subFlowElementIds = new Set(
+    nodes.filter((n) => n.data.isSubFlow).map((n) => n.data.elementId),
   );
+
+  // Split options into top-level and container-child options
+  const topLevelOptions = ADD_ELEMENT_OPTIONS.filter(({ type }) => {
+    if (!diagramType) return true;
+    if (!validateElementForDiagram(diagramType, type).valid) return false;
+    return validateChildPlacement(diagramType, type, null, subFlowElementIds)
+      .valid;
+  });
+  // Only show types that REQUIRE a sub-flow parent when clicking inside a container
+  const containerOptions = parentNode && diagramType
+    ? ADD_ELEMENT_OPTIONS.filter(({ type }) =>
+        REQUIRES_PARENT_SUB_FLOW[diagramType].includes(type),
+      )
+    : [];
 
   return (
     <>
-      {ELEMENT_TYPES.map((type) => {
-        const valid = diagramType ? validateElementForDiagram(diagramType, type).valid : true;
-        return (
-          <MenuItem key={type} onClick={() => handleAddElement(type)} disabled={!valid}>
-            {ELEMENT_LABELS[type]()}
-          </MenuItem>
-        );
-      })}
+      {topLevelOptions.map(({ type, label, icon }) => (
+        <MenuItem key={type} onClick={() => void createElementAtPosition(type, flowPos)}>
+          {icon}
+          {label()}
+        </MenuItem>
+      ))}
+      {containerOptions.length > 0 && (
+        <>
+          <Separator className="my-1" />
+          <MenuLabel>{m.editor_ctx_add_inside()}</MenuLabel>
+          {containerOptions.map(({ type, label, icon }) => (
+            <MenuItem key={type} onClick={() => void createElementAtPosition(type, flowPos)}>
+              {icon}
+              {label()}
+            </MenuItem>
+          ))}
+        </>
+      )}
       <Separator className="my-1" />
-      <MenuItem onClick={() => reactFlow.fitView()}>{m.editor_ctx_fit_view()}</MenuItem>
-      <MenuItem onClick={() => setShowGrid(!showGrid)}>{m.editor_ctx_toggle_grid()}</MenuItem>
+      <MenuItem onClick={() => void reactFlow.fitView()}>
+        {m.editor_ctx_fit_view()}
+      </MenuItem>
+      <MenuItem onClick={() => setShowGrid(!showGrid)}>
+        {m.editor_ctx_toggle_grid()}
+      </MenuItem>
     </>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Delete confirmation dialog
+// ---------------------------------------------------------------------------
 
 function DeleteConfirmDialog({
   confirm,
   onClose,
 }: {
-  confirm: { type: "element" | "connection"; id: string; nodeId?: string; edgeId?: string } | null;
+  confirm: {
+    type: "element" | "connection";
+    id: string;
+    nodeId?: string;
+    edgeId?: string;
+  } | null;
   onClose: () => void;
 }) {
   const removeNodeById = useEditorStore((s) => s.removeNodeById);
@@ -343,7 +438,14 @@ function DeleteConfirmDialog({
       toast.error(m.editor_panel_save_failed());
     }
     onClose();
-  }, [confirm, deleteElementFn, deleteConnectionFn, removeNodeById, removeEdgeById, onClose]);
+  }, [
+    confirm,
+    deleteElementFn,
+    deleteConnectionFn,
+    removeNodeById,
+    removeEdgeById,
+    onClose,
+  ]);
 
   return (
     <AlertDialog open={!!confirm} onOpenChange={(open) => !open && onClose()}>

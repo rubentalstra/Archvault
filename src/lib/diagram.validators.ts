@@ -132,7 +132,7 @@ export function validateDisplayMode(
 
 // ── Child placement validation ──────────────────────────────────────
 
-const REQUIRES_PARENT_SUB_FLOW: Record<DiagramType, ElementType[]> = {
+export const REQUIRES_PARENT_SUB_FLOW: Record<DiagramType, ElementType[]> = {
   system_context: [],
   container: ["app", "store"],
   component: ["component"],

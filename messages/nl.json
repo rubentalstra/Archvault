@@ -742,5 +742,6 @@
   "editor_picker_toggle": "Elementkiezer",
   "editor_hover_level_2": "Niveau 2 — Containerdiagrammen",
   "editor_hover_level_3": "Niveau 3 — Componentdiagrammen",
+  "editor_ctx_add_inside": "Toevoegen binnenin",
   "editor_validation_requires_sub_flow": "Moet in een sub-flow container geplaatst worden"
 }

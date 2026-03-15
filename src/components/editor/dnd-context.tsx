@@ -46,7 +46,7 @@ const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
 };
 
 /** Detect if a flow position lands inside a sub-flow container node */
-function findSubFlowParent(
+export function findSubFlowParent(
   flowPos: { x: number; y: number },
   nodes: AppNode[],
 ): AppNode | null {
