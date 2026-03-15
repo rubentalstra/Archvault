@@ -194,6 +194,8 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
           id: diagramRel.id,
           source: connection.source,
           target: connection.target,
+          sourceHandle: connection.sourceHandle,
+          targetHandle: connection.targetHandle,
           type: "curved",
           markerEnd: { type: "arrowclosed" as const, width: 30, height: 30 },
           data: {
@@ -304,6 +306,7 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
       onPaneClick={handlePaneClick}
       isValidConnection={isValidConnection}
       connectionMode={ConnectionMode.Loose}
+      connectionRadius={40}
       colorMode="system"
       snapToGrid={snapToGrid}
       snapGrid={[gridSize, gridSize]}
