@@ -297,15 +297,30 @@ importers:
       starlight-changelogs:
         specifier: ^0.5.0
         version: 0.5.0(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
+      starlight-heading-badges:
+        specifier: ^0.7.0
+        version: 0.7.0(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))
       starlight-image-zoom:
         specifier: ^0.14.1
         version: 0.14.1(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))
+      starlight-kbd:
+        specifier: ^0.4.0
+        version: 0.4.0(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))
       starlight-links-validator:
         specifier: ^0.20.1
         version: 0.20.1(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
       starlight-llms-txt:
         specifier: ^0.8.0
         version: 0.8.0(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
+      starlight-scroll-to-top:
+        specifier: ^0.4.0
+        version: 0.4.0(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))
+      starlight-sidebar-swipe:
+        specifier: ^0.1.1
+        version: 0.1.1(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))
+      starlight-versions:
+        specifier: ^0.8.1
+        version: 0.8.1(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -4793,6 +4808,9 @@ packages:
   fastq@1.20.1:
     resolution: {integrity: sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw==}
 
+  fault@2.0.1:
+    resolution: {integrity: sha512-WtySTkS4OKev5JtpHXnib4Gxiurzh5NCGvWrFaZ34m6JehfTUhKZvn9njTfw48t6JumVQOmrKqpmGcdwxnhqBQ==}
+
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
     engines: {node: '>=12.0.0'}
@@ -4847,6 +4865,10 @@ packages:
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
+
+  format@0.2.2:
+    resolution: {integrity: sha512-wzsgA6WOq+09wrU1tsJ09udeR/YZRaeArL9e1wPbFg3GG2yDnC2ldKpxs4xunpFF9DgqCqOIra3bc1HWrJ37Ww==}
+    engines: {node: '>=0.4.x'}
 
   formdata-polyfill@4.0.10:
     resolution: {integrity: sha512-buewHzMvYL29jdeQTVILecSaZKnt/RJWjoZCF5OW60Z67/GmSLBkOFM7qh1PI3zFNtJbaZL5eQu1vLfazOwj4g==}
@@ -5671,6 +5693,9 @@ packages:
   mdast-util-from-markdown@2.0.3:
     resolution: {integrity: sha512-W4mAWTvSlKvf8L6J+VN9yLSqQ9AOAAvHuoDAmPkz4dHf553m5gVj2ejadHJhoJmcmxEnOv6Pa8XJhpxE93kb8Q==}
 
+  mdast-util-frontmatter@2.0.1:
+    resolution: {integrity: sha512-LRqI9+wdgC25P0URIJY9vwocIzCcksduHQ9OF2joxQoyTNVduwLAFUzjoopuRJbJAReaKrNQKAZKL3uCMugWJA==}
+
   mdast-util-gfm-autolink-literal@2.0.1:
     resolution: {integrity: sha512-5HVP2MKaP6L+G6YaxPNjuL0BPrq9orG3TsrZ9YXbA3vDw/ACI4MEsnoDpn6ZNm7GnZgtAcONJyPhOP8tNJQavQ==}
 
@@ -5742,6 +5767,12 @@ packages:
 
   micromark-extension-directive@3.0.2:
     resolution: {integrity: sha512-wjcXHgk+PPdmvR58Le9d7zQYWy+vKEU9Se44p2CrCDPiLr2FMyiT4Fyb5UFKFC66wGB3kPlgD7q3TnoqPS7SZA==}
+
+  micromark-extension-directive@4.0.0:
+    resolution: {integrity: sha512-/C2nqVmXXmiseSSuCdItCMho7ybwwop6RrrRPk0KbOHW21JKoCldC+8rFOaundDoRBUWBnJJcxeA/Kvi34WQXg==}
+
+  micromark-extension-frontmatter@2.0.0:
+    resolution: {integrity: sha512-C4AkuM3dA58cgZha7zVnuVxBhDsbttIMiytjgsM2XbHAB2faRVaHRle40558FBN+DJcrLNCoqG5mlrpdU4cRtg==}
 
   micromark-extension-gfm-autolink-literal@2.1.0:
     resolution: {integrity: sha512-oOg7knzhicgQ3t4QCjCWgTmfNhvQbDDnJeVu9v81r7NltNCVmhPy1fJRX27pISafdjL+SVc4d3l48Gb6pbRypw==}
@@ -6598,6 +6629,12 @@ packages:
   remark-directive@3.0.1:
     resolution: {integrity: sha512-gwglrEQEZcZYgVyG1tQuA+h58EZfq5CSULw7J90AFuCTyib1thgHPoqQ+h9iFvU6R+vnZ5oNFQR5QKgGpk741A==}
 
+  remark-directive@4.0.0:
+    resolution: {integrity: sha512-7sxn4RfF1o3izevPV1DheyGDD6X4c9hrGpfdUpm7uC++dqrnJxIZVkk7CoKqcLm0VUMAuOol7Mno3m6g8cfMuA==}
+
+  remark-frontmatter@5.0.0:
+    resolution: {integrity: sha512-XTFYvNASMe5iPN0719nPrdItC9aU0ssC4v14mH1BCi1u0n1gAocqcujWUrByftZTbLhRtiKRyjYTSIOcr69UVQ==}
+
   remark-gfm@4.0.1:
     resolution: {integrity: sha512-1quofZ2RQ9EWdeN34S79+KExV1764+wCUGop5CPL1WGdD0ocPpu91lzPGbwWMECpEpd42kJGQwzRfyov9j4yNg==}
 
@@ -6616,6 +6653,9 @@ packages:
 
   remark-stringify@11.0.0:
     resolution: {integrity: sha512-1OSmLd3awB/t8qdoEOMazZkNsfVTeY4fTsgzcQFdXNq8ToTN4ZGwrMnlda4K6smTFKD+GRV6O48i6Z4iKgPPpw==}
+
+  remark@15.0.1:
+    resolution: {integrity: sha512-Eht5w30ruCXgFmxVUSlNWQ9iiimq07URKeFS3hNc8cUWy1llX4KDWfyEDZRycMc+znsN9Ux5/tJ/BFdgdOwA3A==}
 
   request-light@0.5.8:
     resolution: {integrity: sha512-3Zjgh+8b5fhRJBQZoy+zbVKpAQGLyka0MPgW3zruTF4dFFJ8Fqcfu9YsAvi/rvdcaTeWG3MkbZv4WKxAn/84Lg==}
@@ -6899,8 +6939,20 @@ packages:
     peerDependencies:
       '@astrojs/starlight': '>=0.38.0'
 
+  starlight-heading-badges@0.7.0:
+    resolution: {integrity: sha512-mzxTn7lFd2OPB6naJKYelZbu1EUGCT2hm8Ozx/9EqgGy68y7ggUGxrDmdTvpozzi5OLkijiZw8zcvdq63JdRbA==}
+    engines: {node: '>=22.12.0'}
+    peerDependencies:
+      '@astrojs/starlight': '>=0.38.0'
+
   starlight-image-zoom@0.14.1:
     resolution: {integrity: sha512-HFY+/779bq65tiEgiQVk8XIH6HPP34PTxWDmdlIo9pwidLyJUUrSH030/1Iu/r+KjAD7W/jpPWjC8Nkn7+uPhw==}
+    engines: {node: '>=22.12.0'}
+    peerDependencies:
+      '@astrojs/starlight': '>=0.38.0'
+
+  starlight-kbd@0.4.0:
+    resolution: {integrity: sha512-Uz/MimnPaRqHsv2EllVnkD78ab2k3SQbVls3VZ53nUMbPMjIzg0+evgicqxrF8ZukQSRdve5sykKlbBEdH4xzQ==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       '@astrojs/starlight': '>=0.38.0'
@@ -6917,6 +6969,24 @@ packages:
     peerDependencies:
       '@astrojs/starlight': '>=0.38.0'
       astro: ^6.0.0
+
+  starlight-scroll-to-top@0.4.0:
+    resolution: {integrity: sha512-lxsW5Sv+oKCI8CYZQ6Ue957cExiHMozK73LmmbsvpBKWryW+AKU4OXmX/1bTQNx+mVLZcpm2qTwKa1KX5VdEaQ==}
+    engines: {node: ^18.17.1 || ^20.3.0 || >=21.0.0}
+    peerDependencies:
+      '@astrojs/starlight': '>=0.35'
+
+  starlight-sidebar-swipe@0.1.1:
+    resolution: {integrity: sha512-Q+xv7LSpSLCG3yQaEmZX4Qpks9dcIEc+FBA0Ql+LbLMO9IMBXt8S2zK5wJDhjJn5lbI0i0ipyP375T1GrVS8ig==}
+    engines: {node: ^18.17.1 || ^20.3.0 || >=21.0.0}
+    peerDependencies:
+      '@astrojs/starlight': '>=0.30'
+
+  starlight-versions@0.8.1:
+    resolution: {integrity: sha512-b8fGFnYDI1vC1x/kFuEchr7zBd6hY/V9UUUFsyxGK/ZejKVpLNOFAblvzVDj8Rp1tqbLXAhszcft9K1LuLSHVQ==}
+    engines: {node: '>=22.12.0'}
+    peerDependencies:
+      '@astrojs/starlight': '>=0.38.0'
 
   statuses@2.0.2:
     resolution: {integrity: sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==}
@@ -12632,6 +12702,10 @@ snapshots:
     dependencies:
       reusify: 1.1.0
 
+  fault@2.0.1:
+    dependencies:
+      format: 0.2.2
+
   fdir@6.5.0(picomatch@4.0.3):
     optionalDependencies:
       picomatch: 4.0.3
@@ -12690,6 +12764,8 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
+
+  format@0.2.2: {}
 
   formdata-polyfill@4.0.10:
     dependencies:
@@ -13573,6 +13649,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  mdast-util-frontmatter@2.0.1:
+    dependencies:
+      '@types/mdast': 4.0.4
+      devlop: 1.1.0
+      escape-string-regexp: 5.0.0
+      mdast-util-from-markdown: 2.0.3
+      mdast-util-to-markdown: 2.1.2
+      micromark-extension-frontmatter: 2.0.0
+    transitivePeerDependencies:
+      - supports-color
+
   mdast-util-gfm-autolink-literal@2.0.1:
     dependencies:
       '@types/mdast': 4.0.4
@@ -13754,6 +13841,23 @@ snapshots:
       micromark-util-symbol: 2.0.1
       micromark-util-types: 2.0.2
       parse-entities: 4.0.2
+
+  micromark-extension-directive@4.0.0:
+    dependencies:
+      devlop: 1.1.0
+      micromark-factory-space: 2.0.1
+      micromark-factory-whitespace: 2.0.1
+      micromark-util-character: 2.1.1
+      micromark-util-symbol: 2.0.1
+      micromark-util-types: 2.0.2
+      parse-entities: 4.0.2
+
+  micromark-extension-frontmatter@2.0.0:
+    dependencies:
+      fault: 2.0.1
+      micromark-util-character: 2.1.1
+      micromark-util-symbol: 2.0.1
+      micromark-util-types: 2.0.2
 
   micromark-extension-gfm-autolink-literal@2.1.0:
     dependencies:
@@ -14844,6 +14948,24 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  remark-directive@4.0.0:
+    dependencies:
+      '@types/mdast': 4.0.4
+      mdast-util-directive: 3.1.0
+      micromark-extension-directive: 4.0.0
+      unified: 11.0.5
+    transitivePeerDependencies:
+      - supports-color
+
+  remark-frontmatter@5.0.0:
+    dependencies:
+      '@types/mdast': 4.0.4
+      mdast-util-frontmatter: 2.0.1
+      micromark-extension-frontmatter: 2.0.0
+      unified: 11.0.5
+    transitivePeerDependencies:
+      - supports-color
+
   remark-gfm@4.0.1:
     dependencies:
       '@types/mdast': 4.0.4
@@ -14891,6 +15013,15 @@ snapshots:
       '@types/mdast': 4.0.4
       mdast-util-to-markdown: 2.1.2
       unified: 11.0.5
+
+  remark@15.0.1:
+    dependencies:
+      '@types/mdast': 4.0.4
+      remark-parse: 11.0.0
+      remark-stringify: 11.0.0
+      unified: 11.0.5
+    transitivePeerDependencies:
+      - supports-color
 
   request-light@0.5.8: {}
 
@@ -15331,6 +15462,16 @@ snapshots:
       - astro
       - supports-color
 
+  starlight-heading-badges@0.7.0(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))):
+    dependencies:
+      '@astrojs/markdown-remark': 7.0.0
+      '@astrojs/starlight': 0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
+      github-slugger: 2.0.0
+      mdast-util-directive: 3.1.0
+      unist-util-visit: 5.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   starlight-image-zoom@0.14.1(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))):
     dependencies:
       '@astrojs/starlight': 0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
@@ -15340,6 +15481,10 @@ snapshots:
       unist-util-visit-parents: 6.0.2
     transitivePeerDependencies:
       - supports-color
+
+  starlight-kbd@0.4.0(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))):
+    dependencies:
+      '@astrojs/starlight': 0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
 
   starlight-links-validator@0.20.1(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)))(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)):
     dependencies:
@@ -15375,6 +15520,31 @@ snapshots:
       remark-stringify: 11.0.0
       unified: 11.0.5
       unist-util-remove: 4.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  starlight-scroll-to-top@0.4.0(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))):
+    dependencies:
+      '@astrojs/starlight': 0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
+
+  starlight-sidebar-swipe@0.1.1(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))):
+    dependencies:
+      '@astrojs/starlight': 0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
+
+  starlight-versions@0.8.1(@astrojs/starlight@0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))):
+    dependencies:
+      '@astrojs/starlight': 0.38.1(astro@6.0.5(@azure/identity@4.13.0)(@types/node@25.5.0)(db0@0.3.4(drizzle-orm@1.0.0-beta.17-67b1795(@opentelemetry/api@1.9.0)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
+      '@pagefind/default-ui': 1.4.0
+      github-slugger: 2.0.0
+      mdast-util-mdx-jsx: 3.2.0
+      mdast-util-mdxjs-esm: 2.0.1
+      remark: 15.0.1
+      remark-directive: 4.0.0
+      remark-frontmatter: 5.0.0
+      remark-mdx: 3.1.1
+      unist-util-visit: 5.1.0
+      vfile: 6.0.3
+      yaml: 2.8.2
     transitivePeerDependencies:
       - supports-color
 

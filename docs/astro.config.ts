@@ -4,6 +4,12 @@ import starlightChangelogs from 'starlight-changelogs';
 import starlightLinksValidator from 'starlight-links-validator';
 import starlightImageZoom from 'starlight-image-zoom';
 import starlightLlmsTxt from 'starlight-llms-txt';
+import starlightKbd from 'starlight-kbd';
+import starlightHeadingBadges from 'starlight-heading-badges';
+// starlight-versions is installed but not active yet — enable when docs are ready for versioning
+// import starlightVersions from 'starlight-versions';
+import starlightScrollToTop from 'starlight-scroll-to-top';
+import starlightSidebarSwipe from 'starlight-sidebar-swipe';
 
 export default defineConfig({
     site: 'https://archvault.dev',
@@ -18,6 +24,41 @@ export default defineConfig({
                     description:
                         'Visual C4 architecture platform for modeling software systems (Levels 1-3), creating diagrams, building reusable architecture blocks, and sharing via a community registry.',
                 }),
+                starlightKbd({
+                    types: [
+                        {
+                            id: 'mac',
+                            label: 'macOS',
+                            detector: 'apple',
+                            default: false,
+                        },
+                        {
+                            id: 'windows',
+                            label: 'Windows',
+                            detector: 'windows',
+                            default: true,
+                        },
+                        {
+                            id: 'linux',
+                            label: 'Linux',
+                            detector: 'linux',
+                            default: false,
+                        },
+                    ],
+                }),
+                starlightHeadingBadges(),
+                starlightScrollToTop({
+                    position: 'right',
+                    threshold: 30,
+                    smoothScroll: true,
+                    tooltipText: {
+                        en: 'Scroll to top',
+                        nl: 'Naar boven',
+                    },
+                }),
+                starlightSidebarSwipe(),
+                // Enable when ready to create a versioned snapshot:
+                // starlightVersions({ versions: [{ slug: '0.x' }] }),
             ],
             title: 'ArchVault',
             favicon: '/favicon.svg',
