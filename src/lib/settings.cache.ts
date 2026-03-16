@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { OtelSettings } from "./settings.validators";
 import { OTEL_SETTINGS_KEYS } from "./settings.validators";
+import type { OtelAuthType } from "./settings.validators";
 
 interface CachedSettings {
   data: ResolvedOtelConfig;
@@ -10,11 +11,25 @@ interface CachedSettings {
 export interface ResolvedOtelConfig {
   enabled: boolean;
   endpoint: string;
-  headers: Record<string, string>;
   serviceName: string;
   sampleRate: number;
   exportInterval: number;
   consoleExporter: boolean;
+  // Auth
+  authType: OtelAuthType;
+  customHeaders: Record<string, string>;
+  bearerToken: string;
+  basicUser: string;
+  basicPass: string;
+  apiKeyHeader: string;
+  apiKeyValue: string;
+  // TLS
+  tlsCaCertPath: string;
+  tlsClientCertPath: string;
+  tlsClientKeyPath: string;
+  tlsInsecureSkipVerify: boolean;
+  // Logs
+  logsEnabled: boolean;
 }
 
 export interface ResolvedOtelConfigWithSources {
@@ -29,14 +44,31 @@ function getEnvDefaults(): ResolvedOtelConfig {
   return {
     enabled: process.env.OTEL_ENABLED === "true",
     endpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "",
-    headers: parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS),
     serviceName: process.env.OTEL_SERVICE_NAME ?? "archvault",
-    sampleRate: parseFloat(process.env.OTEL_TRACES_SAMPLER_ARG ?? "1.0") * 100,
+    sampleRate:
+      parseFloat(process.env.OTEL_TRACES_SAMPLER_ARG ?? "1.0") * 100,
     exportInterval: parseInt(
       process.env.OTEL_METRICS_EXPORT_INTERVAL ?? "60000",
       10,
     ),
     consoleExporter: process.env.OTEL_CONSOLE_EXPORTER === "true",
+    // Auth
+    authType: (process.env.OTEL_AUTH_TYPE as OtelAuthType) ?? "none",
+    customHeaders: parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS),
+    bearerToken: process.env.OTEL_AUTH_BEARER_TOKEN ?? "",
+    basicUser: process.env.OTEL_AUTH_BASIC_USER ?? "",
+    basicPass: process.env.OTEL_AUTH_BASIC_PASS ?? "",
+    apiKeyHeader: process.env.OTEL_AUTH_API_KEY_HEADER ?? "x-api-key",
+    apiKeyValue: process.env.OTEL_AUTH_API_KEY_VALUE ?? "",
+    // TLS
+    tlsCaCertPath: process.env.OTEL_EXPORTER_OTLP_CERTIFICATE ?? "",
+    tlsClientCertPath:
+      process.env.OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE ?? "",
+    tlsClientKeyPath: process.env.OTEL_EXPORTER_OTLP_CLIENT_KEY ?? "",
+    tlsInsecureSkipVerify:
+      process.env.OTEL_TLS_INSECURE_SKIP_VERIFY === "true",
+    // Logs
+    logsEnabled: process.env.OTEL_LOGS_ENABLED === "true",
   };
 }
 
@@ -90,48 +122,68 @@ export async function resolveOtelConfig(): Promise<ResolvedOtelConfigWithSources
   const envDefaults = getEnvDefaults();
   const dbOverrides = await fetchDbSettings();
 
-  const sources: Record<keyof ResolvedOtelConfig, "env" | "db"> = {
-    enabled: "env",
-    endpoint: "env",
-    headers: "env",
-    serviceName: "env",
-    sampleRate: "env",
-    exportInterval: "env",
-    consoleExporter: "env",
-  };
+  const sources = Object.fromEntries(
+    Object.keys(envDefaults).map((k) => [k, "env" as const]),
+  ) as Record<keyof ResolvedOtelConfig, "env" | "db">;
 
   const config = { ...envDefaults };
 
-  if (dbOverrides.enabled !== undefined) {
-    config.enabled = dbOverrides.enabled;
-    sources.enabled = "db";
+  // Apply DB overrides for all fields
+  const stringFields = [
+    "endpoint",
+    "serviceName",
+    "bearerToken",
+    "basicUser",
+    "basicPass",
+    "apiKeyHeader",
+    "apiKeyValue",
+    "tlsCaCertPath",
+    "tlsClientCertPath",
+    "tlsClientKeyPath",
+  ] as const;
+
+  const booleanFields = [
+    "enabled",
+    "consoleExporter",
+    "tlsInsecureSkipVerify",
+    "logsEnabled",
+  ] as const;
+
+  const numberFields = ["sampleRate", "exportInterval"] as const;
+
+  for (const field of stringFields) {
+    const val = dbOverrides[field];
+    if (val !== undefined && val !== "") {
+      (config as Record<string, unknown>)[field] = val;
+      sources[field] = "db";
+    }
   }
-  if (dbOverrides.endpoint !== undefined && dbOverrides.endpoint !== "") {
-    config.endpoint = dbOverrides.endpoint;
-    sources.endpoint = "db";
+
+  for (const field of booleanFields) {
+    if (dbOverrides[field] !== undefined) {
+      (config as Record<string, unknown>)[field] = dbOverrides[field];
+      sources[field] = "db";
+    }
   }
+
+  for (const field of numberFields) {
+    if (dbOverrides[field] !== undefined) {
+      (config as Record<string, unknown>)[field] = dbOverrides[field];
+      sources[field] = "db";
+    }
+  }
+
+  if (dbOverrides.authType !== undefined) {
+    config.authType = dbOverrides.authType;
+    sources.authType = "db";
+  }
+
   if (
-    dbOverrides.headers !== undefined &&
-    Object.keys(dbOverrides.headers).length > 0
+    dbOverrides.customHeaders !== undefined &&
+    Object.keys(dbOverrides.customHeaders).length > 0
   ) {
-    config.headers = dbOverrides.headers;
-    sources.headers = "db";
-  }
-  if (dbOverrides.serviceName !== undefined) {
-    config.serviceName = dbOverrides.serviceName;
-    sources.serviceName = "db";
-  }
-  if (dbOverrides.sampleRate !== undefined) {
-    config.sampleRate = dbOverrides.sampleRate;
-    sources.sampleRate = "db";
-  }
-  if (dbOverrides.exportInterval !== undefined) {
-    config.exportInterval = dbOverrides.exportInterval;
-    sources.exportInterval = "db";
-  }
-  if (dbOverrides.consoleExporter !== undefined) {
-    config.consoleExporter = dbOverrides.consoleExporter;
-    sources.consoleExporter = "db";
+    config.customHeaders = dbOverrides.customHeaders;
+    sources.customHeaders = "db";
   }
 
   return { config, sources };

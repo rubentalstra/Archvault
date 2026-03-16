@@ -16,6 +16,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiTelemetryRouteImport } from './routes/api/telemetry'
 import { Route as ProtectedOnboardingRouteImport } from './routes/_protected/onboarding'
 import { Route as ProtectedAdminRouteImport } from './routes/_protected/admin'
 import { Route as ProtectedOnboardedRouteImport } from './routes/_protected/_onboarded'
@@ -80,6 +81,11 @@ const ProtectedRoute = ProtectedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTelemetryRoute = ApiTelemetryRouteImport.update({
+  id: '/api/telemetry',
+  path: '/api/telemetry',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedOnboardingRoute = ProtectedOnboardingRouteImport.update({
@@ -268,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof ProtectedAdminRouteWithChildren
   '/onboarding': typeof ProtectedOnboardingRoute
+  '/api/telemetry': typeof ApiTelemetryRoute
   '/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/org': typeof ProtectedOnboardedOrgRouteWithChildren
   '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
@@ -305,6 +312,7 @@ export interface FileRoutesByTo {
   '/two-factor': typeof TwoFactorRoute
   '/verify-email': typeof VerifyEmailRoute
   '/onboarding': typeof ProtectedOnboardingRoute
+  '/api/telemetry': typeof ApiTelemetryRoute
   '/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
   '/admin/observability': typeof ProtectedAdminObservabilityRoute
@@ -343,6 +351,7 @@ export interface FileRoutesById {
   '/_protected/_onboarded': typeof ProtectedOnboardedRouteWithChildren
   '/_protected/admin': typeof ProtectedAdminRouteWithChildren
   '/_protected/onboarding': typeof ProtectedOnboardingRoute
+  '/api/telemetry': typeof ApiTelemetryRoute
   '/_protected/_onboarded/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/_protected/_onboarded/org': typeof ProtectedOnboardedOrgRouteWithChildren
   '/_protected/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
@@ -383,6 +392,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin'
     | '/onboarding'
+    | '/api/telemetry'
     | '/dashboard'
     | '/org'
     | '/accept-invitation/$invitationId'
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/two-factor'
     | '/verify-email'
     | '/onboarding'
+    | '/api/telemetry'
     | '/dashboard'
     | '/accept-invitation/$invitationId'
     | '/admin/observability'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/_protected/_onboarded'
     | '/_protected/admin'
     | '/_protected/onboarding'
+    | '/api/telemetry'
     | '/_protected/_onboarded/dashboard'
     | '/_protected/_onboarded/org'
     | '/_protected/accept-invitation/$invitationId'
@@ -495,6 +507,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TwoFactorRoute: typeof TwoFactorRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  ApiTelemetryRoute: typeof ApiTelemetryRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -547,6 +560,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/telemetry': {
+      id: '/api/telemetry'
+      path: '/api/telemetry'
+      fullPath: '/api/telemetry'
+      preLoaderRoute: typeof ApiTelemetryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/onboarding': {
@@ -915,6 +935,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TwoFactorRoute: TwoFactorRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  ApiTelemetryRoute: ApiTelemetryRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

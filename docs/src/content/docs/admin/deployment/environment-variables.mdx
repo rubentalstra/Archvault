@@ -13,20 +13,62 @@ This page is a stub. A full variable reference table will be added soon.
 
 ## OpenTelemetry (optional)
 
-ArchVault supports [OpenTelemetry](https://opentelemetry.io/) for distributed tracing and metrics. These variables set the **defaults** — admin users can override most of them at runtime via the Admin Panel → Platform → Observability page.
+ArchVault supports [OpenTelemetry](https://opentelemetry.io/) for distributed tracing, metrics, and logs. These variables set the **defaults** — admin users can override most of them at runtime via the Admin Panel → Platform → Observability page.
 
-SDK-level settings (endpoint, service name, headers) require a server restart after changing. Runtime settings (enabled, sample rate) take effect immediately when changed through the admin panel.
+SDK-level settings (endpoint, service name, auth, TLS) require a server restart after changing. Runtime settings (enabled, sample rate) take effect immediately when changed through the admin panel.
+
+### Core
 
 | Variable | Default | Description |
 |---|---|---|
 | `OTEL_ENABLED` | `false` | Set to `true` to enable the OpenTelemetry SDK at startup. |
-| `OTEL_SERVICE_NAME` | `archvault` | The service name reported in traces and metrics. |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | _(empty)_ | Base URL of your OTLP collector (e.g. `https://otel.example.com:4318`). |
-| `OTEL_EXPORTER_OTLP_HEADERS` | _(empty)_ | Comma-separated `key=value` pairs sent as headers with every export (e.g. `Authorization=Bearer token`). |
+| `OTEL_SERVICE_NAME` | `archvault` | The service name reported in traces, metrics, and logs. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | _(empty)_ | Base URL of your OTLP collector (e.g. `https://otel.example.com:4318`). The SDK appends `/v1/traces`, `/v1/metrics`, `/v1/logs` automatically. |
+| `OTEL_EXPORTER_OTLP_HEADERS` | _(empty)_ | Comma-separated `key=value` pairs sent as headers (used when `OTEL_AUTH_TYPE=custom_headers`). |
 | `OTEL_TRACES_SAMPLER` | `parentbased_traceidratio` | Sampler type (standard OTel env var). |
 | `OTEL_TRACES_SAMPLER_ARG` | `1.0` | Sampling ratio (`0.0`–`1.0`). `1.0` = sample everything. |
 | `OTEL_METRICS_EXPORT_INTERVAL` | `60000` | How often metrics are flushed (milliseconds). |
 | `OTEL_CONSOLE_EXPORTER` | `false` | Set to `true` to also log spans to the server console (useful during development). |
+| `OTEL_LOGS_ENABLED` | `false` | Set to `true` to enable the OTLP logs pipeline. |
+
+### Authentication
+
+ArchVault supports multiple authentication methods for OTLP exporters. Set `OTEL_AUTH_TYPE` and the corresponding variables for your chosen method.
+
+| Variable | Default | Description |
+|---|---|---|
+| `OTEL_AUTH_TYPE` | `none` | Auth method: `none`, `custom_headers`, `bearer`, `basic`, `api_key`, or `mtls`. |
+| `OTEL_AUTH_BEARER_TOKEN` | _(empty)_ | Bearer token (used when `OTEL_AUTH_TYPE=bearer`). Sends `Authorization: Bearer <token>`. |
+| `OTEL_AUTH_BASIC_USER` | _(empty)_ | Username for Basic Auth (used when `OTEL_AUTH_TYPE=basic`). |
+| `OTEL_AUTH_BASIC_PASS` | _(empty)_ | Password for Basic Auth. Combined as `Authorization: Basic base64(user:pass)`. |
+| `OTEL_AUTH_API_KEY_HEADER` | `x-api-key` | Header name for API key auth (used when `OTEL_AUTH_TYPE=api_key`). |
+| `OTEL_AUTH_API_KEY_VALUE` | _(empty)_ | The API key value sent in the configured header. |
+
+### TLS / mTLS
+
+These follow the [standard OTel TLS env vars](https://opentelemetry.io/docs/specs/otel/protocol/exporter/).
+
+| Variable | Default | Description |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_CERTIFICATE` | _(empty)_ | Path to the CA certificate PEM file for verifying the collector's TLS certificate. |
+| `OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE` | _(empty)_ | Path to the client certificate PEM file for mTLS. |
+| `OTEL_EXPORTER_OTLP_CLIENT_KEY` | _(empty)_ | Path to the client private key PEM file for mTLS. |
+| `OTEL_TLS_INSECURE_SKIP_VERIFY` | `false` | Set to `true` to skip TLS certificate verification. **Not recommended for production.** |
+
+### Auto-Instrumentation
+
+The backend automatically instruments:
+- **HTTP** — all incoming/outgoing HTTP requests (via `@opentelemetry/instrumentation-http`)
+- **PostgreSQL** — all database queries through Drizzle/pg (via `@opentelemetry/instrumentation-pg`)
+- **DNS** — DNS resolution lookups (via `@opentelemetry/instrumentation-dns`)
+
+### Browser Telemetry
+
+When OTel is enabled, the browser SDK automatically instruments page loads, user interactions, and fetch requests. Browser spans are sent through a server-side proxy (`/api/telemetry`) to avoid CORS issues and to keep collector credentials server-side.
+
+### OAuth2 Note
+
+OAuth2 Client Credentials is a **Collector extension** (`oauth2clientauthextension`), not a JS SDK feature. To use OAuth2 authentication, deploy an OTel Collector with the OAuth2 extension as a proxy between ArchVault and your backend.
 
 :::tip
 ArchVault uses the generic OTLP protocol (HTTP/protobuf). It works with any OTLP-compatible backend: Grafana Tempo, Jaeger, Datadog, Axiom, Better Stack, Honeycomb, etc.

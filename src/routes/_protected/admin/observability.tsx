@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Badge } from "#/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -44,22 +43,11 @@ function ObservabilityPage() {
         </div>
       </header>
       <div className="flex flex-col gap-4 p-4 pt-0">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold">{m.admin_otel_title()}</h2>
-              {data && (
-                <Badge variant={data.config.enabled ? "default" : "secondary"}>
-                  {data.config.enabled
-                    ? m.admin_otel_status_active()
-                    : m.admin_otel_status_inactive()}
-                </Badge>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {m.admin_otel_description()}
-            </p>
-          </div>
+        <div>
+          <h2 className="text-2xl font-bold">{m.admin_otel_title()}</h2>
+          <p className="text-sm text-muted-foreground">
+            {m.admin_otel_description()}
+          </p>
         </div>
 
         {isLoading ? (

@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import {
   Outlet,
@@ -10,11 +10,14 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { useServerFn } from '@tanstack/react-start'
+import { useQuery } from '@tanstack/react-query'
 import { buttonVariants } from '#/components/ui/button'
 import { TooltipProvider } from '#/components/ui/tooltip'
 import { Toaster } from '#/components/ui/sonner'
 import { ImpersonationBanner } from '#/components/admin/impersonation-banner'
 import { ArchVaultLogo } from '#/components/archvault-logo'
+import { getBrowserTelemetryConfig } from '#/lib/settings.functions'
 import { getLocale } from '#/paraglide/runtime'
 import { m } from '#/paraglide/messages'
 
@@ -49,6 +52,24 @@ function RootComponent() {
   )
 }
 
+function BrowserTelemetryInit() {
+  const getConfigFn = useServerFn(getBrowserTelemetryConfig)
+  const { data: telemetryConfig } = useQuery({
+    queryKey: ['browser-telemetry-config'],
+    queryFn: () => getConfigFn(),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    if (!telemetryConfig) return
+    void import('#/lib/telemetry.browser').then(({ initBrowserTelemetry }) => {
+      initBrowserTelemetry(telemetryConfig)
+    })
+  }, [telemetryConfig])
+
+  return null
+}
+
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang={getLocale()} suppressHydrationWarning>
@@ -70,6 +91,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
             },
           ]}
         />
+        <BrowserTelemetryInit />
         <Scripts />
       </body>
     </html>

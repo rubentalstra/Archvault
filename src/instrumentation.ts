@@ -1,18 +1,37 @@
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
+import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-proto";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
-import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-node";
+import {
+  BatchSpanProcessor,
+  ConsoleSpanExporter,
+} from "@opentelemetry/sdk-trace-node";
+import {
+  BatchLogRecordProcessor,
+  type LogRecordProcessor,
+} from "@opentelemetry/sdk-logs";
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
 } from "@opentelemetry/semantic-conventions";
-import type { Attributes, Context, Link, SpanKind } from "@opentelemetry/api";
+import type {
+  Attributes,
+  Context,
+  Link,
+  SpanKind,
+} from "@opentelemetry/api";
 import type { Sampler, SamplingResult } from "@opentelemetry/sdk-trace-node";
 import { SamplingDecision } from "@opentelemetry/sdk-trace-node";
+import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
+import { PgInstrumentation } from "@opentelemetry/instrumentation-pg";
+import { DnsInstrumentation } from "@opentelemetry/instrumentation-dns";
+import * as fs from "node:fs";
 
-// Read env vars directly — DB may not be ready at boot time
+import type { OtelAuthType } from "./lib/settings.validators";
+
+// ─── Env config ────────────────────────────────────────────────────────────
 const enabled = process.env.OTEL_ENABLED === "true";
 const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
 const serviceName = process.env.OTEL_SERVICE_NAME ?? "archvault";
@@ -24,9 +43,50 @@ const exportInterval = parseInt(
 const initialSampleRate = parseFloat(
   process.env.OTEL_TRACES_SAMPLER_ARG ?? "1.0",
 );
+const logsEnabled = process.env.OTEL_LOGS_ENABLED === "true";
 
-function parseEnvHeaders(): Record<string, string> {
-  const raw = process.env.OTEL_EXPORTER_OTLP_HEADERS;
+// ─── Auth header builder ───────────────────────────────────────────────────
+function buildExporterHeaders(): Record<string, string> {
+  const authType = (process.env.OTEL_AUTH_TYPE ?? "none") as OtelAuthType;
+
+  switch (authType) {
+    case "none":
+      return {};
+
+    case "custom_headers":
+      return parseEnvHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS);
+
+    case "bearer": {
+      const token = process.env.OTEL_AUTH_BEARER_TOKEN;
+      if (!token) return {};
+      return { Authorization: `Bearer ${token}` };
+    }
+
+    case "basic": {
+      const user = process.env.OTEL_AUTH_BASIC_USER;
+      const pass = process.env.OTEL_AUTH_BASIC_PASS;
+      if (!user || !pass) return {};
+      const encoded = Buffer.from(`${user}:${pass}`).toString("base64");
+      return { Authorization: `Basic ${encoded}` };
+    }
+
+    case "api_key": {
+      const header = process.env.OTEL_AUTH_API_KEY_HEADER ?? "x-api-key";
+      const value = process.env.OTEL_AUTH_API_KEY_VALUE;
+      if (!value) return {};
+      return { [header]: value };
+    }
+
+    case "mtls":
+      // mTLS uses TLS config, not headers
+      return {};
+
+    default:
+      return {};
+  }
+}
+
+function parseEnvHeaders(raw?: string): Record<string, string> {
   if (!raw) return {};
   const headers: Record<string, string> = {};
   for (const pair of raw.split(",")) {
@@ -38,10 +98,42 @@ function parseEnvHeaders(): Record<string, string> {
   return headers;
 }
 
-/**
- * Dynamic sampler that can be updated at runtime from the admin panel.
- * Reads the sample rate from the settings cache when available.
- */
+// ─── TLS configuration ────────────────────────────────────────────────────
+function buildTlsOptions(): {
+  ca?: Buffer;
+  cert?: Buffer;
+  key?: Buffer;
+  rejectUnauthorized?: boolean;
+} {
+  const opts: {
+    ca?: Buffer;
+    cert?: Buffer;
+    key?: Buffer;
+    rejectUnauthorized?: boolean;
+  } = {};
+
+  const caPath = process.env.OTEL_EXPORTER_OTLP_CERTIFICATE;
+  const certPath = process.env.OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE;
+  const keyPath = process.env.OTEL_EXPORTER_OTLP_CLIENT_KEY;
+  const skipVerify = process.env.OTEL_TLS_INSECURE_SKIP_VERIFY === "true";
+
+  if (caPath && fs.existsSync(caPath)) {
+    opts.ca = fs.readFileSync(caPath);
+  }
+  if (certPath && fs.existsSync(certPath)) {
+    opts.cert = fs.readFileSync(certPath);
+  }
+  if (keyPath && fs.existsSync(keyPath)) {
+    opts.key = fs.readFileSync(keyPath);
+  }
+  if (skipVerify) {
+    opts.rejectUnauthorized = false;
+  }
+
+  return opts;
+}
+
+// ─── Dynamic sampler ───────────────────────────────────────────────────────
 class DynamicSampler implements Sampler {
   private _rate: number;
 
@@ -74,25 +166,28 @@ class DynamicSampler implements Sampler {
 
 export const dynamicSampler = new DynamicSampler(initialSampleRate);
 
+// ─── SDK setup ─────────────────────────────────────────────────────────────
 let sdk: NodeSDK | undefined;
 
 if (enabled) {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: serviceName,
     [ATTR_SERVICE_VERSION]: "0.1.0",
+    "deployment.environment.name": process.env.NODE_ENV ?? "development",
   });
 
-  const headers = parseEnvHeaders();
+  const headers = buildExporterHeaders();
+  const tls = buildTlsOptions();
 
-  const traceExporter = new OTLPTraceExporter({
-    ...(endpoint ? { url: `${endpoint}/v1/traces` } : {}),
+  const exporterConfig = {
+    ...(endpoint ? { url: endpoint } : {}),
     headers,
-  });
+    ...(Object.keys(tls).length > 0 ? { tls } : {}),
+  };
 
-  const metricExporter = new OTLPMetricExporter({
-    ...(endpoint ? { url: `${endpoint}/v1/metrics` } : {}),
-    headers,
-  });
+  const traceExporter = new OTLPTraceExporter(exporterConfig);
+
+  const metricExporter = new OTLPMetricExporter(exporterConfig);
 
   const metricReader = new PeriodicExportingMetricReader({
     exporter: metricExporter,
@@ -104,11 +199,23 @@ if (enabled) {
     spanProcessors.push(new BatchSpanProcessor(new ConsoleSpanExporter()));
   }
 
+  const logRecordProcessors: LogRecordProcessor[] = [];
+  if (logsEnabled) {
+    const logExporter = new OTLPLogExporter(exporterConfig);
+    logRecordProcessors.push(new BatchLogRecordProcessor(logExporter));
+  }
+
   sdk = new NodeSDK({
     resource,
     sampler: dynamicSampler,
     spanProcessors,
     metricReaders: [metricReader],
+    logRecordProcessors,
+    instrumentations: [
+      new HttpInstrumentation(),
+      new PgInstrumentation(),
+      new DnsInstrumentation(),
+    ],
   });
 
   sdk.start();
