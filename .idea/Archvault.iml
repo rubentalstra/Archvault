@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.output" />
       <excludeFolder url="file://$MODULE_DIR$/.tanstack" />
+      <excludeFolder url="file://$MODULE_DIR$/docs/.astro" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

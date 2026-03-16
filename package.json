@@ -19,6 +19,9 @@
     "email:dev": "pnpm --filter @archvault/transactional dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "docs:lint": "pnpm --filter @archvault/docs lint",
+    "docs:lint:fix": "pnpm --filter @archvault/docs lint:fix",
+    "docs:check": "pnpm --filter @archvault/docs check",
     "docs:dev": "pnpm --filter @archvault/docs dev",
     "docs:build": "pnpm --filter @archvault/docs build",
     "docs:preview": "pnpm --filter @archvault/docs preview"

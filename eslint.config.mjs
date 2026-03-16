@@ -17,6 +17,7 @@ export default tseslint.config(
       "migrations/",
       "packages/",
       "eslint.config.mjs",
+      "docs/",
     ],
   },
 
