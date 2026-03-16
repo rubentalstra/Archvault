@@ -18,7 +18,10 @@
     "docker:compose:down:v": "docker compose down -v",
     "email:dev": "pnpm --filter @archvault/transactional dev",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "docs:dev": "pnpm --filter @archvault/docs dev",
+    "docs:build": "pnpm --filter @archvault/docs build",
+    "docs:preview": "pnpm --filter @archvault/docs preview"
   },
   "dependencies": {
     "@archvault/transactional": "workspace:*",

@@ -1,0 +1,33 @@
+@import '@fontsource-variable/geist';
+
+:root {
+  --sl-font: 'Geist Variable', sans-serif;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: oklch(0.929 0.042 264.376);
+  --sl-color-accent: oklch(0.488 0.243 264.376);
+  --sl-color-accent-high: oklch(0.269 0.06 264.376);
+  --sl-color-white: oklch(0.145 0 0);
+  --sl-color-gray-1: oklch(0.269 0 0);
+  --sl-color-gray-2: oklch(0.408 0 0);
+  --sl-color-gray-3: oklch(0.556 0 0);
+  --sl-color-gray-4: oklch(0.708 0 0);
+  --sl-color-gray-5: oklch(0.922 0 0);
+  --sl-color-gray-6: oklch(0.96 0 0);
+  --sl-color-black: oklch(0.985 0 0);
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: oklch(0.269 0.06 264.376);
+  --sl-color-accent: oklch(0.546 0.245 262.881);
+  --sl-color-accent-high: oklch(0.809 0.105 251.813);
+  --sl-color-white: oklch(0.985 0 0);
+  --sl-color-gray-1: oklch(0.922 0 0);
+  --sl-color-gray-2: oklch(0.708 0 0);
+  --sl-color-gray-3: oklch(0.556 0 0);
+  --sl-color-gray-4: oklch(0.269 0 0);
+  --sl-color-gray-5: oklch(0.205 0 0);
+  --sl-color-gray-6: oklch(0.145 0 0);
+  --sl-color-black: oklch(0.145 0 0);
+}

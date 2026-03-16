@@ -27,7 +27,7 @@
 ---
 
 <p align="center">
-  <img src=".github/screenshots/12-editor-level2-container.png" alt="ArchVault — Visual C4 diagram editor" width="800" />
+  <img src="docs/src/assets/screenshots/12-editor-level2-container.png" alt="ArchVault — Visual C4 diagram editor" width="800" />
 </p>
 
 ArchVault is an open-source, self-hosted platform for modeling software architecture using
@@ -52,29 +52,29 @@ entirely through a visual UI — no code required.
 
 | Dashboard                                          | Workspace                                                    |
 |----------------------------------------------------|--------------------------------------------------------------|
-| ![Dashboard](.github/screenshots/01-dashboard.png) | ![Workspace](.github/screenshots/04-workspace-dashboard.png) |
+| ![Dashboard](docs/src/assets/screenshots/01-dashboard.png) | ![Workspace](docs/src/assets/screenshots/04-workspace-dashboard.png) |
 
 | Elements                                         | Connections                                            |
 |--------------------------------------------------|--------------------------------------------------------|
-| ![Elements](.github/screenshots/06-elements.png) | ![Connections](.github/screenshots/07-connections.png) |
+| ![Elements](docs/src/assets/screenshots/06-elements.png) | ![Connections](docs/src/assets/screenshots/07-connections.png) |
 
 | Diagrams                                         | Tags                                     |
 |--------------------------------------------------|------------------------------------------|
-| ![Diagrams](.github/screenshots/05-diagrams.png) | ![Tags](.github/screenshots/08-tags.png) |
+| ![Diagrams](docs/src/assets/screenshots/05-diagrams.png) | ![Tags](docs/src/assets/screenshots/08-tags.png) |
 
 | Technologies                                             | Workspace Settings                                         |
 |----------------------------------------------------------|------------------------------------------------------------|
-| ![Technologies](.github/screenshots/09-technologies.png) | ![Settings](.github/screenshots/10-workspace-settings.png) |
+| ![Technologies](docs/src/assets/screenshots/09-technologies.png) | ![Settings](docs/src/assets/screenshots/10-workspace-settings.png) |
 
 | Members                                        | Teams                                      |
 |------------------------------------------------|--------------------------------------------|
-| ![Members](.github/screenshots/02-members.png) | ![Teams](.github/screenshots/03-teams.png) |
+| ![Members](docs/src/assets/screenshots/02-members.png) | ![Teams](docs/src/assets/screenshots/03-teams.png) |
 
 **Diagram Editor**
 
 | Level 1 — System Context                                       | Level 2 — Container                                       | Level 3 — Component                                       |
 |----------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
-| ![L1](.github/screenshots/11-editor-level1-system-context.png) | ![L2](.github/screenshots/12-editor-level2-container.png) | ![L3](.github/screenshots/13-editor-level3-component.png) |
+| ![L1](docs/src/assets/screenshots/11-editor-level1-system-context.png) | ![L2](docs/src/assets/screenshots/12-editor-level2-container.png) | ![L3](docs/src/assets/screenshots/13-editor-level3-component.png) |
 
 > [!NOTE]
 > ArchVault is under active development. Features like autosave, keyboard shortcuts, versioning, and a community blocks

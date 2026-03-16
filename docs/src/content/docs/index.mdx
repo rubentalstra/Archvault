@@ -1,0 +1,54 @@
+---
+title: ArchVault
+description: Self-hosted visual C4 architecture platform for modeling software systems.
+template: splash
+hero:
+  title: ArchVault
+  tagline: Self-hosted visual C4 architecture platform for modeling software systems, creating diagrams, and sharing reusable architecture blocks.
+  image:
+    dark: ../../assets/logo-dark.svg
+    light: ../../assets/logo-light.svg
+  actions:
+    - text: Get Started
+      link: /getting-started/introduction/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/rubentalstra/ArchVault
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## Features
+
+<CardGrid stagger>
+  <Card title="C4 Modeling" icon="pencil">
+    Model your software architecture using the C4 model — System Context (L1), Container (L2), and Component (L3) diagrams.
+  </Card>
+  <Card title="Visual Editor" icon="setting">
+    Drag-and-drop diagram editor powered by React Flow with auto-layout, connection routing, and real-time autosave.
+  </Card>
+  <Card title="Organizations & Workspaces" icon="open-book">
+    Organize architecture work into organizations and workspaces with team-based collaboration.
+  </Card>
+  <Card title="Auth & SSO" icon="approve-check-circle">
+    Enterprise-ready authentication with email/password, two-factor auth, SSO (SAML/OIDC), and SCIM provisioning.
+  </Card>
+  <Card title="Role-Based Access Control" icon="warning">
+    Fine-grained permissions with organization-level roles, member management, and team-based access.
+  </Card>
+  <Card title="Internationalization" icon="translate">
+    Fully internationalized interface with English and Dutch out of the box, easily extensible to more locales.
+  </Card>
+</CardGrid>
+
+## Quick Links
+
+<CardGrid>
+  <LinkCard title="Getting Started" description="Install and run ArchVault in minutes." href="/getting-started/introduction/" />
+  <LinkCard title="User Guide" description="Learn how to create diagrams and manage workspaces." href="/guide/dashboard/" />
+  <LinkCard title="Admin Guide" description="Deploy, configure, and operate ArchVault." href="/admin/deployment/docker-compose-production/" />
+  <LinkCard title="Contributing" description="Help improve ArchVault — contributions welcome." href="/community/contributing/" />
+</CardGrid>

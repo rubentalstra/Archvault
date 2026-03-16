@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ArchVault is a **greenfield** visual C4 architecture platform (Levels 1-3; Level 4 is out of scope). Users model software systems, create diagrams, build reusable architecture blocks, and share them via a community registry. Everything is UI-driven — users never write code.
 
-Phase tracking and specs live in `docs/phases/`. The phase README (`docs/phases/README.md`) has the full dependency graph and current status of each sub-phase.
+Phase tracking and specs live in `.github/phase-plans/`. The phase README (`.github/phase-plans/README.md`) has the full dependency graph and current status of each sub-phase.
 
 ## Commands
 
@@ -27,6 +27,24 @@ pnpm docker:compose:up      # Start PostgreSQL container
 pnpm lint            # Run ESLint on entire project
 pnpm lint:fix        # Run ESLint with auto-fix
 ```
+
+## Documentation
+
+The documentation site lives in `docs/` (Astro Starlight). It deploys to `archvault.dev` via GitHub Pages.
+
+```bash
+pnpm docs:dev       # Start docs dev server
+pnpm docs:build     # Production build
+pnpm docs:preview   # Preview production build
+```
+
+When making changes to the app, always check if the docs need updating:
+- New/changed environment variables → update `admin/deployment/environment-variables.mdx`
+- Auth changes → update relevant pages in `admin/auth/` and `guide/account/`
+- UI/editor changes → update relevant pages in `guide/editor/` or `guide/diagrams/`
+- Schema/migration changes → update `admin/database/migrations.mdx` and `architecture/data-model.mdx`
+- New keyboard shortcuts → update `guide/editor/keyboard-shortcuts.mdx`
+- i18n changes → update `architecture/internationalization.mdx`
 
 ## Tech Stack
 
@@ -113,3 +131,4 @@ Config in `components.json`. Style: `base-nova`. RSC: `false`. Components instal
 - Forms use TanStack Form + Zod. Tables use TanStack Table. Toasts use Sonner.
 - Client-side data fetching uses TanStack Query (`useQuery` + `useServerFn`). Never use `useState`/`useEffect` for data fetching.
 - All user-facing strings use Paraglide message functions (`import { m } from '#/paraglide/messages'`). Never hardcode user-facing text.
+- **Docs must stay in sync.** When changing any user-facing feature, CLI command, environment variable, config option, or API behavior, check whether the corresponding documentation page in `docs/src/content/docs/` needs updating. Outdated docs are worse than no docs.
