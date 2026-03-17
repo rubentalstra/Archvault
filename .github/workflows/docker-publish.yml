@@ -148,5 +148,8 @@ jobs:
         run: |
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            --annotation "index:org.opencontainers.image.description=Visual C4 architecture platform for modeling software systems" \
+            --annotation "index:org.opencontainers.image.source=https://github.com/rubentalstra/Archvault" \
+            --annotation "index:org.opencontainers.image.description=ArchVault — Visual C4 architecture platform" \
+            --annotation "index:org.opencontainers.image.licenses=AGPL-3.0" \
+            --annotation "index:org.opencontainers.image.url=https://archvault.dev" \
             $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
