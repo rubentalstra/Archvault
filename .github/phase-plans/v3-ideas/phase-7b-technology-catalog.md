@@ -59,10 +59,10 @@ Build a **centralized, pre-seeded technology catalog** on top of the workspace t
 
 ## Key Files
 
-- `src/lib/schema/technology-catalog.ts` — catalog table
-- `src/lib/technology-catalog.functions.ts` — catalog server functions
-- Update `src/components/technologies/technology-picker.tsx` — add catalog search
-- Update `src/components/technologies/technology-badge.tsx` — add detail popover
+- `apps/web/src/lib/schema/technology-catalog.ts` — catalog table
+- `apps/web/src/lib/technology-catalog.functions.ts` — catalog server functions
+- Update `apps/web/src/components/technologies/technology-picker.tsx` — add catalog search
+- Update `apps/web/src/components/technologies/technology-badge.tsx` — add detail popover
 
 ## Verification
 

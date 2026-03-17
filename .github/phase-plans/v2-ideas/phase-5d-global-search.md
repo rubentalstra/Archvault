@@ -64,10 +64,10 @@ relevant location.
 
 ## Key Files
 
-- `src/components/search/global-search-dialog.tsx` — search dialog component
-- `src/components/search/search-result-item.tsx` — result row component
-- `src/lib/search.functions.ts` — server-side search function
-- `src/hooks/use-global-search.ts` — search state and keyboard handling
+- `apps/web/src/components/search/global-search-dialog.tsx` — search dialog component
+- `apps/web/src/components/search/search-result-item.tsx` — result row component
+- `apps/web/src/lib/search.functions.ts` — server-side search function
+- `apps/web/src/hooks/use-global-search.ts` — search state and keyboard handling
 
 ## Design Notes
 

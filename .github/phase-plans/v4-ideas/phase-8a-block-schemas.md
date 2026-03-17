@@ -155,10 +155,10 @@ a microservice with an API gateway, message queue, and database."
 
 ## Key Files
 
-- `src/lib/schema/blocks.ts` — blocks and block_installations tables
-- `src/lib/block-manifest.schema.ts` — JSON Schema + Zod validator
-- `src/lib/block.functions.ts` — server functions
-- `src/lib/block-installer.ts` — installation engine
+- `apps/web/src/lib/schema/blocks.ts` — blocks and block_installations tables
+- `apps/web/src/lib/block-manifest.schema.ts` — JSON Schema + Zod validator
+- `apps/web/src/lib/block.functions.ts` — server functions
+- `apps/web/src/lib/block-installer.ts` — installation engine
 
 ## Design Notes
 

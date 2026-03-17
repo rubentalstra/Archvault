@@ -56,13 +56,13 @@ is the user-facing experience for discovering and using architecture patterns.
 
 ## Key Files
 
-- `src/routes/_protected/_onboarded/workspace/$workspaceSlug/blocks.tsx`
-- `src/routes/_protected/_onboarded/workspace/$workspaceSlug/blocks/$blockSlug.tsx`
-- `src/components/blocks/block-browser.tsx`
-- `src/components/blocks/block-card.tsx`
-- `src/components/blocks/block-detail.tsx`
-- `src/components/blocks/install-dialog.tsx`
-- `src/components/blocks/installed-blocks.tsx`
+- `apps/web/src/routes/_protected/_onboarded/workspace/$workspaceSlug/blocks.tsx`
+- `apps/web/src/routes/_protected/_onboarded/workspace/$workspaceSlug/blocks/$blockSlug.tsx`
+- `apps/web/src/components/blocks/block-browser.tsx`
+- `apps/web/src/components/blocks/block-card.tsx`
+- `apps/web/src/components/blocks/block-detail.tsx`
+- `apps/web/src/components/blocks/install-dialog.tsx`
+- `apps/web/src/components/blocks/installed-blocks.tsx`
 
 ## Verification
 

@@ -42,9 +42,9 @@ permanently delete items. Includes configurable auto-cleanup for old deleted ite
 
 ## Key Files
 
-- `src/routes/_protected/_onboarded/workspace/$workspaceSlug/trash.tsx`
-- `src/components/trash/trash-table.tsx`
-- `src/lib/trash.functions.ts`
+- `apps/web/src/routes/_protected/_onboarded/workspace/$workspaceSlug/trash.tsx`
+- `apps/web/src/components/trash/trash-table.tsx`
+- `apps/web/src/lib/trash.functions.ts`
 
 ## Verification
 

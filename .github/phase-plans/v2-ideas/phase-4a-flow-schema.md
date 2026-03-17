@@ -135,15 +135,15 @@ Drizzle enum: `flow_step_type` with these 8 values.
 
 ## Key Files
 
-- `src/lib/schema/flows.ts` — flows and flow_steps tables + step_type enum
-- `src/lib/schema/index.ts` — barrel export
-- `src/lib/flow.functions.ts` — server functions
-- `src/lib/flow.validators.ts` — step validation
-- `src/components/flows/flow-dropdown.tsx` — flow selector in editor
-- `src/components/flows/flow-step-list.tsx` — step sidebar
-- `src/components/flows/flow-step-editor.tsx` — step detail editor
-- `src/components/flows/flow-step-type-picker.tsx` — step type selector
-- `src/routes/_protected/_onboarded/workspace/$workspaceSlug/flows.tsx` — flows section page
+- `apps/web/src/lib/schema/flows.ts` — flows and flow_steps tables + step_type enum
+- `apps/web/src/lib/schema/index.ts` — barrel export
+- `apps/web/src/lib/flow.functions.ts` — server functions
+- `apps/web/src/lib/flow.validators.ts` — step validation
+- `apps/web/src/components/flows/flow-dropdown.tsx` — flow selector in editor
+- `apps/web/src/components/flows/flow-step-list.tsx` — step sidebar
+- `apps/web/src/components/flows/flow-step-editor.tsx` — step detail editor
+- `apps/web/src/components/flows/flow-step-type-picker.tsx` — step type selector
+- `apps/web/src/routes/_protected/_onboarded/workspace/$workspaceSlug/flows.tsx` — flows section page
 
 ## Design Notes
 

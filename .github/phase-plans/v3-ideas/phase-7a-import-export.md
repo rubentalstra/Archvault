@@ -58,12 +58,12 @@ data (JSON, YAML). This makes Archvault data portable and integrable with other 
 
 ## Key Files
 
-- `src/lib/import/workspace-importer.ts` — import logic with validation
-- `src/lib/import/import-schema.ts` — JSON Schema definition
-- `src/lib/export/diagram-exporter.ts` — PNG/SVG export
-- `src/lib/export/model-exporter.ts` — JSON/YAML model export
-- `src/components/import/import-wizard.tsx` — import UI
-- `src/components/export/export-dialog.tsx` — export options dialog
+- `apps/web/src/lib/import/workspace-importer.ts` — import logic with validation
+- `apps/web/src/lib/import/import-schema.ts` — JSON Schema definition
+- `apps/web/src/lib/export/diagram-exporter.ts` — PNG/SVG export
+- `apps/web/src/lib/export/model-exporter.ts` — JSON/YAML model export
+- `apps/web/src/components/import/import-wizard.tsx` — import UI
+- `apps/web/src/components/export/export-dialog.tsx` — export options dialog
 
 ## Verification
 

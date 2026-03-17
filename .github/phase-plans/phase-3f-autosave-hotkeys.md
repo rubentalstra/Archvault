@@ -13,12 +13,12 @@ and undo/redo with history stack.
 
 ## Current State
 
-The editor store (`src/stores/editor-store.ts`) manages nodes, edges, mode (select/pan/add_connection),
+The editor store (`apps/web/src/stores/editor-store.ts`) manages nodes, edges, mode (select/pan/add_connection),
 selection state, grid/minimap toggles, and context menus via Zustand. There is **no undo/redo stack or
 autosave logic** — changes are persisted immediately via fire-and-forget server function calls triggered
 by node drag/resize callbacks.
 
-The toolbar (`src/components/editor/editor-toolbar.tsx`) has mode toggles (select, pan, connection),
+The toolbar (`apps/web/src/components/editor/editor-toolbar.tsx`) has mode toggles (select, pan, connection),
 add-element popover with drag-to-add, and grid/minimap/element-picker toggles. Undo/redo buttons and
 save indicators do not yet exist.
 
@@ -60,7 +60,7 @@ save indicators do not yet exist.
   - `H` — pan mode
   - `C` — connection mode
 - [ ] Keyboard shortcut reference panel (show with `?`):
-  - Use shadcn `Kbd` and `KbdGroup` components (`src/components/ui/kbd.tsx`) for all key displays
+  - Use shadcn `Kbd` and `KbdGroup` components (`apps/web/src/components/ui/kbd.tsx`) for all key displays
   - Example: `<KbdGroup><Kbd>Cmd</Kbd><Kbd>Z</Kbd></KbdGroup>` for undo
   - Use `Kbd` in toolbar tooltips to show shortcut hints alongside button labels
 
@@ -102,13 +102,13 @@ save indicators do not yet exist.
 
 ## Key Files
 
-- `src/stores/editor-store.ts` — undo/redo stack, autosave state (extend existing store)
-- `src/hooks/use-autosave.ts` — debounced save logic (new)
-- `src/hooks/use-editor-hotkeys.ts` — keyboard shortcut handler (new)
-- `src/hooks/use-clipboard.ts` — copy/paste logic (new)
-- `src/components/editor/editor-toolbar.tsx` — undo/redo buttons, save indicator (extend existing)
-- `src/components/editor/shortcuts-dialog.tsx` — keyboard shortcut reference (new)
-- `src/components/ui/kbd.tsx` — shadcn `Kbd` / `KbdGroup` components (installed)
+- `apps/web/src/stores/editor-store.ts` — undo/redo stack, autosave state (extend existing store)
+- `apps/web/src/hooks/use-autosave.ts` — debounced save logic (new)
+- `apps/web/src/hooks/use-editor-hotkeys.ts` — keyboard shortcut handler (new)
+- `apps/web/src/hooks/use-clipboard.ts` — copy/paste logic (new)
+- `apps/web/src/components/editor/editor-toolbar.tsx` — undo/redo buttons, save indicator (extend existing)
+- `apps/web/src/components/editor/shortcuts-dialog.tsx` — keyboard shortcut reference (new)
+- `apps/web/src/components/ui/kbd.tsx` — shadcn `Kbd` / `KbdGroup` components (installed)
 
 ## Design Notes
 

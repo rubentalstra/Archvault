@@ -54,10 +54,10 @@ pnpm dev
 
 - **TypeScript strict mode** — `noUnusedLocals`, `noUnusedParameters`, `verbatimModuleSyntax` are enabled
 - **ESLint** — Run `pnpm lint` before committing
-- **Tailwind CSS v4** — All theme config is CSS-based in `src/styles.css`, no `tailwind.config`
-- **shadcn/ui only** — Never create custom UI components; use shadcn/ui via `pnpm dlx shadcn@latest add <component>`
+- **Tailwind CSS v4** — All theme config is CSS-based in `apps/web/src/styles.css`, no `tailwind.config`
+- **shadcn/ui only** — Never create custom UI components; use shadcn/ui via `pnpm dlx shadcn@latest add <component> --cwd apps/web`
 - **Paraglide i18n** — All user-facing strings must use `m.key()` from `#/paraglide/messages`. Never hardcode text
-- **Path alias** — Use `#/*` (resolves to `src/*`)
+- **Path alias** — Use `#/*` (resolves to `src/*` within `apps/web/`)
 
 ## Database Changes
 

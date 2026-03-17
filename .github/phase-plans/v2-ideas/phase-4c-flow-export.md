@@ -100,10 +100,10 @@ and integrable with documentation systems, wikis, and other tools.
 
 ## Key Files
 
-- `src/lib/flow-export/text-exporter.ts` — text format generator
-- `src/lib/flow-export/plantuml-exporter.ts` — PlantUML format generator
-- `src/lib/flow-export/mermaid-exporter.ts` — Mermaid format generator
-- `src/components/flows/flow-export-dialog.tsx` — export dialog with preview
+- `apps/web/src/lib/flow-export/text-exporter.ts` — text format generator
+- `apps/web/src/lib/flow-export/plantuml-exporter.ts` — PlantUML format generator
+- `apps/web/src/lib/flow-export/mermaid-exporter.ts` — Mermaid format generator
+- `apps/web/src/components/flows/flow-export-dialog.tsx` — export dialog with preview
 
 ## Design Notes
 

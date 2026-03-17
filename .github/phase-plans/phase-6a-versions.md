@@ -14,7 +14,7 @@ and browse historical snapshots in read-only mode.
 
 ## Current State
 
-The `diagramRevision` table already exists in `src/lib/schema/diagram-revisions.ts` with:
+The `diagramRevision` table already exists in `apps/web/src/lib/schema/diagram-revisions.ts` with:
 
 - `id`, `diagramId`, `revisionNumber`, `snapshotJson` (jsonb), `note`, `createdBy`, `createdAt`
 - Index on `diagramId`
@@ -216,7 +216,7 @@ function deserializeSnapshot(json: unknown): WorkspaceSnapshot {
 
 ### Database & Schema
 
-- [ ] Create Drizzle schema for `workspace_versions` table in `src/lib/schema/workspace-versions.ts`
+- [ ] Create Drizzle schema for `workspace_versions` table in `apps/web/src/lib/schema/workspace-versions.ts`
 - [ ] Define Zod schema for snapshot structure (type-safe serialization/deserialization)
 - [ ] Run migration via `pnpm drizzle-kit generate` + `pnpm drizzle-kit migrate`
 
@@ -280,13 +280,13 @@ function deserializeSnapshot(json: unknown): WorkspaceSnapshot {
 
 ## Key Files
 
-- `src/lib/schema/workspace-versions.ts` — versions table (new)
-- `src/lib/schema/diagram-revisions.ts` — existing per-diagram revisions (separate concern)
-- `src/lib/schemas/workspace-snapshot.ts` — Zod schema for snapshot structure (new)
-- `src/lib/version.functions.ts` — server functions (snapshot creation, loading, diffing)
-- `src/components/versions/version-timeline.tsx` — timeline view
-- `src/components/versions/version-create-dialog.tsx` — creation dialog
-- `src/components/versions/version-banner.tsx` — read-only mode banner
+- `apps/web/src/lib/schema/workspace-versions.ts` — versions table (new)
+- `apps/web/src/lib/schema/diagram-revisions.ts` — existing per-diagram revisions (separate concern)
+- `apps/web/src/lib/schemas/workspace-snapshot.ts` — Zod schema for snapshot structure (new)
+- `apps/web/src/lib/version.functions.ts` — server functions (snapshot creation, loading, diffing)
+- `apps/web/src/components/versions/version-timeline.tsx` — timeline view
+- `apps/web/src/components/versions/version-create-dialog.tsx` — creation dialog
+- `apps/web/src/components/versions/version-banner.tsx` — read-only mode banner
 
 ## Design Notes
 

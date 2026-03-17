@@ -61,10 +61,10 @@ and understand the impact of changes.
 
 ## Key Files
 
-- `src/routes/_protected/_onboarded/workspace/$workspaceSlug/dependencies.tsx` — dependencies page
-- `src/components/dependencies/dependency-explorer.tsx` — main explorer component
-- `src/components/dependencies/dependency-list.tsx` — incoming/outgoing list
-- `src/lib/dependency.functions.ts` — server functions for dependency queries
+- `apps/web/src/routes/_protected/_onboarded/workspace/$workspaceSlug/dependencies.tsx` — dependencies page
+- `apps/web/src/components/dependencies/dependency-explorer.tsx` — main explorer component
+- `apps/web/src/components/dependencies/dependency-list.tsx` — incoming/outgoing list
+- `apps/web/src/lib/dependency.functions.ts` — server functions for dependency queries
 
 ## Design Notes
 

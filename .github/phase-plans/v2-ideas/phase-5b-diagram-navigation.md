@@ -75,11 +75,11 @@ overlay details when needed" experience.
 
 ## Key Files
 
-- `src/components/editor/diagram-nav-bar.tsx` — navigation bar with breadcrumbs
-- `src/components/editor/zoom-indicator.tsx` — zoom icon overlay on nodes
-- `src/components/editor/diagram-switcher.tsx` — diagram picker dropdown
-- `src/hooks/use-diagram-navigation.ts` — navigation logic and history
-- `src/stores/editor-store.ts` — navigation state (history stack, viewport memory)
+- `apps/web/src/components/editor/diagram-nav-bar.tsx` — navigation bar with breadcrumbs
+- `apps/web/src/components/editor/zoom-indicator.tsx` — zoom icon overlay on nodes
+- `apps/web/src/components/editor/diagram-switcher.tsx` — diagram picker dropdown
+- `apps/web/src/hooks/use-diagram-navigation.ts` — navigation logic and history
+- `apps/web/src/stores/editor-store.ts` — navigation state (history stack, viewport memory)
 
 ## Design Notes
 

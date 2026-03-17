@@ -45,10 +45,10 @@ This provides an audit trail and helps teams understand the evolution of their a
 
 ## Key Files
 
-- `src/lib/schema/activity-log.ts`
-- `src/lib/activity.functions.ts`
-- `src/routes/_protected/_onboarded/workspace/$workspaceSlug/activity.tsx`
-- `src/components/activity/activity-feed.tsx`
+- `apps/web/src/lib/schema/activity-log.ts`
+- `apps/web/src/lib/activity.functions.ts`
+- `apps/web/src/routes/_protected/_onboarded/workspace/$workspaceSlug/activity.tsx`
+- `apps/web/src/components/activity/activity-feed.tsx`
 
 ## Verification
 

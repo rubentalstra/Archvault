@@ -47,9 +47,9 @@ from a workspace, configure variables, and save as a reusable block that can be 
 
 ## Key Files
 
-- `src/components/blocks/save-as-block-wizard.tsx`
-- `src/lib/block-generator.ts` — workspace entities to manifest converter
-- `src/components/blocks/block-manager.tsx` — my blocks management
+- `apps/web/src/components/blocks/save-as-block-wizard.tsx`
+- `apps/web/src/lib/block-generator.ts` — workspace entities to manifest converter
+- `apps/web/src/components/blocks/block-manager.tsx` — my blocks management
 
 ## Verification
 

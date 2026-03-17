@@ -43,8 +43,8 @@ patterns. These serve as both starting templates and learning examples for the b
 
 ## Key Files
 
-- `src/lib/blocks/official/` — official block manifest JSON files
-- `src/lib/blocks/seed-blocks.ts` — database seeding script
+- `apps/web/src/lib/blocks/official/` — official block manifest JSON files
+- `apps/web/src/lib/blocks/seed-blocks.ts` — database seeding script
 
 ## Verification
 

@@ -13,7 +13,7 @@ self-hosting instructions, and contribution guidelines.
 
 ## Tasks
 
-- [ ] Starlight project setup in `docs/` directory
+- [ ] Starlight project setup in `apps/docs/` directory
 - [ ] User guide sections:
   - Getting started
   - Modelling (actors, systems, apps, stores, components)

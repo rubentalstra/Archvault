@@ -58,10 +58,10 @@ Archvault's block system a collaborative ecosystem.
 
 ## Key Files
 
-- `src/routes/api/registry/$.ts` — registry API routes
-- `src/lib/registry.functions.ts` — registry server functions
-- `src/components/blocks/registry-browser.tsx` — community browsing UI
-- `src/components/blocks/publish-dialog.tsx` — publish flow
+- `apps/web/src/routes/api/registry/$.ts` — registry API routes
+- `apps/web/src/lib/registry.functions.ts` — registry server functions
+- `apps/web/src/components/blocks/registry-browser.tsx` — community browsing UI
+- `apps/web/src/components/blocks/publish-dialog.tsx` — publish flow
 
 ## Design Notes
 

@@ -100,12 +100,12 @@ path branching UI, sequence-style presentation, and connection name/title displa
 
 ## Key Files
 
-- `src/components/flows/flow-playback-toolbar.tsx` — playback controls
-- `src/components/flows/flow-step-visualizer.tsx` — step rendering on canvas
-- `src/components/flows/flow-path-tabs.tsx` — alternate/parallel path tabs
-- `src/components/flows/flow-info-card.tsx` — floating info/conclusion cards
-- `src/hooks/use-flow-playback.ts` — playback state and navigation logic
-- `src/stores/editor-store.ts` — flow state additions
+- `apps/web/src/components/flows/flow-playback-toolbar.tsx` — playback controls
+- `apps/web/src/components/flows/flow-step-visualizer.tsx` — step rendering on canvas
+- `apps/web/src/components/flows/flow-path-tabs.tsx` — alternate/parallel path tabs
+- `apps/web/src/components/flows/flow-info-card.tsx` — floating info/conclusion cards
+- `apps/web/src/hooks/use-flow-playback.ts` — playback state and navigation logic
+- `apps/web/src/stores/editor-store.ts` — flow state additions
 
 ## Design Notes
 

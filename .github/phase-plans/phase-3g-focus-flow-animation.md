@@ -18,7 +18,7 @@ control flows out of the selected element.
   React Flow's `getBezierPath` / `getStraightPath` / `getSmoothStepPath` with `BaseEdge`-style rendering.
   No custom stroke styles are applied beyond defaults.
 - The editor store tracks `selectedNodeIds` and `selectedEdgeIds` in Zustand.
-- React Flow CSS variables are defined in `src/styles.css` (`.react-flow` block) including
+- React Flow CSS variables are defined in `apps/web/src/styles.css` (`.react-flow` block) including
   `--xy-edge-stroke-default` and `--xy-edge-stroke-selected`.
 
 ## Tasks
@@ -51,12 +51,12 @@ control flows out of the selected element.
 
 ## Key Files
 
-- `src/components/editor/diagram-canvas.tsx` — apply focus styles to nodes/edges before passing to React Flow
-- `src/components/editor/edges/curved-edge.tsx` — accept animated/style overrides
-- `src/components/editor/edges/straight-edge.tsx` — accept animated/style overrides
-- `src/components/editor/edges/orthogonal-edge.tsx` — accept animated/style overrides
-- `src/stores/editor-store.ts` — derive or store focus state from selection
-- `src/styles.css` — optional CSS classes for focus/dim transitions
+- `apps/web/src/components/editor/diagram-canvas.tsx` — apply focus styles to nodes/edges before passing to React Flow
+- `apps/web/src/components/editor/edges/curved-edge.tsx` — accept animated/style overrides
+- `apps/web/src/components/editor/edges/straight-edge.tsx` — accept animated/style overrides
+- `apps/web/src/components/editor/edges/orthogonal-edge.tsx` — accept animated/style overrides
+- `apps/web/src/stores/editor-store.ts` — derive or store focus state from selection
+- `apps/web/src/styles.css` — optional CSS classes for focus/dim transitions
 
 ## Design Notes
 

@@ -108,11 +108,11 @@ different lenses without duplicating diagrams.
 
 ## Key Files
 
-- `src/lib/schema/tag-groups.ts` — tag_groups table
-- `src/lib/tag-group.functions.ts` — server functions
-- `src/components/editor/tag-bar.tsx` — diagram tag bar component
-- `src/components/tags/tag-group-manager.tsx` — tag group CRUD UI
-- `src/stores/editor-store.ts` — perspective state
+- `apps/web/src/lib/schema/tag-groups.ts` — tag_groups table
+- `apps/web/src/lib/tag-group.functions.ts` — server functions
+- `apps/web/src/components/editor/tag-bar.tsx` — diagram tag bar component
+- `apps/web/src/components/tags/tag-group-manager.tsx` — tag group CRUD UI
+- `apps/web/src/stores/editor-store.ts` — perspective state
 
 ## Design Notes
 
